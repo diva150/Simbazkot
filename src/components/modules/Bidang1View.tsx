@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Muzakki, SetoranZIS, Instansi, Bidang1Tab, DesilType } from "@/lib/types";
+import React, { useState, useMemo, useEffect } from "react";
+import { Muzakki, SetoranZIS, Instansi, Bidang1Tab, DesilType, UserSession } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
 import { exportToExcel, downloadTemplateMuzakki } from "@/lib/excel-utils";
-import { ImportExcelModal } from "@/components/common/ImportExcelModal";
+import { ImportExcelModal, useToast, Button, ToastContainer } from "@/components/common";
+import { canAccessTab } from "@/lib/access";
 import {
   HandCoins,
   Calculator,
@@ -15,24 +16,18 @@ import {
   Coins,
   Heart,
   Gift,
-  FileText,
-  Settings,
   Plus,
-  CheckCircle2,
-  TrendingUp,
-  LayoutDashboard,
   UserPlus,
   Filter,
-  UserCheck,
-  Building,
-  CreditCard,
-  Edit,
+  RotateCcw,
+  X,
 } from "lucide-react";
 
 interface Bidang1ViewProps {
   muzakkiList: Muzakki[];
   setoranList: SetoranZIS[];
   instansiList: Instansi[];
+  currentUser: UserSession;
   onAddSetoran: (setoran: SetoranZIS) => void;
   onViewKwitansi: (setoran: SetoranZIS) => void;
   onImportMuzakki: (newMuzakki: Muzakki[]) => void;
@@ -41,10 +36,63 @@ interface Bidang1ViewProps {
   onTabChange?: (tab: Bidang1Tab) => void;
 }
 
+// ════════════════════════════════════════════════════════════════════
+// KONSTANTA — diekstrak dari inline code untuk konsistensi & maintainability
+// ════════════════════════════════════════════════════════════════════
+
+// Master data: jenis setoran per tab (refactor dari 3 form copy-paste)
+const JENIS_BY_TAB: Record<
+  "zakat" | "infak" | "dskl",
+  { id: SetoranZIS["jenis"]; label: string }[]
+> = {
+  zakat: [
+    { id: "zakat_profesi", label: "Zakat Profesi (2,5%)" },
+    { id: "zakat_fitrah", label: "Zakat Fitrah" },
+    { id: "zakat_maal", label: "Zakat Maal / Harta" },
+  ],
+  infak: [
+    { id: "infaq_terikat", label: "Infak Terikat Program" },
+    { id: "infaq_umum", label: "Infak Umum" },
+    { id: "sedekah", label: "Sedekah Harian" },
+  ],
+  dskl: [
+    { id: "dskl_qurban", label: "DSKL — Tabungan Qurban" },
+    { id: "dskl_fidyah", label: "DSKL — Fidyah & Kafarat" },
+  ],
+};
+
+// Opsi dropdown Desil (digunakan di banyak tempat — DRY)
+const DESIL_OPTIONS = [
+  { value: "Desil 1", label: "Desil 1 (Ekstrem)" },
+  { value: "Desil 2", label: "Desil 2 (Miskin)" },
+  { value: "Desil 3", label: "Desil 3 (Hampir Miskin)" },
+  { value: "Desil 4", label: "Desil 4 (Rentan)" },
+  { value: "Non-Desil", label: "Non-Desil / Mampu" },
+];
+
+// Class untuk badge Desil (paper + gold accent, NO pastel chaos)
+const desilBadgeClass = (desil: string | undefined): string => {
+  if (desil === "Desil 1") return "bg-baznas-paper border border-baznas-gold-display text-baznas-ink";
+  if (desil === "Desil 2" || desil === "Desil 3")
+    return "bg-baznas-paper border border-baznas-ink-20 text-baznas-ink/80";
+  return "bg-baznas-paper border border-baznas-ink-12 text-baznas-ink/70";
+};
+
+// Class untuk badge tipe muzakki (sharp, NO purple/blue pastel)
+const tipeMuzakkiBadgeClass = (tipe: string | undefined): string => {
+  return "bg-white border border-baznas-ink-12 text-baznas-ink uppercase tracking-wider";
+};
+
+// Class untuk status badge (NO emerald-100)
+const statusBadgeClass = "bg-baznas-paper border border-baznas-ink-12 text-baznas-ink";
+
+// ════════════════════════════════════════════════════════════════════
+
 export const Bidang1View: React.FC<Bidang1ViewProps> = ({
   muzakkiList,
   setoranList,
   instansiList,
+  currentUser,
   onAddSetoran,
   onViewKwitansi,
   onImportMuzakki,
@@ -55,19 +103,36 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
   const [localTab, setLocalTab] = useState<Bidang1Tab>("dashboard");
   const activeTab = propTab || localTab;
   const setActiveTab = (tab: Bidang1Tab) => {
+    if (!canAccessTab(currentUser, "bidang1", tab)) {
+      toastError("Akses Ditolak", `Anda tidak memiliki akses ke tab "${tab}".`);
+      if (onTabChange) onTabChange("dashboard");
+      else setLocalTab("dashboard");
+      return;
+    }
     if (onTabChange) onTabChange(tab);
     else setLocalTab(tab);
   };
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isAddMuzakkiModalOpen, setIsAddMuzakkiModalOpen] = useState(false);
 
-  // Form State Penerimaan
+  const { success: toastSuccess, error: toastError, info: toastInfo, toasts, dismiss } = useToast();
+
+  // Form State
   const [muzakkiInputMode, setMuzakkiInputMode] = useState<"database" | "manual">("database");
   const [selectedMuzakkiId, setSelectedMuzakkiId] = useState(muzakkiList[0]?.id || "");
   const [searchMuzakkiFormQuery, setSearchMuzakkiFormQuery] = useState("");
   const [filterDesilForm, setFilterDesilForm] = useState<string>("all");
 
-  // Form State Penerimaan Manual
+  useEffect(() => {
+    if (activeTab && !canAccessTab(currentUser, "bidang1", activeTab)) {
+      toastError("Akses Ditolak", `Tab "${activeTab}" tidak tersedia untuk peran Anda.`);
+      if (onTabChange) onTabChange("dashboard");
+      else setLocalTab("dashboard");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, currentUser.role]);
+
+  // Form State Manual
   const [manualNama, setManualNama] = useState("");
   const [manualNik, setManualNik] = useState("");
   const [manualNpwz, setManualNpwz] = useState("");
@@ -77,29 +142,37 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
   const [manualDesil, setManualDesil] = useState<DesilType>("Non-Desil");
   const [simpanKeDatabase, setSimpanKeDatabase] = useState(true);
 
-  // Kategori & Nilai Setoran
+  // Kategori & Nilai
   const [kategoriUtama, setKategoriUtama] = useState<SetoranZIS["kategoriUtama"]>("zakat");
   const [jenisZis, setJenisZis] = useState<SetoranZIS["jenis"]>("zakat_profesi");
   const [gajiInput, setGajiInput] = useState<number>(10000000);
   const [nominalManual, setNominalManual] = useState<number>(250000);
   const [metode, setMetode] = useState<"tunai" | "transfer">("tunai");
   const [bank, setBank] = useState<string>("Bank Sulutgo");
-  const [keterangan, setKeterangan] = useState<string>("Zakat Penghasilan Bulan September");
+  const [keterangan, setKeterangan] = useState<string>("Zakat Penghasilan Bulan Berjalan");
 
-  // Filter Data Muzakki Tab
+  // Wizard stepper
+  const computedStep: 1 | 2 | 3 | 4 = (() => {
+    if (!selectedMuzakkiId && muzakkiInputMode === "database") return 1;
+    if (activeTab === "zakat" && jenisZis === "zakat_profesi" && gajiInput === 0 && nominalManual === 0) return 2;
+    if (activeTab !== "zakat" && nominalManual === 0) return 2;
+    if (metode === "transfer" && !bank) return 3;
+    return 4;
+  })();
+
+  // Filter
   const [searchMuzakkiQuery, setSearchMuzakkiQuery] = useState("");
   const [selectedInstansiFilter, setSelectedInstansiFilter] = useState("all");
   const [filterMuzakkiDesil, setFilterMuzakkiDesil] = useState<string>("all");
   const [filterMuzakkiNpwz, setFilterMuzakkiNpwz] = useState<string>("all");
   const [filterMuzakkiTipe, setFilterMuzakkiTipe] = useState<"all" | "individu" | "opd">("all");
 
-  // Filter Laporan Penerimaan Tab
   const [searchLaporanQuery, setSearchLaporanQuery] = useState("");
   const [filterLaporanDesil, setFilterLaporanDesil] = useState<string>("all");
   const [filterLaporanJenis, setFilterLaporanJenis] = useState<string>("all");
   const [filterLaporanMetode, setFilterLaporanMetode] = useState<string>("all");
 
-  // State Modal Tambah Muzakki Baru
+  // State Modal Tambah
   const [newMuzakkiTipe, setNewMuzakkiTipe] = useState<"individu" | "opd">("individu");
   const [newMuzakkiNama, setNewMuzakkiNama] = useState("");
   const [newMuzakkiNik, setNewMuzakkiNik] = useState("");
@@ -109,7 +182,6 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
   const [newMuzakkiInstansiId, setNewMuzakkiInstansiId] = useState(instansiList[0]?.id || "inst-1");
   const [newMuzakkiDesil, setNewMuzakkiDesil] = useState<DesilType>("Non-Desil");
 
-  // Hitung Zakat Otomatis
   const calculatedZakat = Math.round(gajiInput * 0.025);
   const finalNominal =
     kategoriUtama === "zakat" && jenisZis === "zakat_profesi"
@@ -118,7 +190,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
   const currentMuzakki = muzakkiList.find((m) => m.id === selectedMuzakkiId) || muzakkiList[0];
 
-  // Filter List Muzakki untuk Form Pilihan
+  // Filter
   const formFilteredMuzakkiList = useMemo(() => {
     return muzakkiList.filter((m) => {
       const q = searchMuzakkiFormQuery.toLowerCase();
@@ -133,7 +205,6 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     });
   }, [muzakkiList, searchMuzakkiFormQuery, filterDesilForm]);
 
-  // Filtering Muzakki by NIK / NPWZ / Nama / Desil / Instansi / Tipe
   const filteredMuzakki = useMemo(() => {
     return muzakkiList.filter((m) => {
       const q = searchMuzakkiQuery.toLowerCase();
@@ -158,7 +229,23 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     });
   }, [muzakkiList, searchMuzakkiQuery, selectedInstansiFilter, filterMuzakkiDesil, filterMuzakkiNpwz, filterMuzakkiTipe]);
 
-  // Filtering Laporan Setoran
+  const activeFilterCount = [
+    searchMuzakkiQuery,
+    filterMuzakkiDesil !== "all" ? filterMuzakkiDesil : "",
+    filterMuzakkiNpwz !== "all" ? filterMuzakkiNpwz : "",
+    filterMuzakkiTipe !== "all" ? filterMuzakkiTipe : "",
+    selectedInstansiFilter !== "all" ? selectedInstansiFilter : "",
+  ].filter(Boolean).length;
+
+  const handleResetMuzakkiFilters = () => {
+    setSearchMuzakkiQuery("");
+    setFilterMuzakkiDesil("all");
+    setFilterMuzakkiNpwz("all");
+    setFilterMuzakkiTipe("all");
+    setSelectedInstansiFilter("all");
+    toastInfo("Filter direset", "Semua filter data Muzakki telah dikembalikan ke default.");
+  };
+
   const filteredSetoran = useMemo(() => {
     return setoranList.filter((s) => {
       const q = searchLaporanQuery.toLowerCase();
@@ -178,11 +265,10 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     });
   }, [setoranList, searchLaporanQuery, filterLaporanDesil, filterLaporanJenis, filterLaporanMetode]);
 
-  // Submit Muzakki Baru
   const handleCreateNewMuzakki = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMuzakkiNama.trim()) {
-      alert("Nama lengkap muzakki wajib diisi.");
+      toastError("Nama wajib diisi", "Nama lengkap muzakki belum diisi. Silakan lengkapi terlebih dahulu.");
       return;
     }
 
@@ -193,7 +279,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       nik: newMuzakkiNik || `717100000000000${Math.floor(10 + Math.random() * 90)}`,
       npwz: newMuzakkiNpwz || `NPWZ-7171-${Math.floor(1000 + Math.random() * 9000)}`,
       noHp: newMuzakkiHp || "081200000000",
-      alamat: newMuzakkiAlamat || "Kota Manado",
+      alamat: newMuzakkiAlamat || "Kota Gorontalo",
       instansiId: newMuzakkiInstansiId,
       namaInstansi: selectedIns ? selectedIns.nama : "Instansi Umum",
       status: "aktif",
@@ -216,73 +302,36 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     setNewMuzakkiAlamat("");
   };
 
-  // Export Muzakki to Excel
   const handleExportMuzakki = () => {
     const headers = [
-      "No",
-      "Nomor Pokok Wajib Zakat (NPWZ)",
-      "NIK / No Identitas",
-      "Nama Lengkap Muzakki / OPD",
-      "Tipe Muzakki",
-      "Tingkat Desil",
-      "Instansi / Unit Kerja",
-      "Nomor WhatsApp / HP",
-      "Alamat Domisili / Kantor",
-      "Total Zakat Disetor (Rp)",
-      "Status",
+      "No", "Nomor Pokok Wajib Zakat (NPWZ)", "NIK / No Identitas",
+      "Nama Lengkap Muzakki / OPD", "Tipe Muzakki", "Tingkat Desil",
+      "Instansi / Unit Kerja", "Nomor WhatsApp / HP",
+      "Alamat Domisili / Kantor", "Total Zakat Disetor (Rp)", "Status",
     ];
     const rows = filteredMuzakki.map((m, idx) => [
-      idx + 1,
-      m.npwz || "-",
-      m.nik,
-      m.namaLengkap,
+      idx + 1, m.npwz || "-", m.nik, m.namaLengkap,
       m.tipeMuzakki === "opd" ? "OPD / INSTANSI" : "INDIVIDU",
-      m.desil || "Non-Desil",
-      m.namaInstansi,
-      m.noHp,
-      m.alamat,
-      m.totalSetoran,
+      m.desil || "Non-Desil", m.namaInstansi, m.noHp, m.alamat, m.totalSetoran,
       m.status.toUpperCase(),
     ]);
     exportToExcel("Data_Muzakki_BAZNAS_Resmi", headers, rows);
   };
 
-  // Export Setoran to Excel
   const handleExportSetoran = () => {
     const headers = [
-      "No Bukti",
-      "Tanggal",
-      "Nama Muzakki",
-      "NIK",
-      "NPWZ",
-      "Tingkat Desil",
-      "Instansi",
-      "Jenis Penerimaan",
-      "Metode",
-      "Bank",
-      "Nominal (Rp)",
-      "Keterangan",
-      "Petugas Amil",
+      "No Bukti", "Tanggal", "Nama Muzakki", "NIK", "NPWZ", "Tingkat Desil",
+      "Instansi", "Jenis Penerimaan", "Metode", "Bank",
+      "Nominal (Rp)", "Keterangan", "Petugas Amil",
     ];
     const rows = filteredSetoran.map((s) => [
-      s.buktiNo,
-      s.tanggal,
-      s.namaMuzakki,
-      s.nik,
-      s.npwz || "-",
-      s.desil || "Non-Desil",
-      s.instansi,
-      s.jenisLabel,
-      s.metode,
-      s.bank || "-",
-      s.nominal,
-      s.keterangan || "-",
-      s.petugasAmil,
+      s.buktiNo, s.tanggal, s.namaMuzakki, s.nik, s.npwz || "-",
+      s.desil || "Non-Desil", s.instansi, s.jenisLabel, s.metode,
+      s.bank || "-", s.nominal, s.keterangan || "-", s.petugasAmil,
     ]);
     exportToExcel("Laporan_Penerimaan_ZIS_BAZNAS", headers, rows);
   };
 
-  // Import Muzakki from CSV
   const handleImportParsedMuzakki = (rows: string[][]) => {
     const imported: Muzakki[] = rows.map((r, idx) => ({
       id: `muz-imp-${Date.now()}-${idx}`,
@@ -290,7 +339,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       nik: r[1] || `717100000000000${idx}`,
       npwz: r[2] || `NPWZ-7171-${Date.now()}-${idx}`,
       noHp: r[3] || "081200000000",
-      alamat: r[4] || "Kota Manado",
+      alamat: r[4] || "Kota Gorontalo",
       instansiId: "inst-1",
       namaInstansi: r[5] || "Instansi Umum",
       desil: (r[6] as DesilType) || "Non-Desil",
@@ -302,7 +351,6 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
   const handleSimpanSetoran = (e: React.FormEvent) => {
     e.preventDefault();
-
     let targetMuzakkiId = "";
     let targetNama = "";
     let targetNik = "";
@@ -312,7 +360,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
     if (muzakkiInputMode === "database") {
       if (!currentMuzakki) {
-        alert("Pilih muzakki dari daftar database terlebih dahulu.");
+        toastError("Pilih Muzakki", "Silakan pilih Muzakki dari daftar database terlebih dahulu, atau gunakan mode Ketik Manual.");
         return;
       }
       targetMuzakkiId = currentMuzakki.id;
@@ -322,9 +370,8 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       targetInstansi = currentMuzakki.namaInstansi;
       targetDesil = currentMuzakki.desil || "Non-Desil";
     } else {
-      // Manual typing mode
       if (!manualNama.trim()) {
-        alert("Nama muzakki wajib diisi pada mode ketik manual.");
+        toastError("Nama wajib diisi", "Mode Ketik Manual: nama lengkap Muzakki belum diisi.");
         return;
       }
       targetMuzakkiId = `muz-manual-${Date.now()}`;
@@ -334,7 +381,6 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       targetInstansi = manualInstansi.trim() || "Masyarakat Umum";
       targetDesil = manualDesil;
 
-      // Jika opsi simpan ke database muzakki dicentang
       if (simpanKeDatabase) {
         const newMuz: Muzakki = {
           id: targetMuzakkiId,
@@ -342,18 +388,15 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
           nik: targetNik,
           npwz: targetNpwz,
           noHp: manualHp || "-",
-          alamat: manualAlamat || "Kota Manado",
+          alamat: manualAlamat || "Kota Gorontalo",
           instansiId: "inst-1",
           namaInstansi: targetInstansi,
           status: "aktif",
           totalSetoran: finalNominal,
           desil: targetDesil,
         };
-        if (onAddMuzakki) {
-          onAddMuzakki(newMuz);
-        } else {
-          muzakkiList.unshift(newMuz);
-        }
+        if (onAddMuzakki) onAddMuzakki(newMuz);
+        else muzakkiList.unshift(newMuz);
       }
     }
 
@@ -396,224 +439,244 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
   const totalZIS = setoranList.reduce((acc, curr) => acc + curr.nominal, 0);
 
+  // Current active tab key untuk JENIS_BY_TAB lookup
+  const currentTabKey: "zakat" | "infak" | "dskl" | null =
+    activeTab === "zakat" || activeTab === "infak" || activeTab === "dskl"
+      ? activeTab
+      : null;
+
   return (
     <div className="space-y-6">
-      {/* Header Modul Bidang I */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      {/* Header Modul — editorial style, no gradient */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-baznas-ink-8 pb-4">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-emerald-100 p-2.5 text-baznas-green-800">
+          <div className="border border-baznas-gold-display p-2.5 text-baznas-ink">
             <HandCoins className="h-6 w-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-slate-900 font-poppins">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold text-baznas-ink font-poppins">
                 Bidang I — Pengumpulan ZIS &amp; DSKL
               </h1>
-              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+              <span className="bg-baznas-paper border border-baznas-ink-8 px-2.5 py-0.5 text-[10px] font-bold text-baznas-ink uppercase tracking-wider">
                 Unit Pengumpulan
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Pejabat: <span className="font-semibold text-slate-700">Husain Dima</span> (Waka 1) — Staf: Minarti Alhabsyi (Pengumpulan) &amp; Azmi K. Jassin (Pelaporan &amp; Perencanaan)
+            <p className="text-xs text-baznas-ink/55 mt-1">
+              Pejabat: <span className="font-semibold text-baznas-ink/80">Husain Dima</span> (Waka 1) — Staf: Minarti Alhabsyi (Pengumpulan) &amp; Azmi K. Jassin (Pelaporan &amp; Perencanaan)
             </p>
           </div>
         </div>
       </div>
 
-      {/* 1. DASHBOARD RINGKASAN BIDANG 1 */}
-      {activeTab === "dashboard" && (
+      {/* 1. DASHBOARD RINGKASAN */}
+      {canAccessTab(currentUser, "bidang1", "dashboard") && activeTab === "dashboard" && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="border border-baznas-ink-8 bg-white p-5">
+              <span className="text-[11px] font-semibold text-baznas-ink/45 uppercase tracking-wider">
                 Total ZIS Terhimpun
               </span>
               <p className="text-2xl font-bold text-baznas-green-900 font-poppins mt-2">
                 {formatRupiah(totalZIS)}
               </p>
-              <p className="text-[11px] text-slate-400 mt-1">{setoranList.length} transaksi setoran kas</p>
+              <p className="text-[11px] text-baznas-ink/45 mt-1">{setoranList.length} transaksi setoran kas</p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="border border-baznas-ink-8 bg-white p-5">
+              <span className="text-[11px] font-semibold text-baznas-ink/45 uppercase tracking-wider">
                 Muzakki Terdaftar
               </span>
-              <p className="text-2xl font-bold text-slate-900 font-poppins mt-2">
-                {muzakkiList.length} <span className="text-sm font-normal text-slate-500">Muzakki</span>
+              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
+                {muzakkiList.length}
+                <span className="text-sm font-normal text-baznas-ink/55 ml-1">Muzakki</span>
               </p>
-              <p className="text-[11px] text-emerald-600 mt-1">Lengkap NIK, NPWZ &amp; Desil</p>
+              <p className="text-[11px] text-baznas-ink/45 mt-1">Lengkap NIK, NPWZ &amp; Desil</p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="border border-baznas-ink-8 bg-white p-5">
+              <span className="text-[11px] font-semibold text-baznas-ink/45 uppercase tracking-wider">
                 Instansi / OPD Aktif
               </span>
-              <p className="text-2xl font-bold text-slate-900 font-poppins mt-2">
-                {instansiList.length} <span className="text-sm font-normal text-slate-500">Unit UPZ</span>
+              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
+                {instansiList.length}
+                <span className="text-sm font-normal text-baznas-ink/55 ml-1">Unit UPZ</span>
               </p>
-              <p className="text-[11px] text-slate-400 mt-1">Payroll Zakat ASN Terhubung</p>
+              <p className="text-[11px] text-baznas-ink/45 mt-1">Payroll Zakat ASN Terhubung</p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="border border-baznas-ink-8 bg-white p-5">
+              <span className="text-[11px] font-semibold text-baznas-ink/45 uppercase tracking-wider">
                 Nisab Emas 2026
               </span>
-              <p className="text-2xl font-bold text-amber-700 font-poppins mt-2">
+              <p className="text-2xl font-bold text-baznas-gold-display font-poppins mt-2">
                 Rp 82.500.000
               </p>
-              <p className="text-[11px] text-slate-400 mt-1">Setara 85 gr Emas / Tahun</p>
+              <p className="text-[11px] text-baznas-ink/45 mt-1">Setara 85 gr Emas / Tahun</p>
             </div>
           </div>
 
-          {/* Quick Actions Bidang 1 */}
+          {/* Quick Actions — consistent border-l-4 gold pattern */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div
-              onClick={() => {
-                setActiveTab("zakat");
-                setJenisZis("zakat_profesi");
-              }}
-              className="cursor-pointer rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 hover:bg-emerald-100/60 transition-colors"
-            >
-              <Coins className="h-6 w-6 text-baznas-green-700 mb-2" />
-              <h3 className="text-sm font-bold text-slate-900 font-poppins">Catat Zakat Profesi (2,5%)</h3>
-              <p className="text-xs text-slate-500 mt-1">Pilih atau ketik muzakki langsung, hitung zakat otomatis &amp; cetak bukti.</p>
-            </div>
-
-            <div
-              onClick={() => {
-                setActiveTab("infak");
-                setJenisZis("infaq_terikat");
-              }}
-              className="cursor-pointer rounded-2xl border border-amber-200 bg-amber-50/50 p-5 hover:bg-amber-100/60 transition-colors"
-            >
-              <Heart className="h-6 w-6 text-amber-600 mb-2" />
-              <h3 className="text-sm font-bold text-slate-900 font-poppins">Catat Infak / Sedekah</h3>
-              <p className="text-xs text-slate-500 mt-1">Penerimaan infak terikat program atau sedekah umum harian.</p>
-            </div>
-
-            <div
-              onClick={() => {
-                setActiveTab("dskl");
-                setJenisZis("dskl_qurban");
-              }}
-              className="cursor-pointer rounded-2xl border border-blue-200 bg-blue-50/50 p-5 hover:bg-blue-100/60 transition-colors"
-            >
-              <Gift className="h-6 w-6 text-blue-600 mb-2" />
-              <h3 className="text-sm font-bold text-slate-900 font-poppins">Catat DSKL &amp; Qurban</h3>
-              <p className="text-xs text-slate-500 mt-1">Dana sosial keagamaan lainnya, fidyah, kafarat &amp; tabungan qurban.</p>
-            </div>
+            {[
+              {
+                tab: "zakat" as const, icon: Coins, title: "Catat Zakat Profesi (2,5%)",
+                desc: "Pilih atau ketik muzakki langsung, hitung zakat otomatis & cetak bukti.",
+                accentColor: "text-baznas-green-900",
+              },
+              {
+                tab: "infak" as const, icon: Heart, title: "Catat Infak / Sedekah",
+                desc: "Penerimaan infak terikat program atau sedekah umum harian.",
+                accentColor: "text-amber-700",
+              },
+              {
+                tab: "dskl" as const, icon: Gift, title: "Catat DSKL &amp; Qurban",
+                desc: "Dana sosial keagamaan lainnya, fidyah, kafarat & tabungan qurban.",
+                accentColor: "text-baznas-ink",
+              },
+            ].map((qa) => {
+              const Icon = qa.icon;
+              return (
+                <button
+                  key={qa.tab}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(qa.tab);
+                    const firstJenis = JENIS_BY_TAB[qa.tab][0].id;
+                    setJenisZis(firstJenis);
+                  }}
+                  className="group text-left bg-white border border-baznas-ink-8 border-l-4 border-l-baznas-gold-display p-5 hover:border-l-baznas-green-800 transition-colors min-h-t-target-lg"
+                >
+                  <Icon className={`h-5 w-5 ${qa.accentColor} mb-3`} aria-hidden="true" />
+                  <h3 className="text-sm font-bold text-baznas-ink font-poppins">{qa.title}</h3>
+                  <p className="text-xs text-baznas-ink/55 mt-1.5 leading-relaxed">{qa.desc}</p>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* 2. DATA MUZAKKI (FILTER NIK/NPWZ, DESIL, TAMBAH MUZAKKI, IMPORT & EXPORT EXCEL) */}
-      {activeTab === "muzakki" && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+      {/* 2. DATA MUZAKKI */}
+      {canAccessTab(currentUser, "bidang1", "muzakki") && activeTab === "muzakki" && (
+        <div className="border border-baznas-ink-8 bg-white p-7 space-y-6">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
-              <h3 className="text-base font-bold text-slate-900 font-poppins">
-                Data Muzakki Terdaftar (Individu, OPD &amp; Instansi)
+              <h3 className="text-lg font-bold text-baznas-ink font-poppins">
+                Data Muzakki Terdaftar
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-baznas-ink/55 mt-1">
                 Filter multi-kriteria: Nama, NIK (16 digit), NPWZ resmi, Tingkat Desil, dan Unit Instansi
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <button
+                type="button"
                 onClick={() => setIsAddMuzakkiModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-baznas-green-800 hover:bg-baznas-green-700 px-3.5 py-2 text-xs font-semibold text-white shadow-xs"
+                className="inline-flex items-center gap-1.5 border border-baznas-ink bg-baznas-green-900 hover:bg-baznas-green-800 px-4 py-2.5 text-xs font-bold text-white transition-colors min-h-t-target"
               >
                 <Plus className="h-4 w-4" />
-                Tambah Muzakki Baru
+                Tambah Muzakki
               </button>
 
               <button
+                type="button"
                 onClick={() => setIsImportModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs"
+                className="inline-flex items-center gap-1.5 border border-baznas-ink-20 bg-white hover:bg-baznas-paper/40 px-4 py-2.5 text-xs font-bold text-baznas-ink/80 transition-colors min-h-t-target"
               >
-                <Upload className="h-3.5 w-3.5 text-baznas-green-700" />
-                Import Excel / CSV
+                <Upload className="h-3.5 w-3.5 text-baznas-green-800" />
+                Import Excel
               </button>
 
               <button
+                type="button"
                 onClick={handleExportMuzakki}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs"
+                className="inline-flex items-center gap-1.5 border border-baznas-ink-20 bg-white hover:bg-baznas-paper/40 px-4 py-2.5 text-xs font-bold text-baznas-ink/80 transition-colors min-h-t-target"
               >
-                <Download className="h-3.5 w-3.5 text-baznas-green-700" />
-                Export Excel ({filteredMuzakki.length})
+                <Download className="h-3.5 w-3.5 text-baznas-green-800" />
+                Export ({filteredMuzakki.length})
               </button>
             </div>
           </div>
 
-          {/* Filter Bar Lengkap: NIK/NPWZ/Nama, Tipe, Desil, Status NPWZ, Instansi */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
+          {/* Filter Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2">
             <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-baznas-ink/45" />
               <input
                 type="text"
                 value={searchMuzakkiQuery}
                 onChange={(e) => setSearchMuzakkiQuery(e.target.value)}
                 placeholder="Cari NIK, NPWZ, atau Nama..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-baznas-green-700 focus:bg-white"
+                className="w-full border border-baznas-ink-20 bg-baznas-paper/40 pl-9 pr-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 focus:bg-white min-h-t-target"
               />
             </div>
 
-            {/* Filter Tipe Muzakki (Individu vs OPD) */}
             <select
               value={filterMuzakkiTipe}
               onChange={(e) => setFilterMuzakkiTipe(e.target.value as "all" | "individu" | "opd")}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:outline-none font-semibold"
+              className="border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 font-semibold min-h-t-target"
             >
               <option value="all">Semua Tipe (Individu &amp; OPD)</option>
-              <option value="individu">Muzakki Individu (Perorangan)</option>
+              <option value="individu">Muzakki Individu</option>
               <option value="opd">Muzakki OPD (Instansi / Dinas)</option>
             </select>
 
-            {/* Filter Desil */}
             <select
               value={filterMuzakkiDesil}
               onChange={(e) => setFilterMuzakkiDesil(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:outline-none font-semibold"
+              className="border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 font-semibold min-h-t-target"
             >
               <option value="all">Semua Tingkat Desil</option>
-              <option value="Desil 1">Desil 1 (Ekstrem)</option>
-              <option value="Desil 2">Desil 2 (Miskin)</option>
-              <option value="Desil 3">Desil 3 (Hampir Miskin)</option>
-              <option value="Desil 4">Desil 4 (Rentan)</option>
-              <option value="Non-Desil">Non-Desil / Mampu</option>
+              {DESIL_OPTIONS.map((d) => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
             </select>
 
-            {/* Filter Status NPWZ */}
             <select
               value={filterMuzakkiNpwz}
               onChange={(e) => setFilterMuzakkiNpwz(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:outline-none"
+              className="border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
             >
               <option value="all">Semua Status NPWZ</option>
               <option value="ber_npwz">Memiliki NPWZ Resmi</option>
               <option value="tanpa_npwz">Belum Ada NPWZ</option>
             </select>
 
-            {/* Filter Instansi */}
             <select
               value={selectedInstansiFilter}
               onChange={(e) => setSelectedInstansiFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:outline-none"
+              className="border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
             >
               <option value="all">Semua Instansi / OPD</option>
               {instansiList.map((ins) => (
-                <option key={ins.id} value={ins.id}>
-                  {ins.nama}
-                </option>
+                <option key={ins.id} value={ins.id}>{ins.nama}</option>
               ))}
             </select>
           </div>
 
+          {/* Reset filter bar */}
+          {activeFilterCount > 0 && (
+            <div className="flex items-center gap-3 pt-1">
+              <span className="text-[11px] font-bold text-baznas-green-900 bg-baznas-paper border border-baznas-gold-display px-2 py-0.5 uppercase tracking-wider">
+                {activeFilterCount} filter aktif
+              </span>
+              <button
+                type="button"
+                onClick={handleResetMuzakkiFilters}
+                className="inline-flex items-center gap-1.5 border border-baznas-ink-20 bg-white hover:bg-baznas-paper/40 px-3 py-1.5 text-xs font-bold text-baznas-ink/80 transition-colors min-h-t-target"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reset Filter
+              </button>
+            </div>
+          )}
+
           {/* Tabel Data Muzakki */}
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 text-slate-500 font-semibold uppercase border-b border-slate-200">
+          <div className="overflow-x-auto border border-baznas-ink-8">
+            <table className="w-full min-w-[600px] text-xs text-left">
+              <thead className="bg-baznas-paper text-baznas-ink/70 text-[11px] font-bold uppercase tracking-wider border-b border-baznas-ink-8">
                 <tr>
                   <th className="px-4 py-3">Nama Muzakki</th>
                   <th className="px-4 py-3">Tipe</th>
@@ -625,60 +688,50 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                   <th className="px-4 py-3 text-center">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-baznas-ink-8">
                 {filteredMuzakki.map((m) => (
-                  <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
+                  <tr key={m.id} className="hover:bg-baznas-paper/30 transition-colors">
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-slate-900">{m.namaLengkap}</p>
-                      <p className="text-[11px] text-slate-400">{m.alamat}</p>
+                      <p className="font-semibold text-baznas-ink">{m.namaLengkap}</p>
+                      <p className="text-[11px] text-baznas-ink/45 mt-0.5">{m.alamat}</p>
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
-                          m.tipeMuzakki === "opd"
-                            ? "bg-purple-100 text-purple-800 border border-purple-200"
-                            : "bg-blue-50 text-blue-800 border border-blue-200"
-                        }`}
+                        className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${tipeMuzakkiBadgeClass(m.tipeMuzakki)}`}
                       >
                         {m.tipeMuzakki === "opd" ? "OPD / Instansi" : "Individu"}
                       </span>
                     </td>
                     <td className="px-4 py-3 font-mono">
-                      <p className="text-slate-800 font-medium">NIK: {m.nik}</p>
-                      <span className="text-[10px] text-baznas-green-800 bg-emerald-50 px-1.5 py-0.5 rounded font-bold">
+                      <p className="text-baznas-ink font-medium">NIK: {m.nik}</p>
+                      <span className="inline-block text-[10px] text-baznas-green-900 bg-baznas-paper border border-baznas-ink-12 px-1.5 py-0.5 mt-1 font-bold">
                         {m.npwz || "Belum ada NPWZ"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                          m.desil === "Desil 1"
-                            ? "bg-rose-100 text-rose-800"
-                            : m.desil === "Desil 2"
-                            ? "bg-amber-100 text-amber-800"
-                            : m.desil === "Desil 3" || m.desil === "Desil 4"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-emerald-100 text-emerald-800"
-                        }`}
+                        className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${desilBadgeClass(m.desil)}`}
                       >
                         {m.desil || "Non-Desil"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{m.namaInstansi}</td>
-                    <td className="px-4 py-3 font-mono text-slate-600">{m.noHp}</td>
-                    <td className="px-4 py-3 text-right font-bold text-baznas-green-900">
+                    <td className="px-4 py-3 text-baznas-ink/80">{m.namaInstansi}</td>
+                    <td className="px-4 py-3 font-mono text-baznas-ink/65">{m.noHp}</td>
+                    <td className="px-4 py-3 text-right font-bold text-baznas-green-900 editorial-num">
                       {formatRupiah(m.totalSetoran)}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
-                        {m.status.toUpperCase()}
+                      <span
+                        className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusBadgeClass}`}
+                      >
+                        {m.status}
                       </span>
                     </td>
                   </tr>
                 ))}
                 {filteredMuzakki.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-slate-400">
+                    <td colSpan={8} className="px-4 py-10 text-center text-baznas-ink/55 text-xs">
                       Tidak ditemukan data muzakki yang sesuai filter pencarian.
                     </td>
                   </tr>
@@ -689,82 +742,113 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
         </div>
       )}
 
-      {/* 3. INPUT PENERIMAAN (ZAKAT / INFAK / DSKL) DENGAN PILIH DATABASE ATAU KETIK MANUAL */}
-      {(activeTab === "zakat" || activeTab === "infak" || activeTab === "dskl") && (
+      {/* 3. INPUT PENERIMAAN */}
+      {currentTabKey && canAccessTab(currentUser, "bidang1", currentTabKey) && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Form Input Utama (2 Cols) */}
-          <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+          <div className="lg:col-span-2 border border-baznas-ink-8 bg-white p-6">
             <form onSubmit={handleSimpanSetoran} className="space-y-6">
-              {/* Opsi Pilih Muzakki: Database vs Ketik Manual */}
+              {/* Wizard stepper — using BAZNAS palette only */}
+              <ol
+                aria-label="Langkah-langkah pencatatan setoran"
+                className="flex items-center justify-between gap-1 bg-baznas-paper border border-baznas-ink-8 p-3"
+              >
+                {[
+                  { num: 1, label: "Muzakki" },
+                  { num: 2, label: activeTab === "zakat" ? "Zakat" : activeTab === "infak" ? "Infak" : "DSKL" },
+                  { num: 3, label: "Metode" },
+                  { num: 4, label: "Simpan" },
+                ].map((s) => {
+                  const isActive = computedStep === s.num;
+                  const isDone = computedStep > s.num;
+                  return (
+                    <li key={s.num} className="flex-1 flex items-center gap-2 min-w-0">
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center text-xs font-bold transition-colors ${
+                          isActive
+                            ? "bg-baznas-green-900 text-white"
+                            : isDone
+                            ? "bg-baznas-green-700 text-white"
+                            : "bg-baznas-paper border border-baznas-ink-12 text-baznas-ink/55"
+                        }`}
+                        aria-current={isActive ? "step" : undefined}
+                      >
+                        {isDone ? "✓" : s.num}
+                      </span>
+                      <span
+                        className={`text-xs font-bold uppercase tracking-wider truncate ${
+                          isActive
+                            ? "text-baznas-green-900"
+                            : isDone
+                            ? "text-baznas-green-700"
+                            : "text-baznas-ink/55"
+                        }`}
+                      >
+                        {s.label}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              {/* Muzakki input section */}
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 font-poppins">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-baznas-ink/55 font-poppins">
                     1. Data Muzakki / Penyetor
                   </h3>
 
-                  {/* Toggle Mode Input */}
-                  <div className="flex rounded-xl bg-slate-100 p-0.5 border border-slate-200 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => setMuzakkiInputMode("database")}
-                      className={`px-3 py-1 rounded-lg font-semibold transition-all ${
-                        muzakkiInputMode === "database"
-                          ? "bg-white text-baznas-green-800 shadow-2xs"
-                          : "text-slate-600 hover:text-slate-900"
-                      }`}
-                    >
-                      Pilih Database
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMuzakkiInputMode("manual")}
-                      className={`px-3 py-1 rounded-lg font-semibold transition-all ${
-                        muzakkiInputMode === "manual"
-                          ? "bg-white text-baznas-green-800 shadow-2xs"
-                          : "text-slate-600 hover:text-slate-900"
-                      }`}
-                    >
-                      Ketik Langsung Manual
-                    </button>
+                  {/* Toggle Database/Manual — sharp toggle */}
+                  <div className="flex border border-baznas-ink-20 bg-baznas-paper/40 text-xs">
+                    {(["database", "manual"] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setMuzakkiInputMode(mode)}
+                        className={`px-3 py-1.5 font-bold transition-colors ${
+                          muzakkiInputMode === mode
+                            ? "bg-baznas-green-900 text-white"
+                            : "text-baznas-ink/65 hover:text-baznas-ink"
+                        }`}
+                      >
+                        {mode === "database" ? "Pilih Database" : "Ketik Manual"}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* MODE A: PILIH DARI DATABASE DENGAN LIVE SEARCH & FILTER DESIL/NPWZ */}
                 {muzakkiInputMode === "database" ? (
-                  <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="space-y-4 border border-baznas-ink-8 bg-baznas-paper/30 p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="relative">
-                        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-baznas-ink/45" />
                         <input
                           type="text"
                           value={searchMuzakkiFormQuery}
                           onChange={(e) => setSearchMuzakkiFormQuery(e.target.value)}
                           placeholder="Filter Nama / NPWZ / NIK..."
-                          className="w-full rounded-xl border border-slate-200 bg-white pl-8 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-baznas-green-700"
+                          className="w-full border border-baznas-ink-20 bg-white pl-8 pr-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                         />
                       </div>
                       <select
                         value={filterDesilForm}
                         onChange={(e) => setFilterDesilForm(e.target.value)}
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                        className="border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                       >
                         <option value="all">Semua Desil</option>
-                        <option value="Desil 1">Desil 1</option>
-                        <option value="Desil 2">Desil 2</option>
-                        <option value="Desil 3">Desil 3</option>
-                        <option value="Desil 4">Desil 4</option>
-                        <option value="Non-Desil">Non-Desil</option>
+                        {DESIL_OPTIONS.map((d) => (
+                          <option key={d.value} value={d.value}>{d.label}</option>
+                        ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Pilih Muzakki Hasil Filter ({formFilteredMuzakkiList.length} ditemukan):
+                      <label className="block text-[11px] font-semibold text-baznas-ink/65 mb-1.5">
+                        Pilih Muzakki ({formFilteredMuzakkiList.length} ditemukan):
                       </label>
                       <select
                         value={selectedMuzakkiId}
                         onChange={(e) => setSelectedMuzakkiId(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-baznas-green-700 focus:outline-none font-medium"
+                        className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 font-medium min-h-t-target"
                       >
                         {formFilteredMuzakkiList.map((m) => (
                           <option key={m.id} value={m.id}>
@@ -775,36 +859,35 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                     </div>
 
                     {currentMuzakki && (
-                      <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 text-xs grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className="border border-baznas-gold-display bg-baznas-paper/40 p-3 text-xs grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div>
-                          <span className="text-slate-400 block text-[10px]">Instansi:</span>
-                          <span className="font-semibold text-slate-800">{currentMuzakki.namaInstansi}</span>
+                          <span className="text-baznas-ink/45 block text-[10px] uppercase tracking-wider">Instansi</span>
+                          <span className="font-bold text-baznas-ink">{currentMuzakki.namaInstansi}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10px]">No. WhatsApp:</span>
-                          <span className="font-semibold text-slate-800">{currentMuzakki.noHp}</span>
+                          <span className="text-baznas-ink/45 block text-[10px] uppercase tracking-wider">No. WhatsApp</span>
+                          <span className="font-bold text-baznas-ink">{currentMuzakki.noHp}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10px]">NPWZ Resmi:</span>
-                          <span className="font-semibold text-baznas-green-800 font-mono">{currentMuzakki.npwz}</span>
+                          <span className="text-baznas-ink/45 block text-[10px] uppercase tracking-wider">NPWZ Resmi</span>
+                          <span className="font-bold text-baznas-green-900 font-mono">{currentMuzakki.npwz}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10px]">Tingkat Desil:</span>
-                          <span className="font-semibold text-slate-800">{currentMuzakki.desil || "Non-Desil"}</span>
+                          <span className="text-baznas-ink/45 block text-[10px] uppercase tracking-wider">Tingkat Desil</span>
+                          <span className="font-bold text-baznas-ink">{currentMuzakki.desil || "Non-Desil"}</span>
                         </div>
                       </div>
                     )}
                   </div>
                 ) : (
-                  /* MODE B: KETIK MANUAL SECARA LANGSUNG */
-                  <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50/30 p-4">
-                    <p className="text-[11px] text-amber-800 font-medium">
-                      Mode Ketik Manual: Untuk muzakki insidental, walk-in loket, atau penyetor yang belum terdaftar.
+                  <div className="space-y-4 border border-baznas-gold-display bg-baznas-paper/30 p-4">
+                    <p className="text-[11px] text-baznas-ink/70 font-medium border-l-2 border-baznas-gold-display pl-3">
+                      Mode Ketik Manual — untuk muzakki insidental, walk-in loket, atau penyetor yang belum terdaftar.
                     </p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">
                           Nama Lengkap Muzakki / Penyetor *
                         </label>
                         <input
@@ -813,25 +896,25 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                           value={manualNama}
                           onChange={(e) => setManualNama(e.target.value)}
                           placeholder="Contoh: H. Ahmad Subardjo"
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-baznas-green-700"
+                          className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs font-semibold text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                          NPWZ (Opsional / Biarkan jika belum ada)
+                        <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">
+                          NPWZ (Opsional)
                         </label>
                         <input
                           type="text"
                           value={manualNpwz}
                           onChange={(e) => setManualNpwz(e.target.value)}
                           placeholder="Contoh: NPWZ-7171-8899"
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono text-slate-800 focus:outline-none focus:border-baznas-green-700"
+                          className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">
                           NIK (16 Digit, Opsional)
                         </label>
                         <input
@@ -839,29 +922,27 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                           value={manualNik}
                           onChange={(e) => setManualNik(e.target.value)}
                           placeholder="Contoh: 7171090101900001"
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono text-slate-800 focus:outline-none focus:border-baznas-green-700"
+                          className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                          Tingkat Desil (Kategori Ekonomi)
+                        <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">
+                          Tingkat Desil
                         </label>
                         <select
                           value={manualDesil}
                           onChange={(e) => setManualDesil(e.target.value as DesilType)}
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                          className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                         >
-                          <option value="Non-Desil">Non-Desil (Masyarakat Mampu)</option>
-                          <option value="Desil 4">Desil 4 (Rentan)</option>
-                          <option value="Desil 3">Desil 3 (Hampir Miskin)</option>
-                          <option value="Desil 2">Desil 2 (Miskin)</option>
-                          <option value="Desil 1">Desil 1 (Ekstrem)</option>
+                          {DESIL_OPTIONS.map((d) => (
+                            <option key={d.value} value={d.value}>{d.label}</option>
+                          ))}
                         </select>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">
                           Nomor WhatsApp / HP
                         </label>
                         <input
@@ -869,62 +950,58 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                           value={manualHp}
                           onChange={(e) => setManualHp(e.target.value)}
                           placeholder="Contoh: 0812-4455-6677"
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                          className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">
                           Instansi / Alamat Penyetor
                         </label>
                         <input
                           type="text"
                           value={manualInstansi}
                           onChange={(e) => setManualInstansi(e.target.value)}
-                          placeholder="Contoh: Dinas Kesehatan / Manado Barat"
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                          placeholder="Contoh: Dinas Kesehatan / Gorontalo"
+                          className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                         />
                       </div>
                     </div>
 
-                    <div className="pt-2 flex items-center gap-2">
+                    <label className="flex items-center gap-2.5 pt-2 cursor-pointer">
                       <input
                         type="checkbox"
                         id="checkSimpanDb"
                         checked={simpanKeDatabase}
                         onChange={(e) => setSimpanKeDatabase(e.target.checked)}
-                        className="rounded text-baznas-green-800 focus:ring-baznas-green-800 h-4 w-4"
+                        className="h-4 w-4 text-baznas-green-800 focus:ring-baznas-green-800 border-baznas-ink-20"
                       />
-                      <label htmlFor="checkSimpanDb" className="text-xs text-slate-700 cursor-pointer">
+                      <span className="text-xs text-baznas-ink/80">
                         Simpan otomatis muzakki ini ke database master Muzakki BAZNAS
-                      </label>
-                    </div>
+                      </span>
+                    </label>
                   </div>
                 )}
               </div>
 
-              {/* Rincian Pilihan Jenis Sesuai Tab */}
-              <div className="pt-2 border-t border-slate-100">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-poppins mb-3">
-                  2. Jenis Penerimaan {activeTab.toUpperCase()}
-                </h3>
+              {/* Jenis setoran — config-driven, single source of truth */}
+              {currentTabKey && (
+                <div className="pt-4 border-t border-baznas-ink-8">
+                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-baznas-ink/55 font-poppins mb-4">
+                    2. Jenis Penerimaan {currentTabKey.toUpperCase()}
+                  </h3>
 
-                {activeTab === "zakat" && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { id: "zakat_profesi", label: "Zakat Profesi (2,5%)" },
-                        { id: "zakat_fitrah", label: "Zakat Fitrah" },
-                        { id: "zakat_maal", label: "Zakat Maal / Harta" },
-                      ].map((j) => (
+                    <div className={`grid gap-2 ${currentTabKey === "dskl" ? "grid-cols-2" : "grid-cols-3"}`}>
+                      {JENIS_BY_TAB[currentTabKey].map((j) => (
                         <button
                           key={j.id}
                           type="button"
-                          onClick={() => setJenisZis(j.id as any)}
-                          className={`rounded-xl border p-2.5 text-center text-xs font-semibold transition-all ${
+                          onClick={() => setJenisZis(j.id)}
+                          className={`border p-3 text-center text-xs font-bold uppercase tracking-wider transition-colors min-h-t-target ${
                             jenisZis === j.id
-                              ? "border-baznas-green-700 bg-emerald-50 text-baznas-green-800 ring-2 ring-baznas-green-700/20 font-bold"
-                              : "border-slate-200 bg-white text-slate-600"
+                              ? "border-baznas-gold-display bg-baznas-paper text-baznas-green-900"
+                              : "border-baznas-ink-20 bg-white text-baznas-ink/65 hover:border-baznas-ink-40"
                           }`}
                         >
                           {j.label}
@@ -932,15 +1009,15 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                       ))}
                     </div>
 
-                    {jenisZis === "zakat_profesi" ? (
-                      <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-4 space-y-3">
-                        <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
-                          <Calculator className="h-4 w-4 text-amber-600" />
+                    {currentTabKey === "zakat" && jenisZis === "zakat_profesi" ? (
+                      <div className="border border-baznas-gold-display bg-baznas-paper/30 p-5 space-y-4">
+                        <div className="flex items-center gap-2 text-xs font-bold text-baznas-ink uppercase tracking-wider">
+                          <Calculator className="h-4 w-4 text-baznas-gold-display" />
                           <span>Kalkulator Zakat Profesi Otomatis (2,5%)</span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                            <label className="block text-[11px] font-semibold text-baznas-ink/70 mb-1.5">
                               Gaji Bulanan (Rp)
                             </label>
                             <input
@@ -948,14 +1025,14 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                               value={gajiInput}
                               onChange={(e) => setGajiInput(Number(e.target.value))}
                               step="500000"
-                              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none"
+                              className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs font-bold text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-slate-700 mb-1">
-                              Zakat yang Wajib Dibayarkan (2,5%)
+                            <label className="block text-[11px] font-semibold text-baznas-ink/70 mb-1.5">
+                              Zakat Wajib (2,5%)
                             </label>
-                            <div className="rounded-lg border border-emerald-300 bg-white px-3 py-2 text-xs font-bold text-baznas-green-800">
+                            <div className="border border-baznas-gold-display bg-white px-3 py-2.5 text-sm font-extrabold text-baznas-green-900 editorial-num">
                               {formatRupiah(calculatedZakat)}
                             </div>
                           </div>
@@ -963,129 +1040,52 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                       </div>
                     ) : (
                       <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                          Nominal Zakat (Rp)
+                        <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">
+                          Nominal {currentTabKey === "zakat" ? "Zakat" : currentTabKey === "infak" ? "Infak / Sedekah" : "DSKL"} (Rp)
                         </label>
                         <input
                           type="number"
                           value={nominalManual}
                           onChange={(e) => setNominalManual(Number(e.target.value))}
-                          step="50000"
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none"
+                          step={currentTabKey === "dskl" ? "100000" : "50000"}
+                          className="w-full border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs font-bold text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                         />
                       </div>
                     )}
                   </div>
-                )}
+                </div>
+              )}
 
-                {activeTab === "infak" && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { id: "infaq_terikat", label: "Infak Terikat Program" },
-                        { id: "infaq_umum", label: "Infak Umum" },
-                        { id: "sedekah", label: "Sedekah Harian" },
-                      ].map((j) => (
-                        <button
-                          key={j.id}
-                          type="button"
-                          onClick={() => setJenisZis(j.id as any)}
-                          className={`rounded-xl border p-2.5 text-center text-xs font-semibold transition-all ${
-                            jenisZis === j.id
-                              ? "border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-500/20 font-bold"
-                              : "border-slate-200 bg-white text-slate-600"
-                          }`}
-                        >
-                          {j.label}
-                        </button>
-                      ))}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Nominal Infak / Sedekah (Rp)
-                      </label>
-                      <input
-                        type="number"
-                        value={nominalManual}
-                        onChange={(e) => setNominalManual(Number(e.target.value))}
-                        step="50000"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "dskl" && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { id: "dskl_qurban", label: "DSKL — Tabungan Qurban" },
-                        { id: "dskl_fidyah", label: "DSKL — Fidyah & Kafarat" },
-                      ].map((j) => (
-                        <button
-                          key={j.id}
-                          type="button"
-                          onClick={() => setJenisZis(j.id as any)}
-                          className={`rounded-xl border p-2.5 text-center text-xs font-semibold transition-all ${
-                            jenisZis === j.id
-                              ? "border-blue-500 bg-blue-50 text-blue-800 ring-2 ring-blue-500/20 font-bold"
-                              : "border-slate-200 bg-white text-slate-600"
-                          }`}
-                        >
-                          {j.label}
-                        </button>
-                      ))}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Nominal DSKL (Rp)
-                      </label>
-                      <input
-                        type="number"
-                        value={nominalManual}
-                        onChange={(e) => setNominalManual(Number(e.target.value))}
-                        step="100000"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Metode Bayar & Keterangan */}
-              <div className="pt-2 border-t border-slate-100 space-y-4">
+              {/* Metode & Keterangan */}
+              <div className="pt-4 border-t border-baznas-ink-8 space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Metode Penerimaan</label>
+                    <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">Metode Penerimaan</label>
                     <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setMetode("tunai")}
-                        className={`flex-1 rounded-xl border p-2 text-xs font-semibold ${
-                          metode === "tunai" ? "border-baznas-green-800 bg-emerald-50 text-baznas-green-800 font-bold" : "border-slate-200"
-                        }`}
-                      >
-                        Tunai di Loket
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setMetode("transfer")}
-                        className={`flex-1 rounded-xl border p-2 text-xs font-semibold ${
-                          metode === "transfer" ? "border-baznas-green-800 bg-emerald-50 text-baznas-green-800 font-bold" : "border-slate-200"
-                        }`}
-                      >
-                        Transfer Bank
-                      </button>
+                      {(["tunai", "transfer"] as const).map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setMetode(m)}
+                          className={`flex-1 border p-2.5 text-xs font-bold uppercase tracking-wider transition-colors min-h-t-target ${
+                            metode === m
+                              ? "border-baznas-gold-display bg-baznas-paper text-baznas-green-900"
+                              : "border-baznas-ink-20 bg-white text-baznas-ink/65 hover:border-baznas-ink-40"
+                          }`}
+                        >
+                          {m === "tunai" ? "Tunai di Loket" : "Transfer Bank"}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
                   {metode === "transfer" && (
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Bank Penerima BAZNAS</label>
+                      <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">Bank Penerima BAZNAS</label>
                       <select
                         value={bank}
                         onChange={(e) => setBank(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:outline-none font-medium"
+                        className="w-full border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 font-medium min-h-t-target"
                       >
                         <option value="Bank Sulutgo">Bank Sulutgo — 001.02.11.000123.0</option>
                         <option value="Bank Muamalat">Bank Muamalat — 801.000.456.7</option>
@@ -1096,75 +1096,81 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Keterangan / Niat Muzakki</label>
+                  <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">Keterangan / Niat Muzakki</label>
                   <input
                     type="text"
                     value={keterangan}
                     onChange={(e) => setKeterangan(e.target.value)}
                     placeholder="Contoh: Pembayaran Zakat Profesi ASN Bulan Berjalan"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-800 focus:outline-none"
+                    className="w-full border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                   />
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <div className="pt-4 border-t border-slate-100 flex justify-end">
+              {/* Submit */}
+              <div className="pt-4 border-t border-baznas-ink-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <p className="text-xs text-baznas-ink/55 leading-relaxed flex-1">
+                  Periksa kembali data setoran. Setelah disimpan, bukti kwitansi
+                  resmi akan otomatis terbuka untuk dicetak.
+                </p>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 rounded-xl bg-baznas-green-800 hover:bg-baznas-green-700 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-baznas-green-800/20"
+                  className="inline-flex items-center justify-center gap-2 min-h-t-target-lg border border-baznas-ink bg-baznas-ink hover:bg-baznas-ink/90 px-6 py-3 text-sm font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
                 >
                   <Printer className="h-4 w-4" />
-                  Simpan &amp; Buka Kwitansi Resmi
+                  Simpan &amp; Cetak Kwitansi
                 </button>
               </div>
             </form>
           </div>
 
-          {/* Kolom Kanan: Pratinjau Kwitansi Siap Terbit */}
+          {/* Kolom Kanan: Pratinjau Kwitansi — no gradient, BAZNAS palette */}
           <div className="space-y-4">
-            <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-xs">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-baznas-green-800">
+            <div className="border border-baznas-gold-display bg-baznas-paper/30 p-5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-baznas-gold-display">
                 Nilai Siap Diterbitkan
               </span>
-              <p className="text-2xl font-black text-baznas-green-900 font-poppins mt-2">
+              <p className="text-2xl font-extrabold text-baznas-green-900 font-poppins mt-2 editorial-num">
                 {formatRupiah(finalNominal)}
               </p>
 
-              <div className="mt-4 pt-3 border-t border-emerald-100 space-y-1.5 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Muzakki:</span>
-                  <span className="font-semibold text-slate-800">
+              <div className="mt-4 pt-3 border-t border-baznas-ink-8 space-y-2 text-xs">
+                <div className="flex justify-between gap-2">
+                  <span className="text-baznas-ink/55">Muzakki:</span>
+                  <span className="font-bold text-baznas-ink text-right">
                     {muzakkiInputMode === "database"
                       ? currentMuzakki?.namaLengkap
                       : manualNama || "(Ketik Nama)"}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">NPWZ:</span>
-                  <span className="font-mono text-emerald-800 font-semibold">
+                <div className="flex justify-between gap-2">
+                  <span className="text-baznas-ink/55">NPWZ:</span>
+                  <span className="font-mono text-baznas-green-900 font-bold text-right">
                     {muzakkiInputMode === "database"
                       ? currentMuzakki?.npwz || "Belum ada"
                       : manualNpwz || "Insidental"}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Desil:</span>
-                  <span className="font-semibold text-slate-700">
+                <div className="flex justify-between gap-2">
+                  <span className="text-baznas-ink/55">Desil:</span>
+                  <span className="font-bold text-baznas-ink/80 text-right">
                     {muzakkiInputMode === "database"
                       ? currentMuzakki?.desil || "Non-Desil"
                       : manualDesil}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Metode:</span>
-                  <span className="font-semibold capitalize text-slate-800">{metode}</span>
+                <div className="flex justify-between gap-2">
+                  <span className="text-baznas-ink/55">Metode:</span>
+                  <span className="font-bold text-baznas-ink text-right uppercase tracking-wider">
+                    {metode}
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs text-xs space-y-2">
-              <h4 className="font-bold text-slate-800 font-poppins">Layanan Cepat Loket</h4>
-              <p className="text-slate-500 text-[11px] leading-relaxed">
+            <div className="border border-baznas-ink-8 bg-white p-5 text-xs space-y-2">
+              <h4 className="font-bold text-baznas-ink font-poppins text-sm">Layanan Cepat Loket</h4>
+              <p className="text-baznas-ink/60 leading-relaxed text-[11px]">
                 Setiap pembayaran yang tersimpan akan langsung terdata pada buku kas penerimaan harian dan bukti kwitansi resmi siap dicetak dengan kop BAZNAS.
               </p>
             </div>
@@ -1172,58 +1178,57 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
         </div>
       )}
 
-      {/* 4. LAPORAN PENERIMAAN (FILTER DESIL, NPWZ, EXPORT EXCEL & CETAK) */}
-      {activeTab === "laporan" && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+      {/* 4. LAPORAN PENERIMAAN */}
+      {canAccessTab(currentUser, "bidang1", "laporan") && activeTab === "laporan" && (
+        <div className="border border-baznas-ink-8 bg-white p-7 space-y-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-slate-900 font-poppins">
+              <h3 className="text-lg font-bold text-baznas-ink font-poppins">
                 Buku Kas Penerimaan ZIS &amp; DSKL
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-baznas-ink/55 mt-1">
                 Daftar mutasi penerimaan kas loket dan rekening bank BAZNAS
               </p>
             </div>
 
             <button
+              type="button"
               onClick={handleExportSetoran}
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 px-4 py-2 text-xs font-semibold text-white shadow-xs"
+              className="inline-flex items-center gap-1.5 border border-baznas-ink bg-baznas-ink hover:bg-baznas-ink/90 px-4 py-2.5 text-xs font-bold text-white transition-colors min-h-t-target"
             >
               <Download className="h-4 w-4" />
-              Export Laporan ke Excel ({filteredSetoran.length})
+              Export Laporan ({filteredSetoran.length})
             </button>
           </div>
 
-          {/* Filter Bar Laporan */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+          {/* Filter Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
             <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-baznas-ink/45" />
               <input
                 type="text"
                 value={searchLaporanQuery}
                 onChange={(e) => setSearchLaporanQuery(e.target.value)}
                 placeholder="Cari No. Bukti, Nama, NPWZ..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-baznas-green-700"
+                className="w-full border border-baznas-ink-20 bg-baznas-paper/40 pl-9 pr-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
               />
             </div>
 
             <select
               value={filterLaporanDesil}
               onChange={(e) => setFilterLaporanDesil(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:outline-none font-semibold"
+              className="border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 font-semibold min-h-t-target"
             >
               <option value="all">Semua Desil</option>
-              <option value="Desil 1">Desil 1</option>
-              <option value="Desil 2">Desil 2</option>
-              <option value="Desil 3">Desil 3</option>
-              <option value="Desil 4">Desil 4</option>
-              <option value="Non-Desil">Non-Desil</option>
+              {DESIL_OPTIONS.map((d) => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
             </select>
 
             <select
               value={filterLaporanJenis}
               onChange={(e) => setFilterLaporanJenis(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:outline-none"
+              className="border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
             >
               <option value="all">Semua Jenis ZIS</option>
               <option value="zakat_profesi">Zakat Profesi</option>
@@ -1239,7 +1244,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
             <select
               value={filterLaporanMetode}
               onChange={(e) => setFilterLaporanMetode(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:outline-none"
+              className="border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
             >
               <option value="all">Semua Metode</option>
               <option value="tunai">Tunai di Loket</option>
@@ -1247,9 +1252,9 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
             </select>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 text-slate-500 font-semibold uppercase border-b border-slate-200">
+          <div className="overflow-x-auto border border-baznas-ink-8">
+            <table className="w-full min-w-[600px] text-xs text-left">
+              <thead className="bg-baznas-paper text-baznas-ink/70 text-[11px] font-bold uppercase tracking-wider border-b border-baznas-ink-8">
                 <tr>
                   <th className="px-4 py-3">No. Kwitansi</th>
                   <th className="px-4 py-3">Tanggal</th>
@@ -1261,34 +1266,37 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                   <th className="px-4 py-3 text-center">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-baznas-ink-8">
                 {filteredSetoran.map((s) => (
-                  <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-4 py-3 font-mono font-bold text-baznas-green-800">{s.buktiNo}</td>
-                    <td className="px-4 py-3 text-slate-500">{s.tanggal}</td>
+                  <tr key={s.id} className="hover:bg-baznas-paper/30 transition-colors">
+                    <td className="px-4 py-3 font-mono font-bold text-baznas-green-900">{s.buktiNo}</td>
+                    <td className="px-4 py-3 text-baznas-ink/55">{s.tanggal}</td>
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-slate-900">{s.namaMuzakki}</p>
-                      <p className="text-[10px] text-slate-400 font-mono">{s.npwz || s.nik}</p>
+                      <p className="font-bold text-baznas-ink">{s.namaMuzakki}</p>
+                      <p className="text-[10px] text-baznas-ink/45 font-mono">{s.npwz || s.nik}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-[10px] font-bold">
+                      <span
+                        className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${desilBadgeClass(s.desil)}`}
+                      >
                         {s.desil || "Non-Desil"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="font-semibold text-slate-800 block">{s.jenisLabel}</span>
-                      <span className="text-[10px] text-slate-400">{s.keterangan}</span>
+                      <span className="font-bold text-baznas-ink block">{s.jenisLabel}</span>
+                      <span className="text-[10px] text-baznas-ink/55">{s.keterangan}</span>
                     </td>
-                    <td className="px-4 py-3 capitalize text-slate-600">
-                      {s.metode} {s.bank ? `(${s.bank})` : ""}
+                    <td className="px-4 py-3 uppercase tracking-wider text-baznas-ink/65 text-[11px]">
+                      {s.metode} {s.bank ? `· ${s.bank}` : ""}
                     </td>
-                    <td className="px-4 py-3 text-right font-bold text-slate-900">
+                    <td className="px-4 py-3 text-right font-bold text-baznas-ink editorial-num">
                       {formatRupiah(s.nominal)}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button
+                        type="button"
                         onClick={() => onViewKwitansi(s)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                        className="inline-flex items-center gap-1 border border-baznas-gold-display bg-baznas-paper text-baznas-green-900 hover:bg-baznas-ink hover:text-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors min-h-t-target"
                       >
                         <Printer className="h-3.5 w-3.5" />
                         Cetak
@@ -1298,7 +1306,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                 ))}
                 {filteredSetoran.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-slate-400">
+                    <td colSpan={8} className="px-4 py-10 text-center text-baznas-ink/55 text-xs">
                       Tidak ada transaksi yang cocok dengan filter.
                     </td>
                   </tr>
@@ -1309,45 +1317,46 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
         </div>
       )}
 
-      {/* 5. PENGATURAN BIDANG 1 */}
-      {activeTab === "pengaturan" && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-6 max-w-2xl">
-          <h3 className="text-base font-bold text-slate-900 font-poppins">
+      {/* 5. PENGATURAN */}
+      {canAccessTab(currentUser, "bidang1", "pengaturan") && activeTab === "pengaturan" && (
+        <div className="border border-baznas-ink-8 bg-white p-7 space-y-6 max-w-2xl">
+          <h3 className="text-lg font-bold text-baznas-ink font-poppins">
             Pengaturan Standar Nisab &amp; Rekening Pengumpulan
           </h3>
 
           <div className="space-y-4 text-xs">
-            <div className="rounded-xl border border-slate-200 p-4 space-y-3">
-              <span className="font-bold text-slate-800 block text-sm">Standar Zakat Fitrah 1448 H</span>
+            <div className="border border-baznas-ink-8 p-5 space-y-4">
+              <span className="font-bold text-baznas-ink block text-sm">Standar Zakat Fitrah 1448 H</span>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-500 mb-1">Beras Standar per Jiwa</label>
-                  <input type="text" defaultValue="2,5 Kg / 3,5 Liter" disabled className="w-full bg-slate-50 border p-2 rounded-lg" />
+                  <label className="block text-baznas-ink/55 mb-1.5">Beras Standar per Jiwa</label>
+                  <input type="text" defaultValue="2,5 Kg / 3,5 Liter" disabled className="w-full bg-baznas-paper/40 border border-baznas-ink-20 p-2.5 text-baznas-ink" />
                 </div>
                 <div>
-                  <label className="block text-slate-500 mb-1">Konversi Uang (Rp)</label>
-                  <input type="text" defaultValue="Rp 45.000 / Jiwa" className="w-full bg-white border p-2 rounded-lg font-bold" />
+                  <label className="block text-baznas-ink/55 mb-1.5">Konversi Uang (Rp)</label>
+                  <input type="text" defaultValue="Rp 45.000 / Jiwa" className="w-full bg-white border border-baznas-ink-20 p-2.5 text-baznas-ink font-bold" />
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 p-4 space-y-3">
-              <span className="font-bold text-slate-800 block text-sm">Nisab Zakat Profesi &amp; Maal</span>
+            <div className="border border-baznas-ink-8 p-5 space-y-4">
+              <span className="font-bold text-baznas-ink block text-sm">Nisab Zakat Profesi &amp; Maal</span>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-500 mb-1">Setara Emas Murni</label>
-                  <input type="text" defaultValue="85 Gram Emas" disabled className="w-full bg-slate-50 border p-2 rounded-lg" />
+                  <label className="block text-baznas-ink/55 mb-1.5">Setara Emas Murni</label>
+                  <input type="text" defaultValue="85 Gram Emas" disabled className="w-full bg-baznas-paper/40 border border-baznas-ink-20 p-2.5 text-baznas-ink" />
                 </div>
                 <div>
-                  <label className="block text-slate-500 mb-1">Nisab per Bulan (Rp)</label>
-                  <input type="text" defaultValue="Rp 6.875.000 / Bulan" className="w-full bg-white border p-2 rounded-lg font-bold" />
+                  <label className="block text-baznas-ink/55 mb-1.5">Nisab per Bulan (Rp)</label>
+                  <input type="text" defaultValue="Rp 6.875.000 / Bulan" className="w-full bg-white border border-baznas-ink-20 p-2.5 text-baznas-ink font-bold" />
                 </div>
               </div>
             </div>
 
             <button
-              onClick={() => alert("Pengaturan parameter Nisab Bidang I berhasil disimpan!")}
-              className="rounded-xl bg-baznas-green-800 text-white px-5 py-2 font-bold hover:bg-baznas-green-700"
+              type="button"
+              onClick={() => toastSuccess("Pengaturan Nisab Tersimpan", "Parameter Nisab untuk Bidang I telah diperbarui.")}
+              className="border border-baznas-ink bg-baznas-ink hover:bg-baznas-ink/90 text-white px-5 py-2.5 font-bold transition-colors min-h-t-target"
             >
               Simpan Perubahan Pengaturan
             </button>
@@ -1355,65 +1364,60 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
         </div>
       )}
 
-      {/* MODAL TAMBAH MUZAKKI BARU */}
+      {/* MODAL TAMBAH MUZAKKI — BAZNAS palette, no gradient */}
       {isAddMuzakkiModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-baznas-green-900 to-baznas-green-800 p-5 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="rounded-xl bg-white/10 p-2 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-white border border-baznas-ink-8 shadow-lift max-h-[92vh] flex flex-col">
+            {/* Header — paper, NO gradient */}
+            <div className="border-b border-baznas-ink-8 bg-baznas-paper px-6 py-5 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="border border-baznas-gold-display p-2 text-baznas-green-900">
                   <UserPlus className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold font-poppins text-white">
+                  <h3 className="text-base font-bold font-poppins text-baznas-ink">
                     Tambah Muzakki Baru
                   </h3>
-                  <p className="text-xs text-emerald-100/80">
+                  <p className="text-[11px] text-baznas-ink/60 mt-0.5">
                     Input data master muzakki perorangan maupun perwakilan instansi
                   </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsAddMuzakkiModalOpen(false)}
-                className="rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20 transition-colors"
+                className="inline-flex items-center justify-center text-baznas-ink/55 hover:text-baznas-ink hover:bg-baznas-ink-8 h-9 w-9 transition-colors"
+                aria-label="Tutup"
               >
-                &times;
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateNewMuzakki} className="p-6 space-y-3.5 text-xs">
+            <form onSubmit={handleCreateNewMuzakki} className="p-6 space-y-4 overflow-y-auto flex-1 text-sm">
               <div>
-                <label className="block font-bold text-slate-700 mb-1.5">
+                <label className="block text-[11px] font-bold text-baznas-ink/80 mb-2 uppercase tracking-wider">
                   Tipe Muzakki
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setNewMuzakkiTipe("individu")}
-                    className={`py-2 px-3 rounded-xl font-bold border text-center transition-all ${
-                      newMuzakkiTipe === "individu"
-                        ? "bg-baznas-green-800 text-white border-baznas-green-800 shadow-xs"
-                        : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    Individu (Perorangan)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewMuzakkiTipe("opd")}
-                    className={`py-2 px-3 rounded-xl font-bold border text-center transition-all ${
-                      newMuzakkiTipe === "opd"
-                        ? "bg-purple-700 text-white border-purple-700 shadow-xs"
-                        : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    OPD (Instansi / Dinas)
-                  </button>
+                  {(["individu", "opd"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setNewMuzakkiTipe(t)}
+                      className={`py-2.5 px-3 font-bold uppercase tracking-wider border text-xs transition-colors min-h-t-target ${
+                        newMuzakkiTipe === t
+                          ? "border-baznas-green-900 bg-baznas-green-900 text-white"
+                          : "border-baznas-ink-20 bg-baznas-paper/40 text-baznas-ink/65 hover:border-baznas-ink-40"
+                      }`}
+                    >
+                      {t === "individu" ? "Individu (Perorangan)" : "OPD (Instansi)"}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">
                   {newMuzakkiTipe === "opd" ? "Nama Resmi Instansi / OPD *" : "Nama Lengkap Muzakki *"}
                 </label>
                 <input
@@ -1421,61 +1425,57 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                   required
                   value={newMuzakkiNama}
                   onChange={(e) => setNewMuzakkiNama(e.target.value)}
-                  placeholder={newMuzakkiTipe === "opd" ? "Contoh: Dinas Kesehatan Prov. Sulut" : "Contoh: dr. Hi. Fatimah Al-Idrus, Sp.A"}
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 focus:outline-none focus:border-baznas-green-700"
+                  placeholder={newMuzakkiTipe === "opd" ? "Contoh: Dinas Kesehatan Prov. Sulut" : "Contoh: H. Fatimah Al-Idrus, S.T."}
+                  className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">NIK (16 Digit)</label>
+                  <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">NIK (16 Digit)</label>
                   <input
                     type="text"
                     value={newMuzakkiNik}
                     onChange={(e) => setNewMuzakkiNik(e.target.value)}
                     placeholder="7171010101850001"
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-mono text-slate-800 focus:outline-none focus:border-baznas-green-700"
+                    className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">NPWZ Resmi</label>
+                  <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">NPWZ Resmi</label>
                   <input
                     type="text"
                     value={newMuzakkiNpwz}
                     onChange={(e) => setNewMuzakkiNpwz(e.target.value)}
                     placeholder="NPWZ-7171-XXXX"
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-mono text-slate-800 focus:outline-none focus:border-baznas-green-700"
+                    className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Tingkat Desil</label>
+                  <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">Tingkat Desil</label>
                   <select
                     value={newMuzakkiDesil}
                     onChange={(e) => setNewMuzakkiDesil(e.target.value as DesilType)}
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 focus:outline-none font-semibold"
+                    className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 font-semibold"
                   >
-                    <option value="Non-Desil">Non-Desil (Mampu / Reguler)</option>
-                    <option value="Desil 4">Desil 4 (Rentan)</option>
-                    <option value="Desil 3">Desil 3 (Hampir Miskin)</option>
-                    <option value="Desil 2">Desil 2 (Miskin)</option>
-                    <option value="Desil 1">Desil 1 (Ekstrem)</option>
+                    {DESIL_OPTIONS.map((d) => (
+                      <option key={d.value} value={d.value}>{d.label}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Unit Instansi / OPD</label>
+                  <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">Unit Instansi / OPD</label>
                   <select
                     value={newMuzakkiInstansiId}
                     onChange={(e) => setNewMuzakkiInstansiId(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 focus:outline-none"
+                    className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                   >
                     {instansiList.map((ins) => (
-                      <option key={ins.id} value={ins.id}>
-                        {ins.nama}
-                      </option>
+                      <option key={ins.id} value={ins.id}>{ins.nama}</option>
                     ))}
                   </select>
                 </div>
@@ -1483,38 +1483,38 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Nomor WhatsApp / HP</label>
+                  <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">Nomor WhatsApp / HP</label>
                   <input
                     type="text"
                     value={newMuzakkiHp}
                     onChange={(e) => setNewMuzakkiHp(e.target.value)}
                     placeholder="0812-xxxx-xxxx"
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 focus:outline-none"
+                    className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Alamat Domisili</label>
+                  <label className="block text-[11px] font-bold text-baznas-ink/80 mb-1.5">Alamat Domisili</label>
                   <input
                     type="text"
                     value={newMuzakkiAlamat}
                     onChange={(e) => setNewMuzakkiAlamat(e.target.value)}
                     placeholder="Kecamatan / Kelurahan"
-                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 focus:outline-none"
+                    className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-baznas-ink-8">
                 <button
                   type="button"
                   onClick={() => setIsAddMuzakkiModalOpen(false)}
-                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                  className="border border-baznas-ink-20 hover:bg-baznas-paper/40 px-4 py-2.5 text-xs font-bold text-baznas-ink/70 transition-colors min-h-t-target"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-baznas-green-800 hover:bg-baznas-green-700 px-5 py-2 text-xs font-bold text-white shadow-md transition-all"
+                  className="border border-baznas-ink bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 text-xs font-bold text-white transition-colors min-h-t-target"
                 >
                   Simpan Muzakki
                 </button>
@@ -1524,15 +1524,18 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
         </div>
       )}
 
-      {/* MODAL IMPORT EXCEL / CSV MUZAKKI */}
       <ImportExcelModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        title="Import Data Muzakki dari Excel / CSV"
+        title="Import Data Muzakki dari Excel"
         onDownloadTemplate={downloadTemplateMuzakki}
         onImportData={handleImportParsedMuzakki}
         sampleHeaders={["Nama Lengkap", "NIK", "NPWZ", "No WhatsApp", "Alamat", "Instansi", "Tingkat Desil"]}
       />
+
+      <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 };
+
+export default Bidang1View;

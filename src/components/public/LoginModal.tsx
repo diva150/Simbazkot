@@ -1,7 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Lock, User, KeyRound, X, ArrowRight, ShieldCheck, AlertCircle, Trash2, CheckSquare, Square, Eye, EyeOff } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Lock,
+  User,
+  KeyRound,
+  X,
+  ArrowRight,
+  ShieldCheck,
+  AlertCircle,
+  Trash2,
+  CheckSquare,
+  Square,
+  Eye,
+  EyeOff,
+  Loader2,
+  ArrowLeft,
+} from "lucide-react";
+import { BAZNASMark } from "@/components/brand/BAZNASMark";
 import { initialPredefinedUsers } from "@/lib/mock-data";
 import { UserSession } from "@/lib/types";
 
@@ -24,58 +40,100 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [savedUsernames, setSavedUsernames] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Track if open for entrance animation
+  const [shouldRender, setShouldRender] = useState(false);
+  const usernameRef = useRef<HTMLInputElement>(null);
 
   // Load saved logins from localStorage
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && isOpen) {
       try {
         const stored = localStorage.getItem("baznas_saved_logins");
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            setSavedUsernames(parsed);
-          }
+          if (Array.isArray(parsed)) setSavedUsernames(parsed);
         }
       } catch (err) {
         console.error("Gagal membaca akun tersimpan:", err);
       }
+      // Set render true for entrance animation, then focus username
+      setShouldRender(true);
+      const t = setTimeout(() => usernameRef.current?.focus(), 350);
+      return () => clearTimeout(t);
+    } else if (!isOpen) {
+      // Defer unmount for exit animation
+      const t = setTimeout(() => setShouldRender(false), 250);
+      return () => clearTimeout(t);
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // Keyboard: Escape close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
+
+  if (!isOpen && !shouldRender) return null;
 
   const handleManualLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setErrorMsg(null);
+    setIsSubmitting(true);
 
-    const cleanUser = username.trim().toLowerCase();
-    const user = userAccounts.find(
-      (u) => u.username.toLowerCase() === cleanUser
-    );
+    // Simulated auth delay for nicer UX feedback
+    setTimeout(() => {
+      const cleanUser = username.trim().toLowerCase();
+      const user = userAccounts.find(
+        (u) => u.username.toLowerCase() === cleanUser
+      );
 
-    if (!user) {
-      setErrorMsg("Username tidak terdaftar pada sistem BAZNAS.");
-      return;
-    }
-
-    if (user.password && user.password !== password) {
-      setErrorMsg("Kata sandi yang Anda masukkan salah.");
-      return;
-    }
-
-    // Simpan ke localStorage jika rememberMe dicentang
-    if (rememberMe && typeof window !== "undefined") {
-      try {
-        const updated = Array.from(new Set([...savedUsernames, user.username]));
-        setSavedUsernames(updated);
-        localStorage.setItem("baznas_saved_logins", JSON.stringify(updated));
-      } catch (err) {
-        console.error("Gagal menyimpan akun:", err);
+      if (!user) {
+        setErrorMsg("Username tidak terdaftar pada sistem BAZNAS.");
+        setIsSubmitting(false);
+        // Shake animation trigger via state class
+        const card = document.getElementById("login-card");
+        if (card) {
+          card.classList.remove("animate-shake");
+          void card.offsetWidth; // reflow
+          card.classList.add("animate-shake");
+        }
+        return;
       }
-    }
 
-    onLoginSuccess(user);
-    onClose();
+      if (user.password && user.password !== password) {
+        setErrorMsg("Kata sandi yang Anda masukkan salah.");
+        setIsSubmitting(false);
+        const card = document.getElementById("login-card");
+        if (card) {
+          card.classList.remove("animate-shake");
+          void card.offsetWidth;
+          card.classList.add("animate-shake");
+        }
+        return;
+      }
+
+      // Simpan ke localStorage jika rememberMe
+      if (rememberMe && typeof window !== "undefined") {
+        try {
+          const updated = Array.from(new Set([...savedUsernames, user.username]));
+          setSavedUsernames(updated);
+          localStorage.setItem("baznas_saved_logins", JSON.stringify(updated));
+        } catch (err) {
+          console.error("Gagal menyimpan akun:", err);
+        }
+      }
+
+      setIsSubmitting(false);
+      onLoginSuccess(user);
+      onClose();
+    }, 600);
   };
 
   const handleQuickLogin = (u: UserSession) => {
@@ -100,159 +158,287 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const savedUsers = userAccounts.filter((u) => savedUsernames.includes(u.username));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col">
-        {/* Modal Header */}
-        <div className="bg-gradient-to-r from-baznas-green-900 via-baznas-green-800 to-baznas-green-900 p-6 text-white text-center relative shrink-0">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 ring-4 ring-white/10 text-white font-bold text-xl">
-            <Lock className="h-6 w-6 text-baznas-gold-500" />
-          </div>
-          <h3 className="text-lg font-bold font-poppins text-white">Login Sistem Internal</h3>
-          <p className="text-xs text-emerald-100/90 mt-0.5">
-            Portal Khusus Petugas Bidang, Pimpinan &amp; Administrator BAZNAS
-          </p>
-        </div>
+    <>
+      {/* Backdrop dengan fade-in */}
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 z-50 bg-baznas-ink/70 backdrop-blur-xs transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "opacity-0"
+        }`}
+        aria-hidden="true"
+      />
 
-        {/* Modal Content */}
-        <div className="p-6 space-y-4 overflow-y-auto flex-1">
-          {errorMsg && (
-            <div className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {/* Form Login Manual */}
-          <form onSubmit={handleManualLogin} className="space-y-3.5">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Username Bidang
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Contoh: bidang1 / bidang2 / ketua / admin"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-baznas-green-700 focus:bg-white"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Kata Sandi
-              </label>
-              <div className="relative">
-                <KeyRound className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-10 py-2 text-xs text-slate-800 focus:outline-none focus:border-baznas-green-700 focus:bg-white"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
-                  title={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Checkbox Ingat Akun */}
-            <div className="flex items-center justify-between text-xs pt-1">
-              <label
-                onClick={() => setRememberMe(!rememberMe)}
-                className="flex items-center gap-2 cursor-pointer text-slate-600 hover:text-slate-900 select-none"
-              >
-                {rememberMe ? (
-                  <CheckSquare className="h-4 w-4 text-baznas-green-800" />
-                ) : (
-                  <Square className="h-4 w-4 text-slate-400" />
-                )}
-                <span>Ingat akun di perangkat ini</span>
-              </label>
-              <span className="text-[11px] text-slate-400">1 Akun per Bidang</span>
-            </div>
-
+      {/* Modal container dengan scale + slide animation */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto pointer-events-none">
+        <div
+          id="login-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="login-title"
+          className={`relative w-full max-w-md bg-white shadow-lift border border-baznas-ink-8 overflow-hidden my-auto max-h-[94vh] flex flex-col pointer-events-auto transition-all duration-300 ease-out ${
+            isOpen
+              ? "opacity-100 scale-100 translate-y-0"
+              : "opacity-0 scale-95 -translate-y-4"
+          }`}
+        >
+          {/* Modal Header — paper, dengan subtle background pattern */}
+          <div className="relative bg-baznas-paper px-7 pt-8 pb-6 text-center border-b border-baznas-ink-8 shrink-0">
             <button
-              type="submit"
-              className="w-full rounded-xl bg-baznas-green-800 hover:bg-baznas-green-700 py-2.5 text-xs font-bold text-white shadow-md shadow-baznas-green-800/20 transition-all flex items-center justify-center gap-2 mt-2"
+              type="button"
+              onClick={onClose}
+              className="absolute top-3 right-3 inline-flex items-center justify-center text-baznas-ink/70 hover:text-baznas-ink hover:bg-baznas-ink-8 h-t-target w-t-target transition-all duration-200 hover:rotate-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+              aria-label="Tutup"
             >
-              <span>Masuk ke Dashboard</span>
-              <ArrowRight className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </button>
-          </form>
 
-          {/* Quick Login - HANYA MUNCUL JIKA SUDAH TERSIMPAN SEBELUMNYA */}
-          {savedUsers.length > 0 ? (
-            <div className="space-y-2 pt-3 border-t border-slate-200">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">
-                  Aksi Cepat (Akun Tersimpan)
-                </span>
-                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  {savedUsers.length} Tersimpan
-                </span>
+            <div className="flex justify-center text-baznas-gold-display mb-3" aria-hidden="true">
+              <Lock className="h-7 w-7" />
+            </div>
+
+            <div className="transition-transform duration-300 hover:scale-[1.02] inline-block">
+              <BAZNASMark
+                variant="mark"
+                size="md"
+                className="text-baznas-green-900 justify-center"
+              />
+            </div>
+
+            <div className="mt-5 flex items-center gap-2 justify-center text-baznas-ink/75">
+              <span
+                className="h-px w-8 bg-baznas-gold-display"
+                aria-hidden="true"
+              />
+              <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+              <span
+                className="h-px w-8 bg-baznas-gold-display"
+                aria-hidden="true"
+              />
+            </div>
+
+            <h3
+              id="login-title"
+              className="mt-4 text-base font-poppins font-bold text-baznas-ink"
+            >
+              Portal Petugas Bidang
+            </h3>
+            <p className="mt-1 text-xs text-baznas-ink/70 leading-relaxed">
+              Akses internal khusus amil, ketua, dan administrator BAZNAS.
+            </p>
+          </div>
+
+          {/* Modal Content */}
+          <div className="p-7 space-y-4 overflow-y-auto flex-1">
+            {/* Error message — slide-down entrance */}
+            {errorMsg && (
+              <div
+                role="alert"
+                className="flex items-start gap-2 border-l-4 border-rose-700 bg-rose-50 p-3 text-xs text-rose-900 animate-in fade-in slide-in-from-top-2 duration-300"
+              >
+                <AlertCircle
+                  className="h-4 w-4 shrink-0 text-rose-700 mt-0.5"
+                  aria-hidden="true"
+                />
+                <span className="font-medium">{errorMsg}</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left max-h-48 overflow-y-auto pr-1">
-                {savedUsers.map((u) => (
-                  <div
-                    key={u.username}
-                    onClick={() => handleQuickLogin(u)}
-                    role="button"
-                    tabIndex={0}
-                    className="group relative flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 hover:bg-emerald-50 hover:border-emerald-300 transition-all text-left cursor-pointer"
+            )}
+
+            {/* Form Login Manual */}
+            <form onSubmit={handleManualLogin} className="space-y-3.5" noValidate={isSubmitting}>
+              <div>
+                <label
+                  htmlFor="login-username"
+                  className="block text-[11px] font-bold text-baznas-ink/80 uppercase tracking-wider mb-1.5"
+                >
+                  Username Bidang
+                </label>
+                <div className="relative group">
+                  <User
+                    className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-baznas-ink/70 group-focus-within:text-baznas-green-800 transition-colors"
+                    aria-hidden="true"
+                  />
+                  <input
+                    ref={usernameRef}
+                    id="login-username"
+                    type="text"
+                    required
+                    disabled={isSubmitting}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="bidang1 / ketua / admin"
+                    autoComplete="username"
+                    className="w-full border border-baznas-ink-20 bg-white pl-10 pr-3 py-2.5 text-sm text-baznas-ink placeholder:text-baznas-ink/75 focus:outline-none focus:border-baznas-green-800 focus:bg-white min-h-t-target transition-all duration-200 hover:border-baznas-ink-40 focus-visible:ring-2 focus-visible:ring-baznas-green-800/30 disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="login-password"
+                  className="block text-[11px] font-bold text-baznas-ink/80 uppercase tracking-wider mb-1.5"
+                >
+                  Kata Sandi
+                </label>
+                <div className="relative group">
+                  <KeyRound
+                    className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-baznas-ink/70 group-focus-within:text-baznas-green-800 transition-colors"
+                    aria-hidden="true"
+                  />
+                  <input
+                    id="login-password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    disabled={isSubmitting}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    className="w-full border border-baznas-ink-20 bg-white pl-10 pr-10 py-2.5 text-sm text-baznas-ink placeholder:text-baznas-ink/75 focus:outline-none focus:border-baznas-green-800 focus:bg-white min-h-t-target transition-all duration-200 hover:border-baznas-ink-40 focus-visible:ring-2 focus-visible:ring-baznas-green-800/30 disabled:opacity-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={isSubmitting}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center text-baznas-ink/70 hover:text-baznas-ink h-9 w-9 transition-all duration-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 disabled:opacity-50"
+                    title={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+                    aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
                   >
-                    <div className="min-w-0 pr-6">
-                      <span className="text-[10px] font-bold text-baznas-green-800 uppercase block">
-                        {u.username}
-                      </span>
-                      <p className="text-xs font-semibold text-slate-800 group-hover:text-baznas-green-900 truncate">
-                        {u.roleLabel}
-                      </p>
-                      <p className="text-[10px] text-slate-400 truncate mt-0.5">{u.nama}</p>
-                    </div>
-                    <button
-                      type="button"
-                      title="Hapus dari akun tersimpan"
-                      onClick={(e) => handleForgetSavedAccount(e, u.username)}
-                      className="absolute top-2 right-2 text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-center text-[11px] text-slate-500">
-              <span className="block font-medium">Akses cepat belum aktif di perangkat ini.</span>
-              <span className="text-[10px] text-slate-400">
-                Centang &apos;Ingat akun&apos; saat login agar tersimpan untuk sesi berikutnya.
-              </span>
-            </div>
-          )}
 
-          <div className="rounded-xl bg-slate-50 p-2 text-center text-[11px] text-slate-400">
-            <ShieldCheck className="inline h-3.5 w-3.5 text-emerald-600 mr-1" />
-            Keamanan Data Dilindungi Enkripsi Standar BAZNAS RI
+              {/* Checkbox Ingat Akun — animated check */}
+              <div className="flex items-center justify-between text-xs pt-1">
+                <label
+                  onClick={() => !isSubmitting && setRememberMe(!rememberMe)}
+                  className={`flex items-center gap-2 select-none min-h-t-target transition-opacity ${
+                    isSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer text-baznas-ink/70 hover:text-baznas-ink"
+                  }`}
+                >
+                  <span className="inline-flex items-center justify-center w-4 h-4 transition-transform duration-200">
+                    {rememberMe ? (
+                      <CheckSquare
+                        className="h-4 w-4 text-baznas-green-800"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <Square
+                        className="h-4 w-4 text-baznas-ink/70"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </span>
+                  <span>Ingat akun di perangkat ini</span>
+                </label>
+                <span className="text-[11px] text-baznas-ink/70">1 Akun per Bidang</span>
+              </div>
+
+              {/* Submit Button — with loading state */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="group w-full inline-flex items-center justify-center gap-2 bg-baznas-ink hover:bg-baznas-ink/90 text-white py-3 text-sm font-bold transition-all duration-200 min-h-t-target-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2 disabled:opacity-80 disabled:cursor-wait active:scale-[0.99] relative overflow-hidden"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    <span>Memverifikasi...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="relative z-10">Masuk ke Dashboard</span>
+                    <ArrowRight
+                      className="h-4 w-4 relative z-10 transition-transform duration-200 group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                    <span
+                      className="absolute inset-y-0 right-0 w-0 bg-baznas-green-800 transition-all duration-300 group-hover:w-full"
+                      aria-hidden="true"
+                    />
+                  </>
+                )}
+              </button>
+
+              {/* Enter hint */}
+              <p className="text-center text-[10px] text-baznas-ink/70 pt-1">
+                Tekan <kbd className="font-mono text-[10px] font-bold text-baznas-ink/70 bg-baznas-paper/60 border border-baznas-ink-12 px-1.5 py-0.5">Enter</kbd> untuk login
+              </p>
+            </form>
+
+            {/* Quick Login - HANYA MUNCUL JIKA SUDAH TERSIMPAN SEBELUMNYA */}
+            {savedUsers.length > 0 ? (
+              <div className="space-y-2 pt-4 border-t border-baznas-ink-8 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase text-baznas-ink/70 tracking-wider">
+                    Akun Tersimpan
+                  </span>
+                  <span className="text-[10px] text-baznas-green-800 font-semibold bg-baznas-paper border border-baznas-ink-8 px-2 py-0.5">
+                    {savedUsers.length} Akun
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left max-h-48 overflow-y-auto pr-1">
+                  {savedUsers.map((u, idx) => (
+                    <div
+                      key={u.username}
+                      onClick={() => handleQuickLogin(u)}
+                      role="button"
+                      tabIndex={0}
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleQuickLogin(u);
+                        }
+                      }}
+                      className="group relative flex items-center justify-between border border-baznas-ink-8 bg-baznas-paper/40 p-2.5 hover:border-baznas-green-800 hover:bg-baznas-paper transition-all duration-200 text-left cursor-pointer min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 hover:translate-x-0.5 animate-in fade-in slide-in-from-left-2"
+                    >
+                      <div className="min-w-0 pr-6">
+                        <span className="text-[10px] font-bold text-baznas-green-800 uppercase block">
+                          {u.username}
+                        </span>
+                        <p className="text-xs font-semibold text-baznas-ink truncate">
+                          {u.roleLabel}
+                        </p>
+                        <p className="text-[10px] text-baznas-ink/75 truncate mt-0.5">
+                          {u.nama}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        title="Hapus dari akun tersimpan"
+                        onClick={(e) => handleForgetSavedAccount(e, u.username)}
+                        className="absolute top-2 right-2 text-baznas-ink/70 hover:text-rose-700 p-1 transition-all duration-200 hover:scale-110"
+                        aria-label={`Hapus akun ${u.username}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="border border-baznas-ink-8 bg-baznas-paper/40 p-2.5 text-center text-[11px] text-baznas-ink/70">
+                <span className="block font-medium">Akses cepat belum aktif di perangkat ini.</span>
+                <span className="text-[10px] text-baznas-ink/70">
+                  Centang &apos;Ingat akun&apos; saat login agar tersimpan untuk sesi berikutnya.
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-baznas-ink/70">
+              <ShieldCheck className="h-3.5 w-3.5 text-baznas-green-800" aria-hidden="true" />
+              <span>Keamanan data dilindungi enkripsi standar BAZNAS RI</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
+
+export default LoginModal;

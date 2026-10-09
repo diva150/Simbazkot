@@ -1,8 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { UploadCloud, FileSpreadsheet, Download, X, CheckCircle2, AlertCircle } from "lucide-react";
-import { parseCSV } from "@/lib/excel-utils";
+import {
+  UploadCloud,
+  FileSpreadsheet,
+  Download,
+  X,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+import { parseSpreadsheet } from "@/lib/excel-utils";
+import { Button } from "./Button";
 
 interface ImportExcelModalProps {
   isOpen: boolean;
@@ -25,31 +33,38 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
   const [parsedHeaders, setParsedHeaders] = useState<string[]>([]);
   const [parsedRows, setParsedRows] = useState<string[][]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isParsing, setIsParsing] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMsg(null);
+    setParsedHeaders([]);
+    setParsedRows([]);
     const selected = e.target.files?.[0];
     if (!selected) return;
 
     setFile(selected);
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const text = evt.target?.result as string;
-        const { headers, rows } = parseCSV(text);
-        if (headers.length === 0 || rows.length === 0) {
-          setErrorMsg("File tidak memiliki baris data yang valid.");
-          return;
-        }
-        setParsedHeaders(headers);
-        setParsedRows(rows);
-      } catch (err) {
-        setErrorMsg("Gagal membaca berkas CSV/Excel. Pastikan format file sesuai.");
+    setIsParsing(true);
+
+    try {
+      const result = await parseSpreadsheet(selected);
+      if (result.headers.length === 0 || result.rows.length === 0) {
+        setErrorMsg("File tidak memiliki baris data yang valid.");
+        return;
       }
-    };
-    reader.readAsText(selected);
+      setParsedHeaders(result.headers);
+      setParsedRows(result.rows);
+    } catch (err) {
+      console.error("Gagal membaca spreadsheet:", err);
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Gagal membaca berkas. Pastikan format file adalah .xlsx yang valid."
+      );
+    } finally {
+      setIsParsing(false);
+    }
   };
 
   const handleConfirmImport = () => {
@@ -61,22 +76,25 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-        {/* Header Modal */}
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="rounded-xl bg-emerald-100 p-2 text-baznas-green-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-white border border-baznas-ink-8 shadow-lift overflow-hidden">
+        {/* Header Modal — paper, no gradient, no rounded */}
+        <div className="flex items-center justify-between border-b border-baznas-ink-8 bg-baznas-paper px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="border border-baznas-gold-display p-2 text-baznas-green-900">
               <FileSpreadsheet className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 font-poppins">{title}</h3>
-              <p className="text-xs text-slate-500">Unggah berkas spreadsheet CSV atau Excel</p>
+              <h3 className="text-sm font-bold text-baznas-ink font-poppins">{title}</h3>
+              <p className="text-[11px] text-baznas-ink/55 mt-0.5">
+                Unggah berkas Microsoft Excel (.xlsx) dari template resmi BAZNAS
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200/60 transition-colors"
+            className="inline-flex items-center justify-center text-baznas-ink/45 hover:text-baznas-ink hover:bg-baznas-ink-8 h-t-target w-t-target transition-colors"
+            aria-label="Tutup"
           >
             <X className="h-5 w-5" />
           </button>
@@ -84,59 +102,68 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
 
         {/* Modal Body */}
         <div className="p-6 space-y-5">
-          {/* Download Template Box */}
-          <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+          {/* Download Template Box — gold accent, no amber pastel */}
+          <div className="flex items-center justify-between bg-baznas-paper/60 border-l-4 border-baznas-gold-display p-4">
             <div>
-              <p className="text-xs font-bold text-amber-900 font-poppins">Gunakan Template Standar</p>
-              <p className="text-[11px] text-amber-700 mt-0.5">
+              <p className="text-[11px] font-bold text-baznas-ink uppercase tracking-wider font-poppins">
+                Gunakan Template Standar
+              </p>
+              <p className="text-[11px] text-baznas-ink/65 mt-0.5">
                 Unduh format template resmi agar susunan kolom sesuai dengan sistem BAZNAS.
               </p>
             </div>
-            <button
+            <Button
               onClick={onDownloadTemplate}
-              type="button"
-              className="flex items-center gap-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors"
+              variant="secondary"
+              size="md"
+              icon={<Download className="h-3.5 w-3.5" />}
             >
-              <Download className="h-3.5 w-3.5" />
-              Unduh Template Excel
-            </button>
+              Template Excel
+            </Button>
           </div>
 
-          {/* Upload Drop Area */}
-          <div className="relative rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-6 text-center hover:bg-slate-50 transition-colors">
+          {/* Upload Drop Area — border-2 dashed, calm */}
+          <div className="relative border-2 border-dashed border-baznas-ink-20 bg-baznas-paper/30 p-6 text-center hover:border-baznas-green-800 transition-colors">
             <input
               type="file"
-              accept=".csv, .txt, .xls, .xlsx"
+              accept=".xlsx, .xls"
               onChange={handleFileChange}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              aria-label="Pilih file Excel untuk diimpor"
             />
-            <UploadCloud className="mx-auto h-10 w-10 text-baznas-green-700 mb-2" />
-            <p className="text-xs font-bold text-slate-800">
-              {file ? file.name : "Klik atau seret file CSV / Excel ke sini"}
+            <UploadCloud className="mx-auto h-10 w-10 text-baznas-green-800 mb-2" />
+            <p className="text-sm font-bold text-baznas-ink">
+              {isParsing
+                ? "Membaca file..."
+                : file
+                ? file.name
+                : "Klik atau seret file .xlsx ke sini"}
             </p>
-            <p className="text-[11px] text-slate-400 mt-1">Mendukung format .csv atau .xlsx</p>
+            <p className="text-[11px] text-baznas-ink/45 mt-1">
+              Hanya mendukung format Microsoft Excel (.xlsx) dari template resmi
+            </p>
           </div>
 
           {/* Error Message */}
           {errorMsg && (
-            <div className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+            <div className="flex items-start gap-2 border-l-4 border-rose-700 bg-rose-50 p-3 text-xs text-rose-900">
+              <AlertCircle className="h-4 w-4 shrink-0 text-rose-700 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          {/* Preview Table Data Terbaca */}
+          {/* Preview Table */}
           {parsedRows.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span className="text-[11px] font-bold text-baznas-ink uppercase tracking-wider flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-baznas-green-800" />
                   Pratinjau Data ({parsedRows.length} baris terdeteksi)
                 </span>
               </div>
-              <div className="max-h-48 overflow-auto rounded-xl border border-slate-200 text-xs">
+              <div className="max-h-48 overflow-auto border border-baznas-ink-8 text-xs">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-100 text-slate-600 sticky top-0 font-semibold border-b border-slate-200">
+                  <thead className="bg-baznas-paper text-baznas-ink/70 sticky top-0 font-bold text-[11px] uppercase tracking-wider border-b border-baznas-ink-8">
                     <tr>
                       <th className="p-2 w-8 text-center">No</th>
                       {(parsedHeaders.length > 0 ? parsedHeaders : sampleHeaders).map((h, i) => (
@@ -146,12 +173,12 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-baznas-ink-8">
                     {parsedRows.slice(0, 5).map((row, rIdx) => (
-                      <tr key={rIdx} className="hover:bg-slate-50">
-                        <td className="p-2 text-center text-slate-400">{rIdx + 1}</td>
+                      <tr key={rIdx} className="hover:bg-baznas-paper/30">
+                        <td className="p-2 text-center text-baznas-ink/40">{rIdx + 1}</td>
                         {row.map((cell, cIdx) => (
-                          <td key={cIdx} className="p-2 whitespace-nowrap text-slate-800">
+                          <td key={cIdx} className="p-2 whitespace-nowrap text-baznas-ink">
                             {cell}
                           </td>
                         ))}
@@ -161,7 +188,7 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
                 </table>
               </div>
               {parsedRows.length > 5 && (
-                <p className="text-[11px] text-slate-400 text-right italic">
+                <p className="text-[11px] text-baznas-ink/45 text-right italic">
                   *Menampilkan 5 dari {parsedRows.length} baris data.
                 </p>
               )}
@@ -170,29 +197,23 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-3">
-          <button
-            onClick={onClose}
-            type="button"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-          >
+        <div className="flex items-center justify-end gap-3 border-t border-baznas-ink-8 bg-baznas-paper/40 px-6 py-3">
+          <Button onClick={onClose} variant="secondary" size="md">
             Batal
-          </button>
-          <button
+          </Button>
+          <Button
             disabled={parsedRows.length === 0}
             onClick={handleConfirmImport}
-            type="button"
-            className={`flex items-center gap-1.5 rounded-xl px-5 py-2 text-xs font-semibold text-white shadow-md transition-colors ${
-              parsedRows.length === 0
-                ? "bg-slate-300 cursor-not-allowed"
-                : "bg-baznas-green-800 hover:bg-baznas-green-700 shadow-baznas-green-800/20"
-            }`}
+            variant="primary"
+            size="md"
+            icon={<CheckCircle2 className="h-4 w-4" />}
           >
-            <CheckCircle2 className="h-4 w-4" />
             Import {parsedRows.length} Baris Data
-          </button>
+          </Button>
         </div>
       </div>
     </div>
   );
 };
+
+export default ImportExcelModal;

@@ -4,166 +4,168 @@ import React, { useState } from "react";
 import { strukturOrganisasiResmiData } from "@/lib/mock-data";
 import {
   Building2,
-  Users,
   Target,
   Compass,
   Award,
-  ChevronDown,
-  UserCheck,
 } from "lucide-react";
+import { Star8, CornerBracket } from "@/components/brand/IslamicOrnament";
+
+// Helper: monogram inisial
+function monogram(nama: string): string {
+  return nama
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() || "")
+    .join("");
+}
 
 export const ProfilOrganisasiView: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<"bagan" | "tentang">("bagan");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header Modul */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-        <div className="flex items-center gap-2">
-          <span className="rounded-lg bg-emerald-100 p-2 text-baznas-green-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-baznas-ink-8 pb-5">
+        <div className="flex items-center gap-3">
+          <div className="border border-baznas-gold-display p-2.5 text-baznas-green-900">
             <Building2 className="h-5 w-5" />
-          </span>
+          </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 font-poppins">
-              Profil Lembaga &amp; Struktur Organisasi BAZNAS
+            <h1 className="text-xl sm:text-2xl font-bold text-baznas-ink font-poppins">
+              Profil Lembaga &amp; Struktur Organisasi
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-baznas-ink/55 mt-0.5">
               Visi-misi lembaga, struktur kepemimpinan hierarkis, dan pembagian tugas amil
             </p>
           </div>
         </div>
 
-        <div className="flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-semibold">
-          <button
-            onClick={() => setActiveSubTab("bagan")}
-            className={`rounded-lg px-3 py-1.5 transition-all ${
-              activeSubTab === "bagan"
-                ? "bg-white text-baznas-green-800 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Bagan Struktur Organisasi
-          </button>
-          <button
-            onClick={() => setActiveSubTab("tentang")}
-            className={`rounded-lg px-3 py-1.5 transition-all ${
-              activeSubTab === "tentang"
-                ? "bg-white text-baznas-green-800 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            Visi, Misi &amp; Legalitas
-          </button>
+        {/* Sub-tab pills — refined */}
+        <div className="flex items-center border border-baznas-ink-12 bg-baznas-paper/40 p-1 text-xs font-semibold">
+          {[
+            { id: "bagan", label: "Bagan Struktur" },
+            { id: "tentang", label: "Visi, Misi &amp; Legalitas" },
+          ].map((tab) => {
+            const active = (activeSubTab === tab.id);
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveSubTab(tab.id as "bagan" | "tentang")}
+                className={`px-3 py-1.5 transition-colors ${
+                  active
+                    ? "bg-baznas-ink text-white"
+                    : "text-baznas-ink/65 hover:text-baznas-ink"
+                }`}
+                aria-pressed={active}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* SUBTAB 1: BAGAN STRUKTUR ORGANISASI */}
       {activeSubTab === "bagan" && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-8">
+        <div className="space-y-8">
           <div className="text-center max-w-xl mx-auto">
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
-              Periode Masa Bakti 2022 - 2027
-            </span>
-            <h2 className="text-lg font-bold text-slate-900 font-poppins mt-2">
-              Bagan Struktur Kepemimpinan Resmi BAZNAS
+            <p className="text-[11px] uppercase tracking-[0.22em] text-baznas-gold-display font-bold mb-2">
+              Periode Masa Bakti 2022 – 2027
+            </p>
+            <h2 className="display-3 text-baznas-ink">
+              Bagan Struktur Kepemimpinan.
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-sm text-baznas-ink/60 mt-2">
               Berdasarkan Keputusan BAZNAS RI &amp; Regulasi Pengelolaan ZIS
             </p>
           </div>
 
           {/* TREE STRUCTURE ORGANISASI */}
           <div className="flex flex-col items-center space-y-6">
-            {/* LEVEL 1: KETUA BAZNAS */}
-            <div className="relative flex flex-col items-center">
-              <div className="w-80 rounded-2xl border-2 border-baznas-green-800 bg-gradient-to-b from-baznas-green-900 to-baznas-green-800 p-6 text-center text-white shadow-xl shadow-baznas-green-900/25">
-                <div className="relative mx-auto mb-3 h-24 w-24 overflow-hidden rounded-full border-4 border-baznas-gold-400 bg-white shadow-lg ring-4 ring-white/20">
-                  <img
-                    src={strukturOrganisasiResmiData.ketua.fotoUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80"}
-                    alt={strukturOrganisasiResmiData.ketua.nama}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <h3 className="text-base font-bold font-poppins text-white">
-                  {strukturOrganisasiResmiData.ketua.nama}
-                </h3>
-                <span className="inline-block mt-1.5 rounded-full bg-baznas-gold-500 px-3 py-0.5 text-xs font-bold text-slate-900">
-                  {strukturOrganisasiResmiData.ketua.jabatan}
-                </span>
-                <p className="text-[11px] text-emerald-200 mt-1">
-                  Penanggung Jawab Kebijakan &amp; Tata Kelola Utama
-                </p>
+            {/* LEVEL 1: KETUA BAZNAS — dark surface with gold frame */}
+            <div className="relative w-full max-w-md bg-baznas-ink text-white p-7 text-center">
+              <div className="absolute inset-2 pointer-events-none text-baznas-gold-display">
+                <CornerBracket position="all" size={20} thickness={1.5} offset={0} />
               </div>
-
-              {/* Garis Turun Vertikal */}
-              <div className="h-8 w-0.5 bg-slate-300" />
+              <div className="relative mx-auto mb-4 h-24 w-24 flex items-center justify-center bg-baznas-paper border-2 border-baznas-gold-display">
+                <span className="display-1 text-baznas-green-900">
+                  {monogram(strukturOrganisasiResmiData.ketua.nama)}
+                </span>
+              </div>
+              <h3 className="text-lg font-poppins font-bold text-white">
+                {strukturOrganisasiResmiData.ketua.nama}
+              </h3>
+              <span className="inline-block mt-1.5 bg-baznas-gold-display px-3 py-0.5 text-[10px] font-extrabold text-baznas-ink uppercase tracking-wider">
+                {strukturOrganisasiResmiData.ketua.jabatan}
+              </span>
+              <p className="text-[11px] text-white/55 mt-2">
+                Penanggung Jawab Kebijakan &amp; Tata Kelola Utama
+              </p>
             </div>
 
-            {/* LEVEL 2: 4 WAKIL KETUA & STAF PELAKSANA */}
+            {/* Garis Turun Vertikal */}
+            <div className="h-8 w-px bg-baznas-ink-20" aria-hidden="true" />
+
+            {/* LEVEL 2: 4 WAKIL KETUA & STAF */}
             <div className="w-full">
-              {/* Garis Horizontal Penghubung */}
-              <div className="hidden lg:block h-0.5 w-3/4 mx-auto bg-slate-300 mb-4" />
+              <div
+                className="hidden lg:block h-px w-3/4 mx-auto bg-baznas-ink-20 mb-5"
+                aria-hidden="true"
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
                 {strukturOrganisasiResmiData.wakilKetuaList.map((waka) => (
                   <div
                     key={waka.id}
-                    className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 text-center flex flex-col justify-between hover:border-baznas-green-600 transition-colors shadow-xs"
+                    className="bg-white border-t-4 border-baznas-gold-display p-5 hover:border-baznas-green-800 transition-colors flex flex-col"
                   >
-                    <div>
-                      <div className="relative mx-auto mb-3 h-20 w-20 overflow-hidden rounded-full border-3 border-emerald-600 bg-white shadow-md ring-2 ring-emerald-100">
-                        <img
-                          src={waka.fotoUrl || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80"}
-                          alt={waka.nama}
-                          className="h-full w-full object-cover"
-                        />
+                    <div className="flex items-start gap-3">
+                      <div className="shrink-0 h-14 w-14 flex items-center justify-center bg-baznas-paper border border-baznas-ink-12">
+                        <span className="text-base font-bold text-baznas-green-900">
+                          {monogram(waka.nama)}
+                        </span>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 font-poppins">
-                        {waka.nama}
-                      </h4>
-                      <span className="inline-block mt-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-baznas-green-800">
-                        {waka.jabatan}
-                      </span>
-                      <p className="text-[11px] text-slate-500 mt-1 leading-snug">{waka.bidang}</p>
+                      <div className="min-w-0 flex-1 text-left">
+                        <h4 className="text-sm font-bold text-baznas-ink leading-tight">
+                          {waka.nama}
+                        </h4>
+                        <span className="inline-block mt-1 text-[10px] font-bold text-baznas-green-900 bg-baznas-paper px-2 py-0.5 uppercase tracking-wide">
+                          {waka.jabatan}
+                        </span>
+                        <p className="text-[11px] text-baznas-ink/55 mt-1.5 leading-snug">
+                          {waka.bidang}
+                        </p>
+                      </div>
                     </div>
 
-                    {/* Staf Pelaksana di Bawah Waka */}
-                    <div className="mt-4 pt-3 border-t border-slate-200 text-left">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                        Pelaksana / Staf:
-                      </span>
-                      <div className="space-y-2">
-                        {waka.stafList &&
-                          waka.stafList.map((staf, sIdx) => (
-                            <div
-                              key={sIdx}
-                              className="flex items-center gap-2.5 rounded-xl bg-white p-2.5 border border-slate-200 text-xs shadow-2xs hover:border-emerald-300 transition-colors"
-                            >
-                              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-emerald-200 bg-slate-100">
-                                <img
-                                  src={staf.fotoUrl || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80"}
-                                  alt={staf.nama}
-                                  className="h-full w-full object-cover"
-                                />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="font-bold text-slate-800 text-[11px] truncate">{staf.nama}</p>
-                                <span className="inline-block text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded-md truncate mt-0.5">
-                                  {staf.bidangTugas}
-                                </span>
-                              </div>
+                    {waka.stafList && waka.stafList.length > 0 && (
+                      <div className="mt-4 pt-3 border-t border-baznas-ink-8 space-y-2 text-left">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-baznas-ink/45 block">
+                          Pelaksana / Staf
+                        </span>
+                        {waka.stafList.map((staf, sIdx) => (
+                          <div
+                            key={sIdx}
+                            className="flex items-center gap-2.5 text-xs"
+                          >
+                            <div className="shrink-0 h-8 w-8 flex items-center justify-center bg-baznas-paper border border-baznas-ink-12">
+                              <span className="text-[10px] font-bold text-baznas-green-900">
+                                {monogram(staf.nama)}
+                              </span>
                             </div>
-                          ))}
-
-                        {/* Rapihkan layout staf pelaksana di bidang IV */}
-                        {waka.stafList && waka.stafList.length === 1 && (
-                          <div className="rounded-xl border border-dashed border-blue-200 bg-blue-50/40 p-2.5 text-center text-[10px]">
-                            <span className="font-bold text-blue-900 block">Unit Sekretariat &amp; Umum</span>
-                            <span className="text-[9px] text-blue-700">Pelayanan Administrasi &amp; Surat Terpadu</span>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-baznas-ink text-xs truncate">
+                                {staf.nama}
+                              </p>
+                              <p className="text-[10px] text-baznas-ink/55 truncate">
+                                {staf.bidangTugas}
+                              </p>
+                            </div>
                           </div>
-                        )}
+                        ))}
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -175,45 +177,83 @@ export const ProfilOrganisasiView: React.FC = () => {
       {/* SUBTAB 2: TENTANG LEMBAGA */}
       {activeSubTab === "tentang" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-            <div className="flex items-center gap-2 text-baznas-green-800">
-              <Compass className="h-5 w-5 text-baznas-green-600" />
-              <h3 className="text-base font-bold font-poppins">Visi BAZNAS</h3>
+          <div className="bg-white border border-baznas-ink-8 p-6 space-y-5">
+            <div>
+              <div className="flex items-center gap-2 text-baznas-ink mb-2">
+                <Compass className="h-4 w-4 text-baznas-gold-display" />
+                <h3 className="text-[11px] font-bold uppercase tracking-wider">
+                  Visi Lembaga
+                </h3>
+              </div>
+              <p className="text-base sm:text-lg font-display font-medium text-baznas-green-900 leading-snug italic">
+                &ldquo;Menjadi Lembaga Pengelola Zakat Terpercaya, Terdepan, dan
+                Terkredibel di Indonesia dalam Mewujudkan Kesejahteraan Umat dan
+                Menanggulangi Kemiskinan.&rdquo;
+              </p>
             </div>
-            <p className="text-sm text-slate-700 leading-relaxed italic bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
-              &quot;Menjadi Lembaga Pengelola Zakat Terpercaya, Terdepan, dan Terkredibel di Indonesia dalam Mewujudkan Kesejahteraan Umat dan Menanggulangi Kemiskinan.&quot;
-            </p>
 
-            <div className="flex items-center gap-2 text-baznas-green-800 pt-3">
-              <Target className="h-5 w-5 text-baznas-green-600" />
-              <h3 className="text-base font-bold font-poppins">Misi Utama</h3>
+            <div className="border-t border-baznas-ink-8 pt-5">
+              <div className="flex items-center gap-2 text-baznas-ink mb-3">
+                <Target className="h-4 w-4 text-baznas-gold-display" />
+                <h3 className="text-[11px] font-bold uppercase tracking-wider">
+                  Misi Utama
+                </h3>
+              </div>
+              <ol className="space-y-2.5">
+                {[
+                  "Membangun BAZNAS yang kuat, terpercaya, dan modern sebagai lembaga pemerintah nonstruktural.",
+                  "Memaksimalkan pengumpulan ZIS-DSKL dari instansi pemerintah (OPD), BUMD, dan masyarakat luas secara transparan.",
+                  "Menyalurkan zakat secara tepat sasaran melalui 4 pilar (Cerdas, Sehat, Peduli, Makmur) dengan prinsip 3A (Aman Syar'i, Aman Regulasi, Aman NKRI).",
+                  "Mendukung digitalisasi sistem pelaporan dan kearsipan demi pertanggungjawaban akuntansi yang akurat.",
+                ].map((misi, idx) => (
+                  <li
+                    key={idx}
+                    className="flex items-start gap-3 text-sm text-baznas-ink/80 leading-relaxed"
+                  >
+                    <span className="shrink-0 inline-flex items-center justify-center w-6 h-6 text-[11px] font-bold text-baznas-gold-display border border-baznas-gold-display mt-0.5">
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <span>{misi}</span>
+                  </li>
+                ))}
+              </ol>
             </div>
-            <ul className="space-y-2 text-xs text-slate-600 list-disc list-inside leading-relaxed">
-              <li>Membangun BAZNAS yang kuat, terpercaya, dan modern sebagai lembaga pemerintah nonstruktural.</li>
-              <li>Memaksimalkan pengumpulan ZIS-DSKL dari instansi pemerintah (OPD), BUMD, dan masyarakat luas secara transparan.</li>
-              <li>Menyalurkan zakat secara tepat sasaran melalui 4 pilar (Cerdas, Sehat, Peduli, Makmur) dengan mengedepankan prinsip 3A (Aman Syar&apos;i, Aman Regulasi, Aman NKRI).</li>
-              <li>Mendukung digitalisasi sistem pelaporan dan kearsipan demi pertanggungjawaban akuntansi yang akurat.</li>
-            </ul>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-            <div className="flex items-center gap-2 text-baznas-green-800">
-              <Award className="h-5 w-5 text-baznas-green-600" />
-              <h3 className="text-base font-bold font-poppins">Dasar Hukum & Legalitas</h3>
+          <div className="bg-white border border-baznas-ink-8 p-6 space-y-4">
+            <div className="flex items-center gap-2 text-baznas-ink">
+              <Award className="h-4 w-4 text-baznas-gold-display" />
+              <h3 className="text-[11px] font-bold uppercase tracking-wider">
+                Dasar Hukum &amp; Legalitas
+              </h3>
             </div>
-            <div className="space-y-2.5 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span className="font-bold text-slate-900 block">Undang-Undang No. 23 Tahun 2011</span>
-                <p className="text-slate-500 mt-0.5">Tentang Pengelolaan Zakat di Seluruh Wilayah Republik Indonesia.</p>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span className="font-bold text-slate-900 block">Peraturan Pemerintah No. 14 Tahun 2014</span>
-                <p className="text-slate-500 mt-0.5">Pelaksanaan UU No. 23 Tahun 2011 tentang Kewenangan & Tata Kelola BAZNAS.</p>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span className="font-bold text-slate-900 block">Instruksi Presiden (Inpres) No. 3 Tahun 2014</span>
-                <p className="text-slate-500 mt-0.5">Optimalisasi Pengumpulan Zakat di Kementerian, Lembaga Negara, dan Pemerintah Daerah.</p>
-              </div>
+            <div className="space-y-3">
+              {[
+                {
+                  title: "Undang-Undang No. 23 Tahun 2011",
+                  desc: "Tentang Pengelolaan Zakat di Seluruh Wilayah Republik Indonesia.",
+                },
+                {
+                  title: "Peraturan Pemerintah No. 14 Tahun 2014",
+                  desc: "Pelaksanaan UU No. 23 Tahun 2011 tentang Kewenangan & Tata Kelola BAZNAS.",
+                },
+                {
+                  title: "Instruksi Presiden (Inpres) No. 3 Tahun 2014",
+                  desc: "Optimalisasi Pengumpulan Zakat di Kementerian, Lembaga Negara, dan Pemerintah Daerah.",
+                },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-baznas-paper/40 border-l-4 border-baznas-gold-display p-3"
+                >
+                  <span className="font-bold text-baznas-ink block text-sm">
+                    {item.title}
+                  </span>
+                  <p className="text-xs text-baznas-ink/65 mt-1 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -221,3 +261,5 @@ export const ProfilOrganisasiView: React.FC = () => {
     </div>
   );
 };
+
+export default ProfilOrganisasiView;

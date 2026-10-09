@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   RoleBidang,
   UserSession,
@@ -37,6 +37,8 @@ import {
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { PublicLandingView } from "@/components/public/PublicLandingView";
 import { LoginModal } from "@/components/public/LoginModal";
+import { ToastContainer, useToast } from "@/components/common";
+import { canAccessView } from "@/lib/access";
 
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
@@ -48,12 +50,16 @@ import { Bidang3View } from "@/components/modules/Bidang3View";
 import { Bidang4View } from "@/components/modules/Bidang4View";
 import { KetuaView } from "@/components/modules/KetuaView";
 import { AdminUserManagementView } from "@/components/modules/AdminUserManagementView";
+import { BerandaView } from "@/components/modules/BerandaView";
 
 import { KwitansiZisPrint } from "@/components/print/KwitansiZisPrint";
 import { DisposisiPrint } from "@/components/print/DisposisiPrint";
 import { LaporanKeuanganPrint } from "@/components/print/LaporanKeuanganPrint";
 
 export default function Home() {
+  // Toast notifications (UX-IMPROVEMENT-PLAN §3.2)
+  const { toasts, dismiss: dismissToast, success: toastSuccess, error: toastError, info: toastInfo } = useToast();
+
   // Authentication & Navigation State
   const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
   const [userAccounts, setUserAccounts] = useState<UserSession[]>(initialPredefinedUsers);
@@ -62,9 +68,11 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState("beranda");
 
   // Active Role View (bidang1, bidang2, bidang3, bidang4, ketua, admin)
+  // Restricted by the logged-in user's role — see `canAccessView` in lib/access.ts.
   const [activeRoleView, setActiveRoleView] = useState<RoleBidang>("bidang1");
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showBeranda, setShowBeranda] = useState(true);
 
   // Sub-tabs State for each module
   const [bidang1Tab, setBidang1Tab] = useState<Bidang1Tab>("dashboard");
@@ -89,10 +97,35 @@ export default function Home() {
   const [selectedDisposisi, setSelectedDisposisi] = useState<Surat | null>(null);
   const [isLaporanPrintOpen, setIsLaporanPrintOpen] = useState(false);
 
+  // Auto-trigger window.print() when a print modal opens (with small render delay).
+  // Cleanup clears the timer to prevent printing a modal that was closed quickly,
+  // or duplicate prints if the state were ever to be re-set in the same cycle.
+  useEffect(() => {
+    if (selectedKwitansi) {
+      const timer = setTimeout(() => window.print(), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedKwitansi]);
+
+  useEffect(() => {
+    if (selectedDisposisi) {
+      const timer = setTimeout(() => window.print(), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedDisposisi]);
+
+  useEffect(() => {
+    if (isLaporanPrintOpen) {
+      const timer = setTimeout(() => window.print(), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isLaporanPrintOpen]);
+
   // Handlers
   const handleLoginSuccess = (user: UserSession) => {
     setCurrentUser(user);
     setActiveRoleView(user.role);
+    setShowBeranda(true);
   };
 
   const handleLogout = () => {
@@ -177,10 +210,18 @@ export default function Home() {
           : m
       )
     );
+    toastSuccess(
+      "Setoran berhasil dicatat",
+      `Bukti ${newSetoran.buktiNo} untuk ${newSetoran.namaMuzakki}`
+    );
   };
 
   const handleImportMuzakki = (newMuzakki: Muzakki[]) => {
     setMuzakkiList([...newMuzakki, ...muzakkiList]);
+    toastSuccess(
+      "Import berhasil",
+      `${newMuzakki.length} data Muzakki ditambahkan`
+    );
   };
 
   const handleImportMustahik = (newMustahik: Mustahik[]) => {
@@ -248,26 +289,73 @@ export default function Home() {
     setPencairanList([newP, ...pencairanList]);
   };
 
-  const pendingCount =
-    pencairanList.filter((p) => p.status === "diajukan").length +
-    suratList.filter((s) => s.statusDisposisi === "belum_disposisi").length;
+  const pendingPencairan = pencairanList.filter(
+    (p) => p.status === "diajukan"
+  ).length;
+  const pendingSurat = suratList.filter(
+    (s) => s.statusDisposisi === "belum_disposisi"
+  ).length;
+
+  // Notification reminder handlers — route to the view the current user has
+  // access to. For pencairan reminder, prefer bidang2 (where workflow lives),
+  // then ketua, then admin. Same for surat reminder: bidang4, then ketua,
+  // then admin. Non-admin users without access just see a toast.
+  const handleOpenPencairanReminder = () => {
+    if (!currentUser) return;
+    setShowBeranda(false);
+    if (canAccessView(currentUser, "bidang2")) {
+      setActiveRoleView("bidang2");
+      setBidang2Tab("pencairan");
+    } else if (canAccessView(currentUser, "ketua")) {
+      setActiveRoleView("ketua");
+      setKetuaTab("persetujuan_spk");
+    } else if (canAccessView(currentUser, "admin")) {
+      setActiveRoleView("admin");
+    } else {
+      toastInfo(
+        "Pencairan Dana",
+        "Detail pencairan tersedia di modul Bidang II. Hubungi administrator untuk akses."
+      );
+    }
+  };
+
+  const handleOpenSuratReminder = () => {
+    if (!currentUser) return;
+    setShowBeranda(false);
+    if (canAccessView(currentUser, "bidang4")) {
+      setActiveRoleView("bidang4");
+      setBidang4Tab("surat_masuk");
+    } else if (canAccessView(currentUser, "ketua")) {
+      setActiveRoleView("ketua");
+      setKetuaTab("disposisi");
+    } else if (canAccessView(currentUser, "admin")) {
+      setActiveRoleView("admin");
+    } else {
+      toastInfo(
+        "Surat Masuk",
+        "Detail surat masuk tersedia di modul Bidang IV. Hubungi administrator untuk akses."
+      );
+    }
+  };
 
   // ==========================================
   // 1. TAMPILAN JIKA BELUM LOGIN (BERANDA UMUM PUBLIK)
   // ==========================================
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      <div className="min-h-screen bg-baznas-paper flex flex-col font-sans">
         <PublicNavbar
           onOpenLogin={() => setIsLoginModalOpen(true)}
           activeSection={activeSection}
           onNavigateSection={handleNavigateSection}
         />
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        {/* PublicLandingView handles its own max-width & section padding
+            (see <section> wrappers). The <main> only constrains vertical
+            flow so the footer sticks to the bottom of the viewport. */}
+        <main className="flex-1 w-full">
           <PublicLandingView
             onOpenLogin={() => setIsLoginModalOpen(true)}
-            activeSection={activeSection}
             berandaContent={berandaContent}
           />
         </main>
@@ -290,7 +378,10 @@ export default function Home() {
       {/* Top Header Internal */}
       <Header
         onOpenSearch={() => setIsSearchOpen(true)}
-        pendingCount={pendingCount}
+        pendingPencairan={pendingPencairan}
+        pendingSurat={pendingSurat}
+        onOpenPencairanReminder={handleOpenPencairanReminder}
+        onOpenSuratReminder={handleOpenSuratReminder}
         onToggleSidebar={() => setIsSidebarMobileOpen(true)}
         user={currentUser}
         userAccounts={userAccounts}
@@ -308,6 +399,8 @@ export default function Home() {
           isOpenMobile={isSidebarMobileOpen}
           onCloseMobile={() => setIsSidebarMobileOpen(false)}
           onLogout={handleLogout}
+          showBeranda={showBeranda}
+          onSelectBeranda={() => setShowBeranda(true)}
           bidang1Tab={bidang1Tab}
           onChangeBidang1Tab={setBidang1Tab}
           bidang2Tab={bidang2Tab}
@@ -323,86 +416,158 @@ export default function Home() {
         />
 
         {/* Area Kerja Sesuai Role & View yang Dipilih */}
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-full">
-          {activeRoleView === "bidang1" && (
-            <Bidang1View
-              muzakkiList={muzakkiList}
+        <main className="flex-1 min-w-0 p-6 sm:p-10 lg:p-12 overflow-y-auto max-w-full">
+          {showBeranda && currentUser && (
+            <BerandaView
+              user={currentUser}
+              onSelectBidang={(b) => {
+                if (
+                  b === "bidang1" ||
+                  b === "bidang2" ||
+                  b === "bidang3" ||
+                  b === "bidang4" ||
+                  b === "ketua" ||
+                  b === "admin"
+                ) {
+                  // Role gate: only admin (or the user themselves) can switch to a view.
+                  if (canAccessView(currentUser, b)) {
+                    setActiveRoleView(b);
+                  } else {
+                    toastError(
+                      "Akses Ditolak",
+                      `Akun ${currentUser.roleLabel} tidak memiliki akses ke modul ${b}.`
+                    );
+                  }
+                }
+                setShowBeranda(false);
+              }}
               setoranList={setoranList}
-              instansiList={initialInstansi}
-              onAddSetoran={handleAddSetoran}
+              pencairanList={pencairanList}
+              suratList={suratList}
+              mustahikList={mustahikList}
+              muzakkiList={muzakkiList}
+              rkatList={rkatList}
               onViewKwitansi={(s) => setSelectedKwitansi(s)}
-              onImportMuzakki={handleImportMuzakki}
-              activeTab={bidang1Tab}
-              onTabChange={setBidang1Tab}
             />
           )}
 
-          {activeRoleView === "bidang2" && (
-            <Bidang2View
-              mustahikList={mustahikList}
-              pencairanList={pencairanList}
-              onApprovePencairan={handleApprovePencairan}
-              onRejectPencairan={handleRejectPencairan}
-              onConfirmPencairan={handleConfirmPencairanBidang2}
-              onAddPencairan={handleAddPencairan}
-              onImportMustahik={handleImportMustahik}
-              onAddMustahik={handleAddMustahik}
-              onUpdateMustahik={handleUpdateMustahik}
-              onDeleteMustahik={handleDeleteMustahik}
-              activeTab={bidang2Tab}
-              onTabChange={setBidang2Tab}
-            />
-          )}
+          {!showBeranda && currentUser && (
+            <>
+              {activeRoleView === "bidang1" && canAccessView(currentUser, "bidang1") && (
+                <Bidang1View
+                  muzakkiList={muzakkiList}
+                  setoranList={setoranList}
+                  instansiList={initialInstansi}
+                  currentUser={currentUser}
+                  onAddSetoran={handleAddSetoran}
+                  onViewKwitansi={(s) => setSelectedKwitansi(s)}
+                  onImportMuzakki={handleImportMuzakki}
+                  activeTab={bidang1Tab}
+                  onTabChange={setBidang1Tab}
+                />
+              )}
 
-          {activeRoleView === "bidang3" && (
-            <Bidang3View
-              rkatList={rkatList}
-              onOpenLaporanPrint={() => setIsLaporanPrintOpen(true)}
-              activeTab={bidang3Tab}
-              onTabChange={setBidang3Tab}
-            />
-          )}
+              {activeRoleView === "bidang2" && canAccessView(currentUser, "bidang2") && (
+                <Bidang2View
+                  mustahikList={mustahikList}
+                  pencairanList={pencairanList}
+                  currentUser={currentUser}
+                  onApprovePencairan={handleApprovePencairan}
+                  onRejectPencairan={handleRejectPencairan}
+                  onConfirmPencairan={handleConfirmPencairanBidang2}
+                  onAddPencairan={handleAddPencairan}
+                  onImportMustahik={handleImportMustahik}
+                  onAddMustahik={handleAddMustahik}
+                  onUpdateMustahik={handleUpdateMustahik}
+                  onDeleteMustahik={handleDeleteMustahik}
+                  activeTab={bidang2Tab}
+                  onTabChange={setBidang2Tab}
+                />
+              )}
 
-          {activeRoleView === "bidang4" && (
-            <Bidang4View
-              suratList={suratList}
-              pegawaiList={pegawaiList}
-              asetList={asetList}
-              onViewDisposisi={(s) => setSelectedDisposisi(s)}
-              activeTab={bidang4Tab}
-              onTabChange={setBidang4Tab}
-            />
-          )}
+              {activeRoleView === "bidang3" && canAccessView(currentUser, "bidang3") && (
+                <Bidang3View
+                  rkatList={rkatList}
+                  currentUser={currentUser}
+                  onOpenLaporanPrint={() => setIsLaporanPrintOpen(true)}
+                  activeTab={bidang3Tab}
+                  onTabChange={setBidang3Tab}
+                />
+              )}
 
-          {activeRoleView === "ketua" && (
-            <KetuaView
-              suratList={suratList}
-              setoranList={setoranList}
-              muzakkiList={muzakkiList}
-              mustahikList={mustahikList}
-              pencairanList={pencairanList}
-              rkatList={rkatList}
-              pegawaiList={pegawaiList}
-              asetList={asetList}
-              onUpdateSuratDisposisi={handleUpdateSuratDisposisi}
-              onViewDisposisi={(s) => setSelectedDisposisi(s)}
-              onApproveSPK={handleApprovePencairan}
-              onRejectSPK={handleRejectPencairan}
-              activeTab={ketuaTab}
-              onTabChange={setKetuaTab}
-            />
-          )}
+              {activeRoleView === "bidang4" && canAccessView(currentUser, "bidang4") && (
+                <Bidang4View
+                  suratList={suratList}
+                  pegawaiList={pegawaiList}
+                  asetList={asetList}
+                  currentUser={currentUser}
+                  onViewDisposisi={(s) => setSelectedDisposisi(s)}
+                  activeTab={bidang4Tab}
+                  onTabChange={setBidang4Tab}
+                />
+              )}
 
-          {activeRoleView === "admin" && (
-            <AdminUserManagementView
-              userAccounts={userAccounts}
-              berandaContent={berandaContent}
-              onUpdateBerandaContent={setBerandaContent}
-              onUpdateUserAccount={handleUpdateUserAccount}
-              onSwitchToBidang={(r) => setActiveRoleView(r)}
-              activeTab={adminTab}
-              onTabChange={setAdminTab}
-            />
+              {activeRoleView === "ketua" && canAccessView(currentUser, "ketua") && (
+                <KetuaView
+                  suratList={suratList}
+                  setoranList={setoranList}
+                  muzakkiList={muzakkiList}
+                  mustahikList={mustahikList}
+                  pencairanList={pencairanList}
+                  rkatList={rkatList}
+                  pegawaiList={pegawaiList}
+                  asetList={asetList}
+                  currentUser={currentUser}
+                  onUpdateSuratDisposisi={handleUpdateSuratDisposisi}
+                  onViewDisposisi={(s) => setSelectedDisposisi(s)}
+                  onApproveSPK={handleApprovePencairan}
+                  onRejectSPK={handleRejectPencairan}
+                  activeTab={ketuaTab}
+                  onTabChange={setKetuaTab}
+                />
+              )}
+
+              {activeRoleView === "admin" && canAccessView(currentUser, "admin") && (
+                <AdminUserManagementView
+                  userAccounts={userAccounts}
+                  berandaContent={berandaContent}
+                  currentUser={currentUser}
+                  onUpdateBerandaContent={setBerandaContent}
+                  onUpdateUserAccount={handleUpdateUserAccount}
+                  onSwitchToBidang={(r) => setActiveRoleView(r)}
+                  activeTab={adminTab}
+                  onTabChange={setAdminTab}
+                />
+              )}
+
+              {/* Fallback: jika currentUser tidak punya akses ke activeRoleView
+                  (misalnya bidang1 user mencoba setActiveRoleView("ketua") lewat devtools),
+                  tampilkan pesan akses ditolak, bukan view orang lain. */}
+              {!(
+                (activeRoleView === "bidang1" && canAccessView(currentUser, "bidang1")) ||
+                (activeRoleView === "bidang2" && canAccessView(currentUser, "bidang2")) ||
+                (activeRoleView === "bidang3" && canAccessView(currentUser, "bidang3")) ||
+                (activeRoleView === "bidang4" && canAccessView(currentUser, "bidang4")) ||
+                (activeRoleView === "ketua" && canAccessView(currentUser, "ketua")) ||
+                (activeRoleView === "admin" && canAccessView(currentUser, "admin"))
+              ) && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center max-w-md mx-auto mt-12">
+                  <h2 className="text-lg font-bold text-rose-900 font-poppins">Akses Ditolak</h2>
+                  <p className="text-sm text-rose-800 mt-2">
+                    Anda login sebagai <strong>{currentUser.roleLabel}</strong> dan tidak
+                    memiliki akses ke modul ini. Silakan kembali ke Beranda atau hubungi
+                    administrator.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowBeranda(true)}
+                    className="inline-flex items-center gap-2 mt-5 rounded-xl bg-baznas-green-800 hover:bg-baznas-green-700 px-5 py-2.5 text-sm font-semibold text-white min-h-t-target"
+                  >
+                    Kembali ke Beranda
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>
@@ -424,7 +589,14 @@ export default function Home() {
             b === "ketua" ||
             b === "admin"
           ) {
-            setActiveRoleView(b);
+            if (canAccessView(currentUser!, b)) {
+              setActiveRoleView(b);
+            } else {
+              toastError(
+                "Akses Ditolak",
+                `Akun ${currentUser!.roleLabel} tidak memiliki akses ke modul ${b}.`
+              );
+            }
           }
         }}
         onViewKwitansi={(s) => setSelectedKwitansi(s)}
@@ -449,6 +621,9 @@ export default function Home() {
           onClose={() => setIsLaporanPrintOpen(false)}
         />
       )}
+
+      {/* Toast notifications (UX-IMPROVEMENT-PLAN-30-60.md §3.2) */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

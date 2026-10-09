@@ -60,3 +60,65 @@ export function getTerbilangRupiah(amount: number): string {
   const hasil = terbilang(amount).trim();
   return (hasil ? hasil : "Nol") + " Rupiah";
 }
+
+const INDONESIAN_DAYS = [
+  "Minggu",
+  "Senin",
+  "Selasa",
+  "Rabu",
+  "Kamis",
+  "Jumat",
+  "Sabtu",
+];
+
+const INDONESIAN_MONTHS = [
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+];
+
+export function formatIndonesianLongDate(date: Date): string {
+  return `${INDONESIAN_DAYS[date.getDay()]}, ${date.getDate()} ${INDONESIAN_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+// Approximate Hijriah date from Gregorian (good enough for display purposes).
+// For a system that requires exact Islamic calendar dates, integrate a proper
+// library such as `hijri-converter` or `moment-hijri`. The approximation here
+// stays within ±2 days of the true Hijri date across recent years.
+const HIJRI_MONTHS = [
+  "Muharram",
+  "Safar",
+  "Rabiul Awwal",
+  "Rabiul Akhir",
+  "Jumadil Awwal",
+  "Jumadil Akhir",
+  "Rajab",
+  "Sya'ban",
+  "Ramadhan",
+  "Syawwal",
+  "Dzulqaidah",
+  "Dzulhijjah",
+];
+
+const HIJRI_EPOCH = new Date(622, 6, 16).getTime(); // 16 July 622 CE (Julian)
+const HIJRI_YEAR_DAYS = 354.367;
+
+export function formatHijriahDate(date: Date): string {
+  const daysSinceEpoch = Math.floor(
+    (date.getTime() - HIJRI_EPOCH) / (24 * 60 * 60 * 1000)
+  );
+  const hijriYear = Math.floor(daysSinceEpoch / HIJRI_YEAR_DAYS) + 1;
+  const dayOfYear = Math.floor(daysSinceEpoch % HIJRI_YEAR_DAYS);
+  const hijriMonth = Math.floor(dayOfYear / 29.5) % 12;
+  const dayOfMonth = Math.floor(dayOfYear % 29.5) + 1;
+  return `${dayOfMonth} ${HIJRI_MONTHS[hijriMonth]} ${hijriYear} H`;
+}

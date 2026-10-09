@@ -4,3 +4,10 @@ out/
 .env
 .env.*
 !.env.example
+BACKEND-PLAN.md
+DESIGN-IMPLEMENTATION-PLAN.md
+.claude
+# BAZNAS Panduan (referensi, tidak di-commit)
+panduan-baznas.pdf
+panduan-pages/
+panduan-baznas.txt

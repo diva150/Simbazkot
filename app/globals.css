@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,6 +7,14 @@
 :root {
   --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-poppins: 'Poppins', sans-serif;
+  /* Plus Jakarta Sans — editorial display font (Phase 1) */
+  --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  /* Accessible focus ring color: BAZNAS green 800, meets 3:1 contrast on white */
+  --focus-ring: #0F5132;
+  /* Brand reference tokens (Phase 1) — dipakai oleh utility classes */
+  --baznas-gold-display: #FEBF21;
+  --baznas-paper: #FAF7F1;
+  --baznas-ink: #0E1A14;
 }
 
 html {
@@ -15,12 +23,113 @@ html {
 
 body {
   font-family: var(--font-inter);
+  /* Explicit base body 16px / 1.5 line-height per UX-IMPROVEMENT-PLAN-30-60.md §2.1 */
+  font-size: 16px;
+  line-height: 1.5;
   background-color: #f8fafc;
-  color: #0f172a;
+  /* BAZNAS Modern: ganti slate-900 ke baznas-ink agar lebih cohesive */
+  color: var(--baznas-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-poppins);
+  font-weight: 600;
+  color: var(--baznas-ink);
+}
+
+/* ── Display headings (Phase 1) — Plus Jakarta Sans ──────────── */
+/* Override default heading font untuk momen editorial (hero, section title besar) */
+/* PENTING: JANGAN set `color` di sini — akan override utility Tailwind
+   `text-white` / `text-baznas-gold-display` yang dipakai di section
+   background gelap (Stats section, CTA, dll). Cukup font + letter-spacing saja. */
+.display-1, .display-2, .display-3, .display-hero {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  /* color diwarisi dari parent atau utility — JANGAN dipaksa di sini */
+}
+
+.display-hero  { font-size: clamp(48px, 8vw, 80px); line-height: 1.0; letter-spacing: -0.03em; }
+.display-1     { font-size: clamp(40px, 6vw, 64px); line-height: 1.05; letter-spacing: -0.025em; }
+.display-2     { font-size: clamp(32px, 4.5vw, 48px); line-height: 1.1; }
+.display-3     { font-size: clamp(28px, 3.5vw, 36px); line-height: 1.15; }
+
+/* ── Editorial number (jumbo stats) — tabular-nums for currency ── */
+.editorial-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* ── Divider gold (ornament) — garis 1px gold, restraint ── */
+.divider-gold {
+  display: inline-block;
+  width: 48px;
+  height: 1px;
+  background: var(--baznas-gold-display);
+  vertical-align: middle;
+}
+
+.divider-gold-thick {
+  display: inline-block;
+  width: 64px;
+  height: 2px;
+  background: var(--baznas-gold-display);
+  vertical-align: middle;
+}
+
+/* ── Khat-style horizontal rule (longer ornament) ── */
+.divider-khat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.divider-khat::before,
+.divider-khat::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--baznas-gold-display);
+  opacity: 0.5;
+}
+.divider-khat-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--baznas-gold-display);
+}
+
+/* ── Paper texture (subtle linen) ── */
+.bg-paper-texture {
+  background-color: var(--baznas-paper);
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(184, 137, 62, 0.025) 0px,
+    rgba(184, 137, 62, 0.025) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  background-repeat: repeat;
+}
+
+/* ── BAZNAS ink variants (low-opacity) untuk border halus ── */
+.border-baznas-ink-8  { border-color: rgba(14, 26, 20, 0.08); }
+.border-baznas-ink-12 { border-color: rgba(14, 26, 20, 0.12); }
+.border-baznas-ink-20 { border-color: rgba(14, 26, 20, 0.20); }
+.bg-baznas-ink-8      { background-color: rgba(14, 26, 20, 0.08); }
+.bg-baznas-ink-12     { background-color: rgba(14, 26, 20, 0.12); }
+.bg-baznas-ink-20     { background-color: rgba(14, 26, 20, 0.20); }
+.bg-baznas-ink-40     { background-color: rgba(14, 26, 20, 0.40); }
+.bg-baznas-ink-45     { background-color: rgba(14, 26, 20, 0.45); }
+.divide-baznas-ink-8  > * + * { border-color: rgba(14, 26, 20, 0.08); }
+
+/* ── Selected text — hijau BAZNAS ── */
+::selection {
+  background-color: var(--baznas-gold-display);
+  color: #ffffff;
 }
 
 /* Offset for fixed/sticky navbar on anchor navigation */
@@ -30,8 +139,8 @@ section[id] {
 
 /* Custom scrollbar for data tables and panels */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
@@ -44,17 +153,47 @@ section[id] {
   background: #94a3b8;
 }
 
+/* ── Accessible Global Focus Indicator (UX Plan §3.7) ──────────────── */
+*:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 3px rgba(15, 81, 50, 0.12);
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+button.bg-baznas-green-800:focus-visible,
+button.bg-baznas-green-700:focus-visible,
+button.bg-baznas-green-900:focus-visible {
+  outline-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(15, 81, 50, 0.5);
+}
+
 /* Print Specific Rules */
 @media print {
   body {
     background-color: #ffffff !important;
     color: #000000 !important;
   }
-  
+
   .no-print {
     display: none !important;
   }
-  
+
   .print-only {
     display: block !important;
   }
@@ -77,4 +216,55 @@ section[id] {
   .print-only {
     display: none !important;
   }
+}
+
+/* ── Reduced motion: respect user OS preference (UX Plan §6) ────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Custom keyframes untuk LoginModal & interaksi ──────────────── */
+
+/* Shake animation — saat login error */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Subtle float untuk hero ornaments */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Fade-in-up untuk sections on load */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+/* Pulse-glow untuk focus state */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 145, 72, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(37, 145, 72, 0.15); }
+}
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
 }

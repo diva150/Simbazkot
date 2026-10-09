@@ -1,34 +1,85 @@
 "use client";
 
-import React from "react";
-import { BidangType, SetoranZIS, PermohonanPencairan, Surat } from "@/lib/types";
+import React, { useMemo } from "react";
+import {
+  BidangType,
+  SetoranZIS,
+  PermohonanPencairan,
+  Surat,
+  ItemRKAT,
+  Mustahik,
+  Muzakki,
+  UserSession,
+} from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
 import {
   HandCoins,
   HeartHandshake,
   LineChart,
   FolderArchive,
-  ArrowUpRight,
   TrendingUp,
-  AlertCircle,
   Clock,
   ArrowRight,
-  Sparkles,
+  Printer,
+  Inbox,
+  ArrowUpRight,
+  Wallet,
 } from "lucide-react";
+import { Star8 } from "@/components/brand/IslamicOrnament";
 
 interface BerandaViewProps {
+  user?: UserSession;
   onSelectBidang: (bidang: BidangType) => void;
   setoranList: SetoranZIS[];
   pencairanList: PermohonanPencairan[];
   suratList: Surat[];
+  mustahikList: Mustahik[];
+  muzakkiList: Muzakki[];
+  rkatList: ItemRKAT[];
   onViewKwitansi: (setoran: SetoranZIS) => void;
 }
 
+const BIDANG_META: Partial<
+  Record<
+    BidangType,
+    { short: string; title: string; desc: string; icon: React.ReactNode }
+  >
+> = {
+  bidang1: {
+    short: "Bidang I",
+    title: "Pengumpulan ZIS",
+    desc: "Input setoran, kalkulator zakat 2,5%, data muzakki, dan cetak tanda terima.",
+    icon: <HandCoins className="h-5 w-5" />,
+  },
+  bidang2: {
+    short: "Bidang II",
+    title: "Pendistribusian",
+    desc: "Data mustahik 4 pilar, survei kelayakan, dan permohonan pencairan bantuan.",
+    icon: <HeartHandshake className="h-5 w-5" />,
+  },
+  bidang3: {
+    short: "Bidang III",
+    title: "Keuangan & RKAT",
+    desc: "Evaluasi pagu vs realisasi RKAT, laporan arus kas, dan cetak LPJ resmi.",
+    icon: <LineChart className="h-5 w-5" />,
+  },
+  bidang4: {
+    short: "Bidang IV",
+    title: "Administrasi & Aset",
+    desc: "Agenda surat masuk, cetak lembar disposisi, SDM amil, dan inventaris kantor.",
+    icon: <FolderArchive className="h-5 w-5" />,
+  },
+};
+
 export const BerandaView: React.FC<BerandaViewProps> = ({
+  user,
   onSelectBidang,
   setoranList,
   pencairanList,
   suratList,
+  mustahikList,
+  muzakkiList,
+  rkatList,
   onViewKwitansi,
 }) => {
   const pendingPencairan = pencairanList.filter((p) => p.status === "diajukan");
@@ -36,308 +87,376 @@ export const BerandaView: React.FC<BerandaViewProps> = ({
     (s) => s.statusDisposisi === "belum_disposisi"
   );
 
+  // Real-time aggregates
+  const stats = useMemo(() => {
+    const totalZisMasuk = setoranList.reduce((acc, s) => acc + s.nominal, 0);
+    const totalPenyaluran = pencairanList
+      .filter((p) => p.status === "dikonfirmasi_bidang2" || p.status === "disetujui_ketua")
+      .reduce((acc, p) => acc + p.nominal, 0);
+    const rkatPaguTotal = rkatList.reduce((acc, r) => acc + r.paguAnggaran, 0);
+    const rkatRealisasiTotal = rkatList.reduce((acc, r) => acc + r.realisasi, 0);
+    const serapanPagu = rkatPaguTotal > 0 ? (totalPenyaluran / rkatPaguTotal) * 100 : 0;
+    const saldoKas = totalZisMasuk - totalPenyaluran;
+    const mustahikAktif = mustahikList.filter((m) => m.statusKelayakan === "aktif").length;
+    const muzakkiAktif = muzakkiList.filter((m) => m.status === "aktif").length;
+
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
+    const currentMonthTotal = setoranList
+      .filter((s) => s.tanggal.startsWith(currentMonth))
+      .reduce((acc, s) => acc + s.nominal, 0);
+    const prevMonthTotal = setoranList
+      .filter((s) => s.tanggal.startsWith(prevMonth))
+      .reduce((acc, s) => acc + s.nominal, 0);
+    const monthTrend =
+      prevMonthTotal > 0
+        ? ((currentMonthTotal - prevMonthTotal) / prevMonthTotal) * 100
+        : 0;
+
+    return {
+      totalZisMasuk,
+      totalPenyaluran,
+      rkatPaguTotal,
+      rkatRealisasiTotal,
+      serapanPagu,
+      saldoKas,
+      mustahikAktif,
+      muzakkiAktif,
+      monthTrend,
+    };
+  }, [setoranList, pencairanList, rkatList, mustahikList, muzakkiList]);
+
+  const currentMonthLabel = useMemo(() => {
+    const now = new Date();
+    const months = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+    ];
+    return `${months[now.getMonth()]} ${now.getFullYear()}`;
+  }, []);
+
+  // Tentukan bidang yang ditampilkan sebagai pintasan (semua user lihat 4 utama)
+  const quickBidang: BidangType[] = ["bidang1", "bidang2", "bidang3", "bidang4"];
+
   return (
-    <div className="space-y-6">
-      {/* Banner Selamat Datang */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-baznas-green-900 via-baznas-green-800 to-emerald-800 p-6 sm:p-8 text-white shadow-lg shadow-baznas-green-900/15">
-        <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-200 backdrop-blur-xs mb-3 border border-white/10">
-            <Sparkles className="h-3.5 w-3.5 text-baznas-gold-500" />
-            <span>Pusat Kendali Operasional Terpadu BAZNAS</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-poppins text-white">
-            Selamat Datang di Sistem Informasi BAZNAS
-          </h1>
-          <p className="mt-2 text-sm text-emerald-100/90 leading-relaxed">
-            Kelola penerimaan zakat muzakki, verifikasi mustahik, realisasi anggaran RKAT, dan kearsipan surat dalam satu tempat yang amanah, transparan, dan akuntabel.
-          </p>
+    <div className="space-y-10">
+      {/* ──────────────────────────────────────── */}
+      {/* 1. WELCOME BANNER — editorial, no gradient */}
+      {/* ──────────────────────────────────────── */}
+      <section className="relative bg-baznas-paper border-l-4 border-baznas-gold-display p-8 sm:p-10 overflow-hidden">
+        {/* Decorative ornament — very subtle */}
+        <div
+          aria-hidden="true"
+          className="hidden sm:block absolute right-8 top-1/2 -translate-y-1/2 text-baznas-gold-display opacity-25"
+        >
+          <Star8 size={140} />
         </div>
 
-        {/* Hiasan Dekoratif */}
-        <div className="absolute right-0 top-0 -mr-16 -mt-16 h-72 w-72 rounded-full bg-white/5 blur-2xl pointer-events-none" />
-        <div className="absolute right-12 bottom-0 h-40 w-40 rounded-full bg-baznas-gold-500/10 blur-xl pointer-events-none" />
-      </div>
+        <div className="relative max-w-2xl">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-baznas-gold-display font-bold mb-4">
+            Pusat Kendali Operasional
+          </p>
+          <h1 className="display-2 text-baznas-ink">
+            Selamat datang{user?.nama ? `, ${user.nama.split(",")[0]}` : ""}.
+          </h1>
+          <p className="mt-4 text-base text-baznas-ink/70 leading-relaxed max-w-xl">
+            Kelola penerimaan zakat, verifikasi mustahik, realisasi anggaran RKAT,
+            dan kearsipan surat dalam satu tempat — amanah, transparan, dan
+            akuntabel untuk umat.
+          </p>
+        </div>
+      </section>
 
-      {/* 4 Pintasan Cepat Bidang Kerja */}
-      <div>
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 font-poppins">
-            Pintasan Langsung Bidang Kerja
-          </h2>
-          <span className="text-xs text-slate-400">Pilih modul tugas Anda</span>
+      {/* ──────────────────────────────────────── */}
+      {/* 2. PINTASAN CEPAT — 4 cards with icon variety */}
+      {/* ──────────────────────────────────────── */}
+      <section>
+        <div className="flex items-end justify-between mb-5">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-baznas-ink/45 font-bold mb-1">
+              Pintasan Langsung
+            </p>
+            <h2 className="text-xl sm:text-2xl font-bold font-poppins text-baznas-ink">
+              Modul Tugas Anda
+            </h2>
+          </div>
+          <span className="text-[11px] text-baznas-ink/45 hidden sm:block">
+            {currentMonthLabel}
+          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Bidang I */}
-          <div
-            onClick={() => onSelectBidang("bidang1")}
-            className="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-baznas-green-600 hover:shadow-md hover:-translate-y-0.5"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-baznas-green-700 group-hover:bg-baznas-green-800 group-hover:text-white transition-colors">
-                <HandCoins className="h-5 w-5" />
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-slate-400 group-hover:text-baznas-green-600 transition-colors" />
+          {quickBidang.map((b) => {
+            const meta = BIDANG_META[b]!;
+            return (
+              <button
+                key={b}
+                type="button"
+                onClick={() => onSelectBidang(b)}
+                aria-label={`Buka ${meta.short} — ${meta.title}`}
+                className="group relative text-left bg-white border border-baznas-ink-8 hover:border-baznas-green-800 p-8 transition-colors min-h-t-target-lg"
+              >
+                {/* gold accent top — when hovered */}
+                <span
+                  aria-hidden="true"
+                  className="absolute left-0 right-0 top-0 h-[3px] bg-baznas-gold-display scale-x-0 group-hover:scale-x-100 origin-left transition-transform"
+                />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="border border-baznas-ink-20 group-hover:border-baznas-green-800 group-hover:bg-baznas-green-900 group-hover:text-white p-2.5 text-baznas-ink/80 transition-colors shrink-0">
+                    {meta.icon}
+                  </div>
+                  <ArrowUpRight
+                    className="h-4 w-4 text-baznas-ink/30 group-hover:text-baznas-green-800 transition-colors"
+                    aria-hidden="true"
+                  />
+                </div>
+                <span className="mt-4 block text-[10px] font-bold text-baznas-gold-display uppercase tracking-wider">
+                  {meta.short}
+                </span>
+                <h3 className="mt-1 text-base font-bold text-baznas-ink font-poppins leading-tight">
+                  {meta.title}
+                </h3>
+                <p className="mt-1.5 text-xs text-baznas-ink/55 leading-snug">
+                  {meta.desc}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ──────────────────────────────────────── */}
+      {/* 3. STATS — 1 jumbo + 3 medium (editorial)  */}
+      {/* ──────────────────────────────────────── */}
+      <section>
+        <div className="grid lg:grid-cols-12 gap-5 items-stretch">
+          {/* JUMBO stat — total ZIS masuk */}
+          <div className="lg:col-span-7 relative bg-baznas-ink text-white p-7 overflow-hidden">
+            <div
+              aria-hidden="true"
+              className="absolute -right-8 -bottom-8 text-baznas-gold-display opacity-10"
+            >
+              <Wallet className="h-48 w-48" />
             </div>
-            <span className="text-[11px] font-bold text-baznas-green-700 uppercase tracking-wide">
-              Bidang I
-            </span>
-            <h3 className="text-base font-bold text-slate-900 font-poppins mt-0.5">
-              Pengumpulan ZIS
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 leading-normal">
-              Input setoran ZIS, kalkulator zakat 2,5%, data muzakki, dan cetak tanda terima.
-            </p>
-          </div>
-
-          {/* Bidang II */}
-          <div
-            onClick={() => onSelectBidang("bidang2")}
-            className="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-baznas-green-600 hover:shadow-md hover:-translate-y-0.5"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                <HeartHandshake className="h-5 w-5" />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="h-px w-8 bg-baznas-gold-display" aria-hidden="true" />
+                <span className="text-[10px] uppercase tracking-[0.22em] text-baznas-gold-display font-bold">
+                  Total Penghimpunan
+                </span>
               </div>
-              <ArrowUpRight className="h-4 w-4 text-slate-400 group-hover:text-rose-600 transition-colors" />
-            </div>
-            <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wide">
-              Bidang II
-            </span>
-            <h3 className="text-base font-bold text-slate-900 font-poppins mt-0.5">
-              Pendistribusian
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 leading-normal">
-              Data mustahik 4 pilar, survei kelayakan, serta permohonan pencairan bantuan.
-            </p>
-          </div>
-
-          {/* Bidang III */}
-          <div
-            onClick={() => onSelectBidang("bidang3")}
-            className="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-baznas-green-600 hover:shadow-md hover:-translate-y-0.5"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                <LineChart className="h-5 w-5" />
+              <p className="display-1 editorial-num text-white leading-none">
+                {formatRupiah(stats.totalZisMasuk)}
+              </p>
+              <div className="mt-4 flex items-center gap-5 text-xs">
+                <span className="text-white/55">Akumulasi per {currentMonthLabel}</span>
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 font-bold ${
+                    stats.monthTrend >= 0
+                      ? "bg-baznas-green-800/30 text-baznas-paper"
+                      : "bg-baznas-paper border border-baznas-ink-20 text-baznas-ink/70"
+                  }`}
+                >
+                  <TrendingUp className="h-3 w-3" />
+                  {stats.monthTrend >= 0 ? "+" : ""}
+                  {stats.monthTrend.toFixed(1)}%
+                </span>
               </div>
-              <ArrowUpRight className="h-4 w-4 text-slate-400 group-hover:text-amber-600 transition-colors" />
             </div>
-            <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wide">
-              Bidang III
-            </span>
-            <h3 className="text-base font-bold text-slate-900 font-poppins mt-0.5">
-              Keuangan & RKAT
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 leading-normal">
-              Evaluasi pagu vs realisasi RKAT, laporan arus kas, dan cetak LPJ resmi.
-            </p>
           </div>
 
-          {/* Bidang IV */}
-          <div
-            onClick={() => onSelectBidang("bidang4")}
-            className="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-baznas-green-600 hover:shadow-md hover:-translate-y-0.5"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <FolderArchive className="h-5 w-5" />
-              </div>
-              <ArrowUpRight className="h-4 w-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+          {/* 3 MEDIUM stats stacked vertically */}
+          <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+            <div className="bg-white border border-baznas-ink-8 p-7">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-baznas-ink/45 font-bold mb-1.5">
+                Telah Disalurkan
+              </p>
+              <p className="display-3 editorial-num text-baznas-ink">
+                {formatRupiah(stats.totalPenyaluran)}
+              </p>
+              <p className="text-[11px] text-baznas-ink/55 mt-1.5">
+                {stats.serapanPagu.toFixed(1)}% pagu RKAT · 4 pilar
+              </p>
             </div>
-            <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wide">
-              Bidang IV
-            </span>
-            <h3 className="text-base font-bold text-slate-900 font-poppins mt-0.5">
-              Administrasi & Aset
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 leading-normal">
-              Agenda surat masuk, cetak lembar disposisi pimpinan, SDM amil, dan inventaris kantor.
-            </p>
+
+            <div className="bg-white border border-baznas-ink-8 p-7">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-baznas-ink/45 font-bold mb-1.5">
+                Penerima Manfaat
+              </p>
+              <p className="display-3 editorial-num text-baznas-ink">
+                {stats.mustahikAktif}
+                <span className="text-sm font-normal text-baznas-ink/45"> jiwa</span>
+              </p>
+              <p className="text-[11px] text-baznas-ink/55 mt-1.5">
+                Dari {stats.muzakkiAktif} muzakki terdaftar
+              </p>
+            </div>
+
+            <div className="bg-white border border-baznas-ink-8 p-7">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-baznas-ink/45 font-bold mb-1.5">
+                Saldo Kas
+              </p>
+              <p
+                className={`display-3 editorial-num ${
+                  stats.saldoKas >= 0 ? "text-baznas-green-900" : "text-baznas-ink/70"
+                }`}
+              >
+                {formatRupiah(stats.saldoKas)}
+              </p>
+              <p className="text-[11px] text-baznas-ink/55 mt-1.5">
+                {stats.saldoKas >= 0
+                  ? "Siap disalurkan sesuai RKAT"
+                  : "Saldo negatif, perlu perhatian"}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Ringkasan Angka Real-Time */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Total ZIS Masuk
-            </span>
-            <span className="flex items-center text-xs font-bold text-emerald-600">
-              <TrendingUp className="h-3.5 w-3.5 mr-0.5" /> +12.4%
-            </span>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 font-poppins mt-2">
-            Rp 1.482.350.000
+      {setoranList.length === 0 && (
+        <div className="border border-dashed border-baznas-ink-20 bg-baznas-paper/40 p-8 text-center">
+          <p className="text-sm font-bold text-baznas-ink">
+            Belum ada data setoran tercatat
           </p>
-          <p className="text-[11px] text-slate-400 mt-1">Akumulasi per September 2026</p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Telah Disalurkan
-            </span>
-            <span className="rounded-full bg-emerald-50 text-baznas-green-800 px-2 py-0.5 text-[10px] font-bold">
-              75.5% Pagu
-            </span>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 font-poppins mt-2">
-            Rp 1.120.400.000
+          <p className="text-xs text-baznas-ink/55 mt-1">
+            Mulai catat setoran ZIS pertama Anda di Bidang I — Pengumpulan.
           </p>
-          <p className="text-[11px] text-slate-400 mt-1">Untuk 4 pilar program utama</p>
         </div>
+      )}
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Penerima Manfaat
-            </span>
-            <span className="text-xs font-semibold text-blue-600">Aktif</span>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 font-poppins mt-2">
-            642 <span className="text-sm font-normal text-slate-500">Jiwa / KK</span>
-          </p>
-          <p className="text-[11px] text-slate-400 mt-1">Terverifikasi kelayakan SKTM</p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Saldo Kas Tersedia
-            </span>
-            <span className="text-xs font-semibold text-emerald-700">Bank & Kas</span>
-          </div>
-          <p className="text-2xl font-bold text-baznas-green-800 font-poppins mt-2">
-            Rp 361.950.000
-          </p>
-          <p className="text-[11px] text-slate-400 mt-1">Siap disalurkan sesuai RKAT</p>
-        </div>
-      </div>
-
-      {/* Widget Pengingat Tugas & Aktivitas Terkini */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Kolom Kiri (2): Pengingat Tugas Tindak Lanjut */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between mb-4">
+      {/* ──────────────────────────────────────── */}
+      {/* 4. PENGINGAT + AKTIVITAS — 2 kolom         */}
+      {/* ──────────────────────────────────────── */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Kiri (8): Pengingat */}
+        <div className="lg:col-span-8 bg-white border border-baznas-ink-8 p-6">
+          <div className="flex items-center justify-between mb-5 pb-3 border-b border-baznas-ink-8">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-amber-500" />
-              <h3 className="text-sm font-bold text-slate-800 font-poppins">
-                Pengingat Tugas Menunggu Tindak Lanjut
+              <Clock className="h-4 w-4 text-baznas-gold-display" aria-hidden="true" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-baznas-ink font-poppins">
+                Pengingat Tugas
               </h3>
             </div>
-            <span className="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-bold">
-              {pendingPencairan.length + pendingSurat.length} Tugas
+            <span className="bg-baznas-paper border border-baznas-ink-12 text-baznas-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+              {pendingPencairan.length + pendingSurat.length} item
             </span>
           </div>
 
           <div className="space-y-3">
-            {pendingPencairan.map((p) => (
-              <div
-                key={p.id}
-                onClick={() => onSelectBidang("bidang2")}
-                className="cursor-pointer flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50/50 p-3.5 hover:bg-amber-100/60 transition-colors"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-amber-500 p-2 text-white mt-0.5">
-                    <Clock className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wide">
-                      Persetujuan Pencairan Dana (Bidang II)
-                    </span>
-                    <p className="text-xs font-semibold text-slate-900 mt-0.5">
-                      {p.namaProgram}
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      Diajukan: {formatRupiah(p.nominal)} untuk {p.jumlahMustahik} Mustahik • Tgl: {p.tanggal}
-                    </p>
-                  </div>
-                </div>
-                <button className="text-xs font-semibold text-amber-800 bg-white border border-amber-300 px-3 py-1.5 rounded-lg shadow-2xs hover:bg-amber-50">
-                  Tinjau
-                </button>
+            {pendingPencairan.length === 0 && pendingSurat.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-sm font-semibold text-baznas-ink/55">
+                  Tidak ada tugas yang menunggu tindak lanjut.
+                </p>
+                <p className="text-[11px] text-baznas-ink/40 mt-1">
+                  Anda sudah menyelesaikan semua item yang ditugaskan.
+                </p>
               </div>
+            )}
+
+            {pendingPencairan.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => onSelectBidang("bidang2")}
+                className="group w-full flex items-center justify-between text-left border-l-4 border-baznas-gold-display bg-baznas-paper hover:bg-baznas-paper/60 px-5 py-4 transition-colors min-h-t-target"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold text-baznas-ink uppercase tracking-wider">
+                    Persetujuan Pencairan · Bidang II
+                  </p>
+                  <p className="text-sm font-bold text-baznas-ink mt-1 truncate">
+                    {p.namaProgram}
+                  </p>
+                  <p className="text-[11px] text-baznas-ink/60 mt-0.5">
+                    {formatRupiah(p.nominal)} · {p.jumlahMustahik} mustahik · {p.tanggal}
+                  </p>
+                </div>
+                <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-baznas-ink group-hover:gap-2 transition-all">
+                  Tinjau <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </button>
             ))}
 
             {pendingSurat.map((s) => (
-              <div
+              <button
                 key={s.id}
+                type="button"
                 onClick={() => onSelectBidang("bidang4")}
-                className="cursor-pointer flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-3.5 hover:bg-blue-100/60 transition-colors"
+                className="group w-full flex items-center justify-between text-left border-l-4 border-baznas-green-800 bg-baznas-paper/40 hover:bg-baznas-paper px-5 py-4 transition-colors min-h-t-target"
               >
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-blue-600 p-2 text-white mt-0.5">
-                    <FolderArchive className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-bold text-blue-700 uppercase tracking-wide">
-                      Surat Masuk Belum Disposisi (Bidang IV)
-                    </span>
-                    <p className="text-xs font-semibold text-slate-900 mt-0.5">
-                      {s.nomorSurat} — Dari: {s.asalSurat}
-                    </p>
-                    <p className="text-[11px] text-slate-500 truncate max-w-md">
-                      {s.perihal}
-                    </p>
-                  </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold text-baznas-green-900 uppercase tracking-wider">
+                    Surat Masuk · Bidang IV
+                  </p>
+                  <p className="text-sm font-bold text-baznas-ink mt-1 truncate">
+                    {s.nomorSurat} — {s.asalSurat}
+                  </p>
+                  <p className="text-[11px] text-baznas-ink/60 mt-0.5 truncate max-w-md">
+                    {s.perihal}
+                  </p>
                 </div>
-                <button className="text-xs font-semibold text-blue-700 bg-white border border-blue-300 px-3 py-1.5 rounded-lg shadow-2xs hover:bg-blue-50">
-                  Disposisi
-                </button>
-              </div>
+                <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-baznas-green-900 group-hover:gap-2 transition-all">
+                  Disposisi <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Kolom Kanan (1): Transaksi Setoran Terkini */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-slate-800 font-poppins">
-              Setoran ZIS Terkini
+        {/* Kanan (4): Setoran Terkini */}
+        <div className="lg:col-span-4 bg-white border border-baznas-ink-8 p-6">
+          <div className="flex items-center justify-between mb-5 pb-3 border-b border-baznas-ink-8">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-baznas-ink font-poppins">
+              Setoran Terkini
             </h3>
             <button
               onClick={() => onSelectBidang("bidang1")}
-              className="text-xs font-semibold text-baznas-green-700 hover:underline flex items-center gap-1"
+              className="text-[11px] font-bold text-baznas-green-900 hover:underline flex items-center gap-1"
             >
               Semua <ArrowRight className="h-3 w-3" />
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {setoranList.slice(0, 3).map((s) => (
-              <div
-                key={s.id}
-                className="rounded-xl border border-slate-100 p-3 hover:bg-slate-50/80 transition-colors"
-              >
+              <div key={s.id} className="border border-baznas-ink-8 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-400">
+                  <span className="text-[10px] font-mono font-bold text-baznas-ink/45">
                     {s.buktiNo}
                   </span>
-                  <span className="text-[10px] text-slate-400">{s.tanggal}</span>
+                  <span className="text-[10px] text-baznas-ink/45">{s.tanggal}</span>
                 </div>
-                <p className="text-xs font-semibold text-slate-800 mt-1">
+                <p className="text-sm font-bold text-baznas-ink mt-1.5 truncate">
                   {s.namaMuzakki}
                 </p>
-                <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-50">
-                  <span className="text-[11px] text-slate-500">{s.jenisLabel}</span>
-                  <span className="text-xs font-bold text-baznas-green-800">
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-baznas-ink-8">
+                  <span className="text-[11px] text-baznas-ink/55">{s.jenisLabel}</span>
+                  <span className="text-xs font-bold text-baznas-green-900 editorial-num">
                     {formatRupiah(s.nominal)}
                   </span>
                 </div>
                 <button
                   onClick={() => onViewKwitansi(s)}
-                  className="mt-2 w-full text-center text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100/80 py-1 rounded-lg transition-colors"
+                  className="mt-2 w-full inline-flex items-center justify-center gap-1.5 border border-baznas-ink-20 hover:border-baznas-green-800 hover:bg-baznas-paper text-baznas-ink/70 hover:text-baznas-green-900 py-2 text-[11px] font-bold transition-colors min-h-t-target"
                 >
-                  Lihat Kwitansi Resmi
+                  <Printer className="h-3 w-3" />
+                  Lihat Kwitansi
                 </button>
               </div>
             ))}
+            {setoranList.length === 0 && (
+              <p className="text-center text-xs text-baznas-ink/45 py-6">
+                Belum ada setoran tercatat
+              </p>
+            )}
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
+
+export default BerandaView;

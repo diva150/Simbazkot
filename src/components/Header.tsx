@@ -1,27 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
   Bell,
   Calendar,
-  User,
-  Menu,
-  LogOut,
-  Shield,
+  X,
   KeyRound,
   Eye,
   EyeOff,
   AlertCircle,
   CheckCircle2,
-  Lock,
-  X,
+  Inbox,
+  Wallet,
 } from "lucide-react";
 import { UserSession, RoleBidang } from "@/lib/types";
+import { formatIndonesianLongDate, formatHijriahDate } from "@/lib/utils";
+import { BAZNASMark } from "@/components/brand/BAZNASMark";
 
 interface HeaderProps {
   onOpenSearch: () => void;
-  pendingCount: number;
+  pendingPencairan: number;
+  pendingSurat: number;
+  onOpenPencairanReminder: () => void;
+  onOpenSuratReminder: () => void;
   onToggleSidebar: () => void;
   user: UserSession | null;
   userAccounts?: UserSession[];
@@ -33,15 +35,30 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
+// Helper: inisial monogram dari nama
+function monogram(nama: string): string {
+  return nama
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() || "")
+    .join("");
+}
+
 export const Header: React.FC<HeaderProps> = ({
   onOpenSearch,
-  pendingCount,
+  pendingPencairan,
+  pendingSurat,
+  onOpenPencairanReminder,
+  onOpenSuratReminder,
   onToggleSidebar,
   user,
   userAccounts,
   onUpdateUserAccount,
   onLogout,
 }) => {
+  const totalPending = pendingPencairan + pendingSurat;
+
   // State Modal Ubah Kredensial (Username & Kata Sandi)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editUsername, setEditUsername] = useState("");
@@ -51,6 +68,43 @@ export const Header: React.FC<HeaderProps> = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // State Notifikasi (Bell Dropdown)
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
+
+  // Refresh date at the start of each day so it stays accurate across sessions
+  useEffect(() => {
+    const msUntilMidnight =
+      new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1, 0, 5, 0).getTime() -
+      currentDate.getTime();
+    const timer = setTimeout(() => setCurrentDate(new Date()), Math.max(msUntilMidnight, 60_000));
+    return () => clearTimeout(timer);
+  }, [currentDate]);
+
+  // Tutup panel notifikasi saat klik di luar atau tekan Escape
+  useEffect(() => {
+    if (!isNotifOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setIsNotifOpen(false);
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsNotifOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscapeKey);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [isNotifOpen]);
 
   const handleOpenEdit = () => {
     if (!user) return;
@@ -80,11 +134,10 @@ export const Header: React.FC<HeaderProps> = ({
       return;
     }
 
-    // Kebijakan 1 username per bidang: cek jika username dipakai bidang lain
+    // Kebijakan 1 username per bidang
     if (userAccounts) {
       const conflict = userAccounts.find(
-        (u) =>
-          u.username.toLowerCase() === cleanUsername && u.role !== user?.role
+        (u) => u.username.toLowerCase() === cleanUsername && u.role !== user?.role
       );
       if (conflict) {
         setErrorMsg(
@@ -111,30 +164,28 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="no-print sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur-md sm:px-6">
+      <header className="no-print sticky top-0 z-30 flex h-[72px] w-full items-center justify-between border-b border-baznas-ink-8 bg-white/95 px-4 backdrop-blur-md sm:px-6">
         {/* Kiri: Mobile Toggle & Brand */}
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
-            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
+            className="inline-flex items-center justify-center rounded-md text-baznas-ink/60 hover:bg-baznas-paper lg:hidden h-t-target w-t-target"
+            aria-label="Buka Navigasi"
             title="Buka Navigasi"
           >
-            <Menu className="h-5 w-5" />
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" d="M3 6h18M3 12h18M3 18h18" />
+            </svg>
           </button>
 
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-baznas-green-900 to-baznas-green-700 shadow-md shadow-baznas-green-900/20 text-white font-bold font-poppins text-lg">
-              B
-            </div>
-            <div>
-              <h1 className="text-sm sm:text-base font-bold leading-tight text-slate-900 font-poppins">
-                BAZNAS
-              </h1>
-              <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
-                {user?.roleLabel || "Sistem Informasi & Pengelolaan Data"}
-              </p>
-            </div>
-          </div>
+          <BAZNASMark variant="mark" size="sm" className="text-baznas-green-900" />
         </div>
 
         {/* Tengah: Quick Search Omnibox */}
@@ -142,65 +193,181 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenSearch}
             type="button"
-            className="group flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-2 text-sm text-slate-400 transition-all hover:border-baznas-green-600 hover:bg-white hover:text-slate-600 shadow-xs"
+            className="group flex w-full items-center justify-between border border-baznas-ink-12 bg-baznas-paper/40 hover:border-baznas-green-800 hover:bg-white px-3.5 py-2.5 text-sm text-baznas-ink/45 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+            aria-label="Buka pencarian cepat"
           >
-            <span className="flex items-center gap-2.5">
-              <Search className="h-4 w-4 text-slate-400 group-hover:text-baznas-green-600" />
-              <span className="truncate text-xs">Cari NIK, NPWZ, muzakki, mustahik, surat...</span>
+            <span className="flex items-center gap-2.5 min-w-0">
+              <Search className="h-4 w-4 text-baznas-ink/45 group-hover:text-baznas-green-800 shrink-0" />
+              <span className="truncate text-sm">Cari NIK, NPWZ, muzakki, mustahik, surat&hellip;</span>
             </span>
-            <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-slate-200 bg-white px-1.5 font-mono text-[10px] font-semibold text-slate-400 shadow-2xs">
+            <kbd className="hidden sm:inline-flex h-6 items-center gap-0.5 border border-baznas-ink-12 bg-white px-2 font-mono text-[11px] font-semibold text-baznas-ink/55">
               Ctrl+K
             </kbd>
           </button>
         </div>
 
-        {/* Kanan: Tanggal, Pengaturan Akun, Notifikasi & Logout */}
+        {/* Kanan: Tanggal, Notifikasi, User, Logout */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Info Tanggal */}
-          <div className="hidden xl:flex items-center gap-2 rounded-lg bg-emerald-50/60 px-3 py-1.5 border border-emerald-100 text-xs text-baznas-green-800">
-            <Calendar className="h-3.5 w-3.5 text-baznas-green-600" />
+          <div className="hidden xl:flex items-center gap-2 border-l-2 border-baznas-gold-display pl-3 pr-2 py-1.5 text-sm">
+            <Calendar className="h-4 w-4 text-baznas-green-800" />
             <div className="leading-tight">
-              <span className="font-semibold block">Rabu, 23 Sep 2026</span>
-              <span className="text-[10px] text-emerald-600">11 Rabiul Awwal 1448 H</span>
+              <span className="font-semibold text-baznas-ink block text-sm">
+                {formatIndonesianLongDate(currentDate)}
+              </span>
+              <span className="text-[11px] text-baznas-ink/55 font-medium">
+                {formatHijriahDate(currentDate)}
+              </span>
             </div>
           </div>
 
           {/* Notifikasi Pengingat */}
-          <div className="relative">
+          <div className="relative" ref={notifRef}>
             <button
-              onClick={onOpenSearch}
-              className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100 transition-colors"
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              aria-label="Buka Pengingat Tugas"
+              aria-haspopup="menu"
+              aria-expanded={isNotifOpen}
+              className="relative inline-flex items-center justify-center rounded-md text-baznas-ink/65 hover:bg-baznas-paper transition-colors h-t-target w-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
               title="Pengingat Tugas"
             >
               <Bell className="h-5 w-5" />
-              {pendingCount > 0 && (
-                <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white ring-2 ring-white">
-                  {pendingCount}
+              {totalPending > 0 && (
+                <span
+                  className="absolute top-0.5 right-0.5 flex h-5 min-w-[20px] items-center justify-center bg-rose-700 px-1.5 text-[10px] font-bold text-white ring-2 ring-white"
+                  aria-label={`${totalPending} tugas tertunda`}
+                >
+                  {totalPending}
                 </span>
               )}
             </button>
+
+            {/* Panel Dropdown Notifikasi */}
+            {isNotifOpen && (
+              <div
+                role="menu"
+                aria-label="Pengingat Tugas"
+                className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white border border-baznas-ink-8 shadow-lift z-40 overflow-hidden"
+              >
+                {/* Header Panel — tanpa gradient */}
+                <div className="flex items-center justify-between bg-baznas-paper px-4 py-3 border-b border-baznas-ink-8">
+                  <div className="flex items-center gap-2">
+                    <Bell className="h-4 w-4 text-baznas-green-800" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-baznas-ink font-poppins">
+                      Pengingat Tugas
+                    </h3>
+                  </div>
+                  {totalPending > 0 && (
+                    <span className="inline-flex items-center justify-center bg-rose-700 px-2 py-0.5 text-[10px] font-bold text-white">
+                      {totalPending}
+                    </span>
+                  )}
+                </div>
+
+                {/* Daftar Item Notifikasi */}
+                <div className="py-1.5">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setIsNotifOpen(false);
+                      onOpenPencairanReminder();
+                    }}
+                    disabled={pendingPencairan === 0}
+                    aria-label={`Permohonan Pencairan Dana, ${pendingPencairan} item tertunda`}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-baznas-ink transition-colors hover:bg-baznas-paper/60 focus:bg-baznas-paper/60 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent min-h-t-target border-b border-baznas-ink-8"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-baznas-gold-display text-baznas-green-900">
+                      <Wallet className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-baznas-ink leading-tight text-sm">
+                        Permohonan Pencairan Dana
+                      </p>
+                      <p className="text-[11px] text-baznas-ink/55 mt-0.5">
+                        Menunggu persetujuan Anda
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 inline-flex items-center justify-center px-2 py-0.5 text-[11px] font-bold text-white min-w-[24px] ${
+                        pendingPencairan > 0 ? "bg-rose-700" : "bg-baznas-ink-20"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {pendingPencairan}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setIsNotifOpen(false);
+                      onOpenSuratReminder();
+                    }}
+                    disabled={pendingSurat === 0}
+                    aria-label={`Surat Masuk Belum Disposisi, ${pendingSurat} item tertunda`}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-baznas-ink transition-colors hover:bg-baznas-paper/60 focus:bg-baznas-paper/60 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent min-h-t-target"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-baznas-gold-display text-baznas-green-900">
+                      <Inbox className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-baznas-ink leading-tight text-sm">
+                        Surat Masuk Belum Disposisi
+                      </p>
+                      <p className="text-[11px] text-baznas-ink/55 mt-0.5">
+                        Perlu ditindaklanjuti segera
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 inline-flex items-center justify-center px-2 py-0.5 text-[11px] font-bold text-white min-w-[22px] ${
+                        pendingSurat > 0 ? "bg-rose-700" : "bg-baznas-ink-20"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {pendingSurat}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Footer Tutup */}
+                <div className="border-t border-baznas-ink-8 bg-baznas-paper/40 px-4 py-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsNotifOpen(false)}
+                    className="w-full py-1.5 text-[11px] font-semibold text-baznas-ink/60 hover:text-baznas-green-900 transition-colors"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* User Info & Tombol Ubah Kata Sandi / Akun */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+          <div className="flex items-center gap-2 pl-2 border-l border-baznas-ink-8">
             <button
               type="button"
               onClick={handleOpenEdit}
               title="Klik untuk Ubah Username atau Kata Sandi Bidang"
-              className="group flex items-center gap-2 rounded-xl p-1.5 hover:bg-slate-100 transition-colors text-left"
+              aria-label="Ubah Username atau Kata Sandi"
+              className="group flex items-center gap-2 p-1.5 hover:bg-baznas-paper transition-colors text-left min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200 text-baznas-green-800 group-hover:border-baznas-green-600 transition-colors">
-                <User className="h-4 w-4" />
+              <div className="flex h-9 w-9 items-center justify-center bg-baznas-green-900 text-white group-hover:bg-baznas-green-800 transition-colors">
+                <span className="text-[11px] font-bold tracking-tight">
+                  {user ? monogram(user.nama) : "AM"}
+                </span>
               </div>
-              <div className="hidden md:block max-w-[140px]">
-                <p className="text-xs font-bold text-slate-900 leading-tight truncate group-hover:text-baznas-green-800">
+              <div className="hidden md:block max-w-[160px]">
+                <p className="text-sm font-bold text-baznas-ink leading-tight truncate group-hover:text-baznas-green-900">
                   {user?.nama || "Amil Pelaksana"}
                 </p>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <span className="inline-block text-[9px] font-mono font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.2 rounded truncate">
+                  <span className="inline-block text-[10px] font-mono font-bold text-baznas-green-900 bg-baznas-paper px-1.5 py-0.2 truncate">
                     {user?.username.toLowerCase()}
                   </span>
-                  <KeyRound className="h-3 w-3 text-slate-400 group-hover:text-baznas-green-700" />
+                  <KeyRound className="h-3 w-3 text-baznas-ink/40 group-hover:text-baznas-green-800" />
                 </div>
               </div>
             </button>
@@ -210,68 +377,76 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onLogout}
             title="Keluar ke Beranda Umum"
-            className="flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-colors"
+            aria-label="Keluar dari sistem"
+            className="inline-flex items-center gap-1.5 border border-baznas-ink-20 hover:border-rose-700 hover:bg-rose-50 hover:text-rose-700 text-baznas-ink/70 px-3 sm:px-4 py-2 text-sm font-semibold transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
           >
-            <LogOut className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Keluar</span>
+            <svg
+              className="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
           </button>
         </div>
       </header>
 
       {/* MODAL UBAH KATA SANDI / USERNAME AKUN BIDANG */}
       {isEditModalOpen && user && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            {/* Header Modal */}
-            <div className="bg-gradient-to-r from-baznas-green-900 to-baznas-green-800 p-5 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="rounded-xl bg-white/10 p-2 text-white">
-                  <KeyRound className="h-5 w-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-baznas-ink/70 backdrop-blur-xs">
+          <div className="relative w-full max-w-md bg-white border border-baznas-ink-8 shadow-lift overflow-hidden my-auto max-h-[92vh] flex flex-col">
+            {/* Header Modal — paper, bukan gradient */}
+            <div className="relative bg-baznas-paper px-6 py-5 border-b border-baznas-ink-8 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="border border-baznas-gold-display p-2 text-baznas-green-900">
+                  <KeyRound className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold font-poppins text-white">
-                    Ubah Akun &amp; Kata Sandi
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-baznas-ink font-poppins">
+                    Ubah Akun &amp; Sandi
                   </h3>
-                  <p className="text-xs text-emerald-100/90 font-medium">
-                    {user.roleLabel}
-                  </p>
+                  <p className="text-[11px] text-baznas-ink/55 mt-0.5">{user.roleLabel}</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className="rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20 transition-colors"
+                className="inline-flex items-center justify-center rounded-md text-baznas-ink/50 hover:text-baznas-ink hover:bg-baznas-ink-8 h-t-target w-t-target transition-colors"
+                aria-label="Tutup"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="p-6 space-y-4 text-xs">
-              {/* Notifikasi Error & Sukses */}
+            <form onSubmit={handleSaveEdit} className="p-6 space-y-4 text-sm">
               {errorMsg && (
-                <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-rose-700 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+                <div className="flex items-start gap-2 border-l-4 border-rose-700 bg-rose-50 p-3 text-xs text-rose-900">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-rose-700 mt-0.5" />
                   <span>{errorMsg}</span>
                 </div>
               )}
               {successMsg && (
-                <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-emerald-800 flex items-center gap-2 font-medium">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                <div className="flex items-start gap-2 border-l-4 border-baznas-green-800 bg-baznas-paper p-3 text-xs text-baznas-green-900">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-baznas-green-800 mt-0.5" />
                   <span>{successMsg}</span>
                 </div>
               )}
 
               {/* Info Pengguna Saat Ini */}
-              <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
+              <div className="bg-baznas-paper/60 border-l-2 border-baznas-gold-display p-3">
+                <span className="text-[10px] uppercase font-bold text-baznas-ink/50 block mb-1 tracking-wider">
                   Pejabat Bertanggung Jawab
                 </span>
-                <p className="text-xs font-bold text-slate-800">{user.nama}</p>
-                <p className="text-[11px] text-slate-500">{user.jabatan}</p>
+                <p className="text-sm font-bold text-baznas-ink">{user.nama}</p>
+                <p className="text-[11px] text-baznas-ink/55">{user.jabatan}</p>
               </div>
 
               {/* Input Username */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block text-[11px] font-bold text-baznas-ink uppercase tracking-wider mb-1.5">
                   Username Login Bidang *
                 </label>
                 <input
@@ -279,17 +454,17 @@ export const Header: React.FC<HeaderProps> = ({
                   required
                   value={editUsername}
                   onChange={(e) => setEditUsername(e.target.value)}
-                  placeholder="e.g. bidang1, ketua, admin"
-                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-mono font-semibold text-slate-800 focus:outline-none focus:border-baznas-green-700 focus:ring-1 focus:ring-baznas-green-700"
+                  placeholder="bidang1 / ketua / admin"
+                  className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-sm font-mono font-semibold text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                 />
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-[11px] text-baznas-ink/45 mt-1">
                   *Satu akun per bidang. Username digunakan untuk masuk ke portal.
                 </p>
               </div>
 
-              {/* Input Kata Sandi Baru */}
+              {/* Input Sandi Baru */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block text-[11px] font-bold text-baznas-ink uppercase tracking-wider mb-1.5">
                   Kata Sandi Baru *
                 </label>
                 <div className="relative">
@@ -299,21 +474,22 @@ export const Header: React.FC<HeaderProps> = ({
                     value={editPassword}
                     onChange={(e) => setEditPassword(e.target.value)}
                     placeholder="Masukkan kata sandi baru"
-                    className="w-full rounded-xl border border-slate-200 bg-white pl-3 pr-10 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-baznas-green-700 focus:ring-1 focus:ring-baznas-green-700"
+                    className="w-full border border-baznas-ink-20 bg-white pl-3 pr-10 py-2.5 text-sm text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center text-baznas-ink/45 hover:text-baznas-ink h-9 w-9 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+                    aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
-              {/* Konfirmasi Kata Sandi Baru */}
+              {/* Konfirmasi Sandi Baru */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block text-[11px] font-bold text-baznas-ink uppercase tracking-wider mb-1.5">
                   Ulangi Kata Sandi Baru *
                 </label>
                 <div className="relative">
@@ -323,12 +499,13 @@ export const Header: React.FC<HeaderProps> = ({
                     value={editConfirmPassword}
                     onChange={(e) => setEditConfirmPassword(e.target.value)}
                     placeholder="Ketik ulang kata sandi baru"
-                    className="w-full rounded-xl border border-slate-200 bg-white pl-3 pr-10 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-baznas-green-700 focus:ring-1 focus:ring-baznas-green-700"
+                    className="w-full border border-baznas-ink-20 bg-white pl-3 pr-10 py-2.5 text-sm text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center text-baznas-ink/45 hover:text-baznas-ink h-9 w-9 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+                    aria-label={showConfirmPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
                   >
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -336,17 +513,17 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* Tombol Simpan & Batal */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-baznas-ink-8">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                  className="border border-baznas-ink-20 hover:bg-baznas-paper px-4 py-2.5 text-sm font-semibold text-baznas-ink/70 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-baznas-green-800 hover:bg-baznas-green-700 px-5 py-2 text-xs font-bold text-white shadow-md shadow-baznas-green-800/20 transition-all"
+                  className="bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 text-sm font-bold text-white transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
                 >
                   Simpan Perubahan
                 </button>
@@ -358,3 +535,5 @@ export const Header: React.FC<HeaderProps> = ({
     </>
   );
 };
+
+export default Header;
