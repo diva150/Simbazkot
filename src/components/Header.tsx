@@ -6,7 +6,6 @@ import {
   Bell,
   Calendar,
   X,
-  KeyRound,
   Eye,
   EyeOff,
   AlertCircle,
@@ -14,7 +13,7 @@ import {
   Inbox,
   Wallet,
 } from "lucide-react";
-import { UserSession, RoleBidang } from "@/lib/types";
+import { UserSession, RoleBidang, bidangLabel, permissionLabel } from "@/lib/types";
 import { formatIndonesianLongDate, formatHijriahDate } from "@/lib/utils";
 import { BAZNASMark } from "@/components/brand/BAZNASMark";
 
@@ -26,12 +25,7 @@ interface HeaderProps {
   onOpenSuratReminder: () => void;
   onToggleSidebar: () => void;
   user: UserSession | null;
-  userAccounts?: UserSession[];
-  onUpdateUserAccount?: (
-    role: RoleBidang,
-    newUsername: string,
-    newPassword?: string
-  ) => void;
+  onOpenProfile: () => void;
   onLogout: () => void;
 }
 
@@ -53,21 +47,10 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSuratReminder,
   onToggleSidebar,
   user,
-  userAccounts,
-  onUpdateUserAccount,
+  onOpenProfile,
   onLogout,
 }) => {
   const totalPending = pendingPencairan + pendingSurat;
-
-  // State Modal Ubah Kredensial (Username & Kata Sandi)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editUsername, setEditUsername] = useState("");
-  const [editPassword, setEditPassword] = useState("");
-  const [editConfirmPassword, setEditConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // State Notifikasi (Bell Dropdown)
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -105,62 +88,6 @@ export const Header: React.FC<HeaderProps> = ({
       document.removeEventListener("keydown", handleEscapeKey);
     };
   }, [isNotifOpen]);
-
-  const handleOpenEdit = () => {
-    if (!user) return;
-    setEditUsername(user.username);
-    setEditPassword(user.password || "");
-    setEditConfirmPassword(user.password || "");
-    setErrorMsg(null);
-    setSuccessMsg(null);
-    setShowPassword(false);
-    setShowConfirmPassword(false);
-    setIsEditModalOpen(true);
-  };
-
-  const handleSaveEdit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg(null);
-    setSuccessMsg(null);
-
-    const cleanUsername = editUsername.trim().toLowerCase();
-    if (!cleanUsername) {
-      setErrorMsg("Username tidak boleh kosong.");
-      return;
-    }
-
-    if (/\s/.test(cleanUsername)) {
-      setErrorMsg("Username tidak boleh mengandung spasi.");
-      return;
-    }
-
-    // Kebijakan 1 username per bidang
-    if (userAccounts) {
-      const conflict = userAccounts.find(
-        (u) => u.username.toLowerCase() === cleanUsername && u.role !== user?.role
-      );
-      if (conflict) {
-        setErrorMsg(
-          `Username '${cleanUsername}' sudah digunakan oleh ${conflict.roleLabel}. Kebijakan sistem: 1 username per bidang.`
-        );
-        return;
-      }
-    }
-
-    if (editPassword && editPassword !== editConfirmPassword) {
-      setErrorMsg("Konfirmasi kata sandi baru tidak sesuai.");
-      return;
-    }
-
-    if (user && onUpdateUserAccount) {
-      onUpdateUserAccount(user.role, cleanUsername, editPassword);
-      setSuccessMsg("Kata sandi dan username berhasil diperbarui!");
-      setTimeout(() => {
-        setSuccessMsg(null);
-        setIsEditModalOpen(false);
-      }, 1500);
-    }
-  };
 
   return (
     <>
@@ -350,29 +277,36 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
-            {/* User Info & Tombol Ubah Kata Sandi / Akun */}
+            {/* User Info & Tombol Buka Profil Saya */}
             <div className="flex items-center gap-2 pl-2 border-l border-baznas-ink-8">
               <button
                 type="button"
-                onClick={handleOpenEdit}
-                title="Klik untuk Ubah Username atau Kata Sandi Bidang"
-                aria-label="Ubah Username atau Kata Sandi"
+                onClick={onOpenProfile}
+                title="Buka Profil Saya"
+                aria-label="Buka Profil Saya"
                 className="group flex items-center gap-2 p-1.5 hover:bg-baznas-paper transition-colors text-left min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
               >
-                <div className="flex h-9 w-9 items-center justify-center bg-baznas-green-900 text-white group-hover:bg-baznas-green-800 transition-colors">
-                  <span className="text-[11px] font-bold tracking-tight">
-                    {user ? monogram(user.nama) : "AM"}
-                  </span>
-                </div>
-                <div className="hidden md:block max-w-[160px]">
+                {user?.fotoProfil ? (
+                  <img
+                    src={user.fotoProfil}
+                    alt={user.nama}
+                    className="h-9 w-9 object-cover border border-baznas-ink-8"
+                  />
+                ) : (
+                  <div className="flex h-9 w-9 items-center justify-center bg-baznas-green-900 text-white group-hover:bg-baznas-green-800 transition-colors">
+                    <span className="text-[11px] font-bold tracking-tight">
+                      {user ? monogram(user.nama) : "AM"}
+                    </span>
+                  </div>
+                )}
+                <div className="hidden md:block max-w-[180px]">
                   <p className="text-sm font-bold text-baznas-ink leading-tight truncate group-hover:text-baznas-green-900">
                     {user?.nama || "Amil Pelaksana"}
                   </p>
                   <div className="flex items-center gap-1 mt-0.5">
                     <span className="inline-block text-[10px] font-mono font-bold text-baznas-green-900 bg-baznas-paper px-1.5 py-0.2 truncate">
-                      {user?.username.toLowerCase()}
+                      {user?.email.toLowerCase() || "—"}
                     </span>
-                    <KeyRound className="h-3 w-3 text-baznas-ink/40 group-hover:text-baznas-green-800" />
                   </div>
                 </div>
               </button>
@@ -400,144 +334,6 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </header>
-
-      {/* MODAL UBAH KATA SANDI / USERNAME AKUN BIDANG */}
-      {isEditModalOpen && user && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-baznas-ink/70 backdrop-blur-xs">
-          <div className="relative w-full max-w-md bg-white border border-baznas-ink-8 shadow-lift overflow-hidden my-auto max-h-[92vh] flex flex-col">
-            {/* Header Modal — paper, bukan gradient */}
-            <div className="relative bg-baznas-paper px-6 py-5 border-b border-baznas-ink-8 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="border border-baznas-gold-display p-2 text-baznas-green-900">
-                  <KeyRound className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-baznas-ink font-poppins">
-                    Ubah Akun &amp; Sandi
-                  </h3>
-                  <p className="text-[11px] text-baznas-ink/55 mt-0.5">{user.roleLabel}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsEditModalOpen(false)}
-                className="inline-flex items-center justify-center rounded-md text-baznas-ink/50 hover:text-baznas-ink hover:bg-baznas-ink-8 h-t-target w-t-target transition-colors"
-                aria-label="Tutup"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEdit} className="p-6 space-y-4 text-sm">
-              {errorMsg && (
-                <div className="flex items-start gap-2 border-l-4 border-rose-700 bg-rose-50 p-3 text-xs text-rose-900">
-                  <AlertCircle className="h-4 w-4 shrink-0 text-rose-700 mt-0.5" />
-                  <span>{errorMsg}</span>
-                </div>
-              )}
-              {successMsg && (
-                <div className="flex items-start gap-2 border-l-4 border-baznas-green-800 bg-baznas-paper p-3 text-xs text-baznas-green-900">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-baznas-green-800 mt-0.5" />
-                  <span>{successMsg}</span>
-                </div>
-              )}
-
-              {/* Info Pengguna Saat Ini */}
-              <div className="bg-baznas-paper/60 border-l-2 border-baznas-gold-display p-3">
-                <span className="text-[10px] uppercase font-bold text-baznas-ink/50 block mb-1 tracking-wider">
-                  Pejabat Bertanggung Jawab
-                </span>
-                <p className="text-sm font-bold text-baznas-ink">{user.nama}</p>
-                <p className="text-[11px] text-baznas-ink/55">{user.jabatan}</p>
-              </div>
-
-              {/* Input Username */}
-              <div>
-                <label className="block text-[11px] font-bold text-baznas-ink uppercase tracking-wider mb-1.5">
-                  Username Login Bidang *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editUsername}
-                  onChange={(e) => setEditUsername(e.target.value)}
-                  placeholder="bidang1 / ketua / admin"
-                  className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-sm font-mono font-semibold text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
-                />
-                <p className="text-[11px] text-baznas-ink/45 mt-1">
-                  *Satu akun per bidang. Username digunakan untuk masuk ke portal.
-                </p>
-              </div>
-
-              {/* Input Sandi Baru */}
-              <div>
-                <label className="block text-[11px] font-bold text-baznas-ink uppercase tracking-wider mb-1.5">
-                  Kata Sandi Baru *
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={editPassword}
-                    onChange={(e) => setEditPassword(e.target.value)}
-                    placeholder="Masukkan kata sandi baru"
-                    className="w-full border border-baznas-ink-20 bg-white pl-3 pr-10 py-2.5 text-sm text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center text-baznas-ink/45 hover:text-baznas-ink h-9 w-9 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
-                    aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Konfirmasi Sandi Baru */}
-              <div>
-                <label className="block text-[11px] font-bold text-baznas-ink uppercase tracking-wider mb-1.5">
-                  Ulangi Kata Sandi Baru *
-                </label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    required
-                    value={editConfirmPassword}
-                    onChange={(e) => setEditConfirmPassword(e.target.value)}
-                    placeholder="Ketik ulang kata sandi baru"
-                    className="w-full border border-baznas-ink-20 bg-white pl-3 pr-10 py-2.5 text-sm text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center text-baznas-ink/45 hover:text-baznas-ink h-9 w-9 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
-                    aria-label={showConfirmPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Tombol Simpan & Batal */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-baznas-ink-8">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="border border-baznas-ink-20 hover:bg-baznas-paper px-4 py-2.5 text-sm font-semibold text-baznas-ink/70 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 text-sm font-bold text-white transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
-                >
-                  Simpan Perubahan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </>
   );
 };

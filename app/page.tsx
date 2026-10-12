@@ -38,7 +38,7 @@ import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { PublicLandingView } from "@/components/public/PublicLandingView";
 import { LoginModal } from "@/components/public/LoginModal";
 import { ToastContainer, useToast } from "@/components/common";
-import { canAccessView } from "@/lib/access";
+import { canAccessView, getHomeViewFor } from "@/lib/access";
 
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
@@ -50,6 +50,7 @@ import { Bidang3View } from "@/components/modules/Bidang3View";
 import { Bidang4View } from "@/components/modules/Bidang4View";
 import { KetuaView } from "@/components/modules/KetuaView";
 import { AdminUserManagementView } from "@/components/modules/AdminUserManagementView";
+import { ProfilSayaView } from "@/components/modules/ProfilSayaView";
 import { BerandaView } from "@/components/modules/BerandaView";
 
 import { KwitansiZisPrint } from "@/components/print/KwitansiZisPrint";
@@ -73,6 +74,7 @@ export default function Home() {
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showBeranda, setShowBeranda] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
 
   // Sub-tabs State for each module
   const [bidang1Tab, setBidang1Tab] = useState<Bidang1Tab>("dashboard");
@@ -124,12 +126,23 @@ export default function Home() {
   // Handlers
   const handleLoginSuccess = (user: UserSession) => {
     setCurrentUser(user);
-    setActiveRoleView(user.role);
+    setActiveRoleView(getHomeViewFor(user));
     setShowBeranda(true);
+    setShowProfile(false);
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
+    setShowProfile(false);
+  };
+
+  const handleOpenProfile = () => {
+    setShowProfile(true);
+    setShowBeranda(false);
+  };
+
+  const handleCloseProfile = () => {
+    setShowProfile(false);
   };
 
   const handleNavigateSection = (secId: string) => {
@@ -144,34 +157,45 @@ export default function Home() {
     }
   };
 
-  const handleUpdateUserAccount = (
-    role: RoleBidang,
-    newUsername: string,
-    newPassword?: string
-  ) => {
+  const handleCreateUser = (newUser: Omit<UserSession, "id" | "createdAt">) => {
+    const id = `u-${String(userAccounts.length + 1).padStart(3, "0")}`;
+    setUserAccounts((prev) => [
+      ...prev,
+      { ...newUser, id, createdAt: new Date().toISOString() },
+    ]);
+  };
+
+  const handleUpdateUser = (userId: string, updates: Partial<UserSession>) => {
     setUserAccounts((prev) =>
       prev.map((u) =>
-        u.role === role
-          ? {
-              ...u,
-              username: newUsername,
-              password: newPassword || u.password,
-            }
+        u.id === userId
+          ? { ...u, ...updates, updatedAt: new Date().toISOString() }
           : u
       )
     );
-
-    if (currentUser?.role === role) {
+    if (currentUser?.id === userId) {
       setCurrentUser((prev) =>
         prev
-          ? {
-              ...prev,
-              username: newUsername,
-              password: newPassword || prev.password,
-            }
+          ? { ...prev, ...updates, updatedAt: new Date().toISOString() }
           : null
       );
     }
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    setUserAccounts((prev) => prev.filter((u) => u.id !== userId));
+    if (currentUser?.id === userId) {
+      // Guard: we never call delete on self (UI prevents it), but if we did,
+      // log out to avoid a logged-in user with no account.
+      setCurrentUser(null);
+    }
+  };
+
+  const handleSelfUpdate = (
+    updates: Partial<Pick<UserSession, "email" | "password" | "fotoProfil">>
+  ) => {
+    if (!currentUser) return;
+    handleUpdateUser(currentUser.id, updates);
   };
 
   const handleUpdateSuratDisposisi = (
@@ -384,8 +408,7 @@ export default function Home() {
         onOpenSuratReminder={handleOpenSuratReminder}
         onToggleSidebar={() => setIsSidebarMobileOpen((v) => !v)}
         user={currentUser}
-        userAccounts={userAccounts}
-        onUpdateUserAccount={handleUpdateUserAccount}
+        onOpenProfile={handleOpenProfile}
         onLogout={handleLogout}
       />
 
@@ -395,12 +418,21 @@ export default function Home() {
         <Sidebar
           user={currentUser}
           activeRoleView={activeRoleView}
-          onChangeRoleView={(r) => setActiveRoleView(r)}
+          onChangeRoleView={(r) => {
+            setShowProfile(false);
+            setShowBeranda(false);
+            setActiveRoleView(r);
+          }}
           isOpenMobile={isSidebarMobileOpen}
           onCloseMobile={() => setIsSidebarMobileOpen(false)}
           onLogout={handleLogout}
-          showBeranda={showBeranda}
-          onSelectBeranda={() => setShowBeranda(true)}
+          onOpenProfile={handleOpenProfile}
+          showProfile={showProfile}
+          showBeranda={showBeranda && !showProfile}
+          onSelectBeranda={() => {
+            setShowProfile(false);
+            setShowBeranda(true);
+          }}
           bidang1Tab={bidang1Tab}
           onChangeBidang1Tab={setBidang1Tab}
           bidang2Tab={bidang2Tab}
@@ -432,10 +464,11 @@ export default function Home() {
                   // Role gate: only admin (or the user themselves) can switch to a view.
                   if (canAccessView(currentUser, b)) {
                     setActiveRoleView(b);
+                    setShowProfile(false);
                   } else {
                     toastError(
                       "Akses Ditolak",
-                      `Akun ${currentUser.roleLabel} tidak memiliki akses ke modul ${b}.`
+                      `Akun Anda tidak memiliki akses ke modul ${b}.`
                     );
                   }
                 }
@@ -527,16 +560,25 @@ export default function Home() {
                 />
               )}
 
-              {activeRoleView === "admin" && canAccessView(currentUser, "admin") && (
+              {activeRoleView === "admin" && canAccessView(currentUser, "admin") && !showProfile && (
                 <AdminUserManagementView
                   userAccounts={userAccounts}
                   berandaContent={berandaContent}
                   currentUser={currentUser}
                   onUpdateBerandaContent={setBerandaContent}
-                  onUpdateUserAccount={handleUpdateUserAccount}
-                  onSwitchToBidang={(r) => setActiveRoleView(r)}
+                  onCreateUser={handleCreateUser}
+                  onUpdateUser={handleUpdateUser}
+                  onDeleteUser={handleDeleteUser}
                   activeTab={adminTab}
                   onTabChange={setAdminTab}
+                />
+              )}
+
+              {/* Profil Saya — untuk semua pengguna yang sudah login */}
+              {showProfile && currentUser && (
+                <ProfilSayaView
+                  currentUser={currentUser}
+                  onSelfUpdate={handleSelfUpdate}
                 />
               )}
 
@@ -550,11 +592,11 @@ export default function Home() {
                 (activeRoleView === "bidang4" && canAccessView(currentUser, "bidang4")) ||
                 (activeRoleView === "ketua" && canAccessView(currentUser, "ketua")) ||
                 (activeRoleView === "admin" && canAccessView(currentUser, "admin"))
-              ) && (
+              ) && !showProfile && (
                 <div className="rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center max-w-md mx-auto mt-12">
                   <h2 className="text-lg font-bold text-rose-900 font-poppins">Akses Ditolak</h2>
                   <p className="text-sm text-rose-800 mt-2">
-                    Anda login sebagai <strong>{currentUser.roleLabel}</strong> dan tidak
+                    Anda login sebagai <strong>{currentUser.nama}</strong> dan tidak
                     memiliki akses ke modul ini. Silakan kembali ke Beranda atau hubungi
                     administrator.
                   </p>
@@ -594,7 +636,7 @@ export default function Home() {
             } else {
               toastError(
                 "Akses Ditolak",
-                `Akun ${currentUser!.roleLabel} tidak memiliki akses ke modul ${b}.`
+                `Akun Anda tidak memiliki akses ke modul ${b}.`
               );
             }
           }

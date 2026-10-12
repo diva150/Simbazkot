@@ -1,13 +1,77 @@
 export type RoleBidang = "bidang1" | "bidang2" | "bidang3" | "bidang4" | "ketua" | "admin";
 export type BidangType = "beranda" | "bidang1" | "bidang2" | "bidang3" | "bidang4" | "ketua" | "admin" | "profil";
 
+// ── User identity & permission model ──────────────────────────────
+// Org-unit: 6 divisions. A user belongs to exactly one.
+// Permission: admin (superadmin) or user (regular staff).
+// Ketua is a bidang, not a permission — ketua users are still "user"
+// permission-wise; their home view is determined by their bidang.
+export type UserBidang =
+  | "sekretariat"
+  | "bidang1"
+  | "bidang2"
+  | "bidang3"
+  | "bidang4"
+  | "ketua";
+
+export type UserPermission = "admin" | "user";
+
+export type UserGender = "L" | "P";
+
+// Editable field identifier used by the access-control helpers
+export type UserField =
+  | "email"
+  | "password"
+  | "fotoProfil"
+  | "nama"
+  | "gender"
+  | "nip"
+  | "jabatan"
+  | "bidang"
+  | "role";
+
+export const USER_BIDANG_LABELS: Record<UserBidang, string> = {
+  sekretariat: "Sekretariat",
+  bidang1: "Bidang I — Pengumpulan",
+  bidang2: "Bidang II — Pendistribusian & Pendayagunaan",
+  bidang3: "Bidang III — Keuangan",
+  bidang4: "Bidang IV — Administrasi, SDM, & Umum",
+  ketua: "Ketua / Pimpinan BAZNAS",
+};
+
+export const USER_PERMISSION_LABELS: Record<UserPermission, string> = {
+  admin: "Super Admin",
+  user: "Pengguna",
+};
+
+export const USER_GENDER_LABELS: Record<UserGender, string> = {
+  L: "Laki-laki",
+  P: "Perempuan",
+};
+
 export interface UserSession {
-  username: string;
+  id: string;
+  email: string;
   password?: string;
   nama: string;
-  role: RoleBidang;
-  roleLabel: string;
+  gender: UserGender;
+  nip: string;
   jabatan: string;
+  bidang: UserBidang;
+  role: UserPermission;
+  fotoProfil?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// Derived: short human label for the user's permission
+export function permissionLabel(p: UserPermission): string {
+  return USER_PERMISSION_LABELS[p];
+}
+
+// Derived: short human label for the user's org unit
+export function bidangLabel(b: UserBidang): string {
+  return USER_BIDANG_LABELS[b];
 }
 
 export type Bidang1Tab = "dashboard" | "muzakki" | "zakat" | "infak" | "dskl" | "laporan" | "pengaturan";

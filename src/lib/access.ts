@@ -21,12 +21,59 @@
  * must enforce these server-side too.
  */
 
-import type { RoleBidang, UserSession, BidangType } from "./types";
+import type { RoleBidang, UserSession, BidangType, UserField } from "./types";
+
+// User-edit permission model
+export const SELF_EDITABLE_FIELDS: UserField[] = ["email", "password", "fotoProfil"];
+export const ADMIN_EDITABLE_FIELDS: UserField[] = SELF_EDITABLE_FIELDS.concat([
+  "nama",
+  "gender",
+  "nip",
+  "jabatan",
+  "bidang",
+  "role",
+]);
+
+// Map a user to the home view they see after login.
+export function getHomeViewFor(user: UserSession): RoleBidang {
+  if (user.role === "admin") return "admin";
+  if (user.bidang === "ketua") return "ketua";
+  if (user.bidang === "sekretariat") return "bidang4";
+  if (user.bidang === "bidang1") return "bidang1";
+  if (user.bidang === "bidang2") return "bidang2";
+  if (user.bidang === "bidang3") return "bidang3";
+  if (user.bidang === "bidang4") return "bidang4";
+  return "bidang1";
+}
+
+// Permission to edit a user: self always; otherwise only admin
+export function canEditUser(editor: UserSession, target: UserSession): boolean {
+  if (editor.id === target.id) return true;
+  return editor.role === "admin";
+}
+
+export function isFieldEditable(
+  editor: UserSession,
+  target: UserSession,
+  field: UserField
+): boolean {
+  if (!canEditUser(editor, target)) return false;
+  if (editor.role === "admin") return true;
+  return SELF_EDITABLE_FIELDS.includes(field);
+}
+
+export function canCreateUser(editor: UserSession): boolean {
+  return editor.role === "admin";
+}
+
+export function canDeleteUser(editor: UserSession, target: UserSession): boolean {
+  return editor.role === "admin" && editor.id !== target.id;
+}
 
 // ── View-level access ────────────────────────────────────────────────
 export function canAccessView(user: UserSession, view: RoleBidang): boolean {
   if (user.role === "admin") return true;
-  return view === user.role;
+  return getHomeViewFor(user) === view;
 }
 
 // ── Tab-level access map ────────────────────────────────────────────
@@ -54,15 +101,13 @@ export function canAccessTab(
   if (user.role === "admin") return true;
 
   // User's own view: full access to all tabs in that view
-  if (view === user.role) return true;
+  if (getHomeViewFor(user) === view) return true;
 
-  // Ketua: read-only access to "laporan" tab in each Bidang (for executive review)
-  if (user.role === "ketua") {
+  // Ketua-bidang: read-only access to "laporan" tab in each Bidang (executive review)
+  if (user.bidang === "ketua") {
     if (tab === "laporan" || tab === "laporan_semua") {
       return true;
     }
-    // Ketua can also access disposisi view tab + persetujuan_spk in their own view
-    // (already covered by view === user.role above)
     return false;
   }
 

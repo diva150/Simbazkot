@@ -34,33 +34,33 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onLoginSuccess,
   userAccounts = initialPredefinedUsers,
 }) => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [savedUsernames, setSavedUsernames] = useState<string[]>([]);
+  const [savedEmails, setSavedEmails] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Track if open for entrance animation
   const [shouldRender, setShouldRender] = useState(false);
-  const usernameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
 
   // Load saved logins from localStorage
   useEffect(() => {
     if (typeof window !== "undefined" && isOpen) {
       try {
-        const stored = localStorage.getItem("baznas_saved_logins");
+        const stored = localStorage.getItem("baznas_saved_emails");
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) setSavedUsernames(parsed);
+          if (Array.isArray(parsed)) setSavedEmails(parsed);
         }
       } catch (err) {
         console.error("Gagal membaca akun tersimpan:", err);
       }
-      // Set render true for entrance animation, then focus username
+      // Set render true for entrance animation, then focus email
       setShouldRender(true);
-      const t = setTimeout(() => usernameRef.current?.focus(), 350);
+      const t = setTimeout(() => emailRef.current?.focus(), 350);
       return () => clearTimeout(t);
     } else if (!isOpen) {
       // Defer unmount for exit animation
@@ -89,13 +89,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
     // Simulated auth delay for nicer UX feedback
     setTimeout(() => {
-      const cleanUser = username.trim().toLowerCase();
+      const cleanEmail = email.trim().toLowerCase();
       const user = userAccounts.find(
-        (u) => u.username.toLowerCase() === cleanUser
+        (u) => u.email.toLowerCase() === cleanEmail
       );
 
       if (!user) {
-        setErrorMsg("Username tidak terdaftar pada sistem BAZNAS.");
+        setErrorMsg("Email tidak terdaftar pada sistem BAZNAS.");
         setIsSubmitting(false);
         // Shake animation trigger via state class
         const card = document.getElementById("login-card");
@@ -122,9 +122,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       // Simpan ke localStorage jika rememberMe
       if (rememberMe && typeof window !== "undefined") {
         try {
-          const updated = Array.from(new Set([...savedUsernames, user.username]));
-          setSavedUsernames(updated);
-          localStorage.setItem("baznas_saved_logins", JSON.stringify(updated));
+          const updated = Array.from(new Set([...savedEmails, user.email]));
+          setSavedEmails(updated);
+          localStorage.setItem("baznas_saved_emails", JSON.stringify(updated));
         } catch (err) {
           console.error("Gagal menyimpan akun:", err);
         }
@@ -141,13 +141,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     onClose();
   };
 
-  const handleForgetSavedAccount = (e: React.MouseEvent, userToForget: string) => {
+  const handleForgetSavedAccount = (e: React.MouseEvent, emailToForget: string) => {
     e.stopPropagation();
-    const updated = savedUsernames.filter((name) => name !== userToForget);
-    setSavedUsernames(updated);
+    const updated = savedEmails.filter((mail) => mail !== emailToForget);
+    setSavedEmails(updated);
     if (typeof window !== "undefined") {
       try {
-        localStorage.setItem("baznas_saved_logins", JSON.stringify(updated));
+        localStorage.setItem("baznas_saved_emails", JSON.stringify(updated));
       } catch (err) {
         console.error("Gagal memperbarui akun tersimpan:", err);
       }
@@ -155,7 +155,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   // Akun tersimpan yang valid dari userAccounts
-  const savedUsers = userAccounts.filter((u) => savedUsernames.includes(u.username));
+  const savedUsers = userAccounts.filter((u) => savedEmails.includes(u.email));
 
   return (
     <>
@@ -247,10 +247,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <form onSubmit={handleManualLogin} className="space-y-3.5" noValidate={isSubmitting}>
               <div>
                 <label
-                  htmlFor="login-username"
+                  htmlFor="login-email"
                   className="block text-[11px] font-bold text-baznas-ink/80 uppercase tracking-wider mb-1.5"
                 >
-                  Username Bidang
+                  Email Petugas
                 </label>
                 <div className="relative group">
                   <User
@@ -258,15 +258,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     aria-hidden="true"
                   />
                   <input
-                    ref={usernameRef}
-                    id="login-username"
-                    type="text"
+                    ref={emailRef}
+                    id="login-email"
+                    type="email"
                     required
                     disabled={isSubmitting}
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="bidang1 / ketua / admin"
-                    autoComplete="username"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@baznas.go.id"
+                    autoComplete="email"
                     className="w-full border border-baznas-ink-20 bg-white pl-10 pr-3 py-2.5 text-sm text-baznas-ink placeholder:text-baznas-ink/75 focus:outline-none focus:border-baznas-green-800 focus:bg-white min-h-t-target transition-all duration-200 hover:border-baznas-ink-40 focus-visible:ring-2 focus-visible:ring-baznas-green-800/30 disabled:opacity-50"
                   />
                 </div>
@@ -335,7 +335,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   </span>
                   <span>Ingat akun di perangkat ini</span>
                 </label>
-                <span className="text-[11px] text-baznas-ink/70">1 Akun per Bidang</span>
+                <span className="text-[11px] text-baznas-ink/70">Login dengan email terdaftar</span>
               </div>
 
               {/* Submit Button — with loading state */}
@@ -384,7 +384,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left max-h-48 overflow-y-auto pr-1">
                   {savedUsers.map((u, idx) => (
                     <div
-                      key={u.username}
+                      key={u.email}
                       onClick={() => handleQuickLogin(u)}
                       role="button"
                       tabIndex={0}
@@ -398,22 +398,22 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                       className="group relative flex items-center justify-between border border-baznas-ink-8 bg-baznas-paper/40 p-2.5 hover:border-baznas-green-800 hover:bg-baznas-paper transition-all duration-200 text-left cursor-pointer min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 hover:translate-x-0.5 animate-in fade-in slide-in-from-left-2"
                     >
                       <div className="min-w-0 pr-6">
-                        <span className="text-[10px] font-bold text-baznas-green-800 uppercase block">
-                          {u.username}
+                        <span className="text-[10px] font-bold text-baznas-green-800 uppercase block truncate">
+                          {u.email}
                         </span>
                         <p className="text-xs font-semibold text-baznas-ink truncate">
-                          {u.roleLabel}
+                          {u.nama}
                         </p>
                         <p className="text-[10px] text-baznas-ink/75 truncate mt-0.5">
-                          {u.nama}
+                          {u.jabatan}
                         </p>
                       </div>
                       <button
                         type="button"
                         title="Hapus dari akun tersimpan"
-                        onClick={(e) => handleForgetSavedAccount(e, u.username)}
+                        onClick={(e) => handleForgetSavedAccount(e, u.email)}
                         className="absolute top-2 right-2 text-baznas-ink/70 hover:text-rose-700 p-1 transition-all duration-200 hover:scale-110"
-                        aria-label={`Hapus akun ${u.username}`}
+                        aria-label={`Hapus akun ${u.email}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>

@@ -42,6 +42,7 @@ import {
   LineChart,
   FolderArchive,
   Layers,
+  UserCircle,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -51,6 +52,8 @@ interface SidebarProps {
   isOpenMobile: boolean;
   onCloseMobile: () => void;
   onLogout: () => void;
+  onOpenProfile: () => void;
+  showProfile: boolean;
   showBeranda: boolean;
   onSelectBeranda: () => void;
   bidang1Tab: Bidang1Tab;
@@ -84,6 +87,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpenMobile,
   onCloseMobile,
   onLogout,
+  onOpenProfile,
+  showProfile,
   showBeranda,
   onSelectBeranda,
   bidang1Tab,
@@ -163,7 +168,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const canShowTab = (view: RoleBidang, tab: string): boolean => {
     if (isAdmin) return true;
-    if (user.role === "ketua" && (tab === "laporan" || tab === "laporan_semua")) return true;
+    if (user.bidang === "ketua" && (tab === "laporan" || tab === "laporan_semua")) return true;
     if (TABS_ADMIN_ONLY[view]?.includes(tab)) return false;
     return true;
   };
@@ -280,16 +285,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Identity Badge — hidden saat collapsed di desktop */}
         <div className={`p-4 ${isDesktopCollapsed ? "lg:hidden" : ""} shrink-0`}>
           <div className="flex items-center gap-3 p-4 bg-baznas-paper border-l-4 border-baznas-gold-display">
-            <div className="shrink-0 h-10 w-10 bg-baznas-green-900 text-white flex items-center justify-center">
-              <span className="text-xs font-bold tracking-tight">
-                {monogram(user.nama)}
-              </span>
-            </div>
+            {user.fotoProfil ? (
+              <img
+                src={user.fotoProfil}
+                alt={user.nama}
+                className="shrink-0 h-10 w-10 object-cover border border-baznas-ink-8"
+              />
+            ) : (
+              <div className="shrink-0 h-10 w-10 bg-baznas-green-900 text-white flex items-center justify-center">
+                <span className="text-xs font-bold tracking-tight">
+                  {monogram(user.nama)}
+                </span>
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="h-3 w-3 text-baznas-green-800 shrink-0" aria-hidden="true" />
                 <span className="text-[10px] font-bold text-baznas-green-900 uppercase tracking-wider truncate">
-                  {user.roleLabel}
+                  {user.role === "admin" ? "Superadmin" : "Pengguna"}
                 </span>
               </div>
               <p className="text-xs font-semibold text-baznas-ink leading-tight truncate mt-0.5">
@@ -380,6 +393,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Home className={navItemIconClass(showBeranda)} aria-hidden="true" />
               {menuLabel("Beranda Utama")}
               {menuChevron(showBeranda)}
+            </button>
+
+            {/* Profil Saya — tersedia untuk semua pengguna */}
+            <button
+              type="button"
+              onClick={() => handleItemClick(onOpenProfile)}
+              aria-label={isDesktopCollapsed ? "Profil Saya" : undefined}
+              aria-current={showProfile ? "page" : undefined}
+              title={isDesktopCollapsed ? "Profil Saya" : undefined}
+              className={navItemClass(showProfile)}
+            >
+              <UserCircle className={navItemIconClass(showProfile)} aria-hidden="true" />
+              {menuLabel("Profil Saya")}
+              {menuChevron(showProfile)}
             </button>
           </div>
 
