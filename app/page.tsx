@@ -374,7 +374,7 @@ export default function Home() {
   // 2. TAMPILAN SETELAH LOGIN (DASHBOARD INTERNAL)
   // ==========================================
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans overflow-x-hidden">
       {/* Top Header Internal */}
       <Header
         onOpenSearch={() => setIsSearchOpen(true)}
