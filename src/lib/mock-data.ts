@@ -198,7 +198,7 @@ export const initialMuzakki: Muzakki[] = [
     namaInstansi: "Dinas Pendidikan Daerah",
     status: "aktif",
     totalSetoran: 3000000,
-    desil: "Non-Desil",
+    desil: "Desil 7",
     tipeMuzakki: "individu",
   },
   {
@@ -212,7 +212,7 @@ export const initialMuzakki: Muzakki[] = [
     namaInstansi: "RSUD",
     status: "aktif",
     totalSetoran: 6500000,
-    desil: "Non-Desil",
+    desil: "Desil 8",
     tipeMuzakki: "individu",
   },
   {
@@ -226,7 +226,7 @@ export const initialMuzakki: Muzakki[] = [
     namaInstansi: "Kantor Kementerian Agama",
     status: "aktif",
     totalSetoran: 2800000,
-    desil: "Non-Desil",
+    desil: "Desil 6",
     tipeMuzakki: "individu",
   },
   {
@@ -240,7 +240,7 @@ export const initialMuzakki: Muzakki[] = [
     namaInstansi: "Bank Sulutgo Cabang Gorontalo",
     status: "aktif",
     totalSetoran: 1500000,
-    desil: "Desil 4",
+    desil: "Desil 6",
     tipeMuzakki: "individu",
   },
   {
@@ -254,7 +254,7 @@ export const initialMuzakki: Muzakki[] = [
     namaInstansi: "Sekretariat Daerah (SETDA)",
     status: "aktif",
     totalSetoran: 4200000,
-    desil: "Non-Desil",
+    desil: "Desil 7",
     tipeMuzakki: "individu",
   },
   {
@@ -268,7 +268,7 @@ export const initialMuzakki: Muzakki[] = [
     namaInstansi: "Dinas Pendidikan Daerah",
     status: "aktif",
     totalSetoran: 850000,
-    desil: "Desil 3",
+    desil: "Desil 6",
     tipeMuzakki: "individu",
   },
   {
@@ -282,7 +282,7 @@ export const initialMuzakki: Muzakki[] = [
     namaInstansi: "Dinas Pendidikan Daerah",
     status: "aktif",
     totalSetoran: 45000000,
-    desil: "Non-Desil",
+    desil: "Desil 8",
     tipeMuzakki: "opd",
   },
   {
@@ -296,7 +296,7 @@ export const initialMuzakki: Muzakki[] = [
     namaInstansi: "RSUD",
     status: "aktif",
     totalSetoran: 38500000,
-    desil: "Non-Desil",
+    desil: "Desil 9",
     tipeMuzakki: "opd",
   },
   {
@@ -310,7 +310,7 @@ export const initialMuzakki: Muzakki[] = [
     namaInstansi: "Sekretariat Daerah (SETDA)",
     status: "aktif",
     totalSetoran: 52000000,
-    desil: "Non-Desil",
+    desil: "Desil 9",
     tipeMuzakki: "opd",
   },
   {
@@ -324,7 +324,7 @@ export const initialMuzakki: Muzakki[] = [
     namaInstansi: "Bank Sulutgo Cabang Gorontalo",
     status: "aktif",
     totalSetoran: 60000000,
-    desil: "Non-Desil",
+    desil: "Desil 10",
     tipeMuzakki: "opd",
   },
 ];
@@ -497,6 +497,21 @@ export const initialMustahik: Mustahik[] = [
     statusKelayakan: "aktif",
     totalBantuanDiterima: 3500000,
     terakhirDibantu: "2026-09-15",
+  },
+  {
+    id: "mus-7",
+    namaLengkap: "Bpk. Yusuf Hamzah (Bekas Pekerja Rentan)",
+    nik: "7171081204850008",
+    kk: "7171082206110009",
+    desil: "Desil 5",
+    asnaf: "Miskin",
+    kategoriBesar: "pendayagunaan",
+    namaSubProgram: "Ekonomi",
+    alamat: "Kel. Libuo, Kota Gorontalo",
+    kondisi: "Pernah bekerja di sektor informal, sedang transisi ke wirausaha mandiri; butuh modal & pendampingan Z-Mart",
+    statusKelayakan: "aktif",
+    totalBantuanDiterima: 1800000,
+    terakhirDibantu: "2026-09-18",
   },
 ];
 

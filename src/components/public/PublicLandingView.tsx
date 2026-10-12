@@ -409,7 +409,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                   {berandaContent.totalMustahik}
                 </p>
                 <p className="text-xs text-white/90 mt-1.5">
-                  Aktif &amp; tersurvey
+                  Mustahik Desil 1–5 · aktif &amp; tersurvey
                 </p>
               </div>
               <div>

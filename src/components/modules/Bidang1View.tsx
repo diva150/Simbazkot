@@ -3,8 +3,10 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Muzakki, SetoranZIS, Instansi, Bidang1Tab, DesilType, UserSession } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
+import { DESIL_OPTIONS, desilBadgeClass, getUserType } from "@/lib/desil";
+import type { UserType } from "@/lib/types";
 import { exportToExcel, downloadTemplateMuzakki } from "@/lib/excel-utils";
-import { ImportExcelModal, useToast, Button, ToastContainer } from "@/components/common";
+import { ImportExcelModal, useToast, Button, ToastContainer, ClassificationBadge } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
   HandCoins,
@@ -61,22 +63,8 @@ const JENIS_BY_TAB: Record<
   ],
 };
 
-// Opsi dropdown Desil (digunakan di banyak tempat — DRY)
-const DESIL_OPTIONS = [
-  { value: "Desil 1", label: "Desil 1 (Ekstrem)" },
-  { value: "Desil 2", label: "Desil 2 (Miskin)" },
-  { value: "Desil 3", label: "Desil 3 (Hampir Miskin)" },
-  { value: "Desil 4", label: "Desil 4 (Rentan)" },
-  { value: "Non-Desil", label: "Non-Desil / Mampu" },
-];
-
 // Class untuk badge Desil (paper + gold accent, NO pastel chaos)
-const desilBadgeClass = (desil: string | undefined): string => {
-  if (desil === "Desil 1") return "bg-baznas-paper border border-baznas-gold-display text-baznas-ink";
-  if (desil === "Desil 2" || desil === "Desil 3")
-    return "bg-baznas-paper border border-baznas-ink-20 text-baznas-ink/80";
-  return "bg-baznas-paper border border-baznas-ink-12 text-baznas-ink/70";
-};
+// Di-import dari @/lib/desil (single source of truth)
 
 // Class untuk badge tipe muzakki (sharp, NO purple/blue pastel)
 const tipeMuzakkiBadgeClass = (tipe: string | undefined): string => {
@@ -139,7 +127,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
   const [manualHp, setManualHp] = useState("");
   const [manualInstansi, setManualInstansi] = useState("Masyarakat Umum");
   const [manualAlamat, setManualAlamat] = useState("");
-  const [manualDesil, setManualDesil] = useState<DesilType>("Non-Desil");
+  const [manualDesil, setManualDesil] = useState<DesilType>("Desil 7");
   const [simpanKeDatabase, setSimpanKeDatabase] = useState(true);
 
   // Kategori & Nilai
@@ -180,7 +168,8 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
   const [newMuzakkiHp, setNewMuzakkiHp] = useState("");
   const [newMuzakkiAlamat, setNewMuzakkiAlamat] = useState("");
   const [newMuzakkiInstansiId, setNewMuzakkiInstansiId] = useState(instansiList[0]?.id || "inst-1");
-  const [newMuzakkiDesil, setNewMuzakkiDesil] = useState<DesilType>("Non-Desil");
+  const [newMuzakkiDesil, setNewMuzakkiDesil] = useState<DesilType>("Desil 7");
+  const [filterMuzakkiKlasifikasi, setFilterMuzakkiKlasifikasi] = useState<"all" | UserType>("all");
 
   const calculatedZakat = Math.round(gajiInput * 0.025);
   const finalNominal =
@@ -225,9 +214,12 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       const matchTipe =
         filterMuzakkiTipe === "all" ||
         (m.tipeMuzakki || "individu") === filterMuzakkiTipe;
-      return matchSearch && matchInstansi && matchDesil && matchNpwz && matchTipe;
+      const matchKlasifikasi =
+        filterMuzakkiKlasifikasi === "all" ||
+        getUserType(m.desil) === filterMuzakkiKlasifikasi;
+      return matchSearch && matchInstansi && matchDesil && matchNpwz && matchTipe && matchKlasifikasi;
     });
-  }, [muzakkiList, searchMuzakkiQuery, selectedInstansiFilter, filterMuzakkiDesil, filterMuzakkiNpwz, filterMuzakkiTipe]);
+  }, [muzakkiList, searchMuzakkiQuery, selectedInstansiFilter, filterMuzakkiDesil, filterMuzakkiNpwz, filterMuzakkiTipe, filterMuzakkiKlasifikasi]);
 
   const activeFilterCount = [
     searchMuzakkiQuery,
@@ -235,6 +227,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     filterMuzakkiNpwz !== "all" ? filterMuzakkiNpwz : "",
     filterMuzakkiTipe !== "all" ? filterMuzakkiTipe : "",
     selectedInstansiFilter !== "all" ? selectedInstansiFilter : "",
+    filterMuzakkiKlasifikasi !== "all" ? filterMuzakkiKlasifikasi : "",
   ].filter(Boolean).length;
 
   const handleResetMuzakkiFilters = () => {
@@ -243,6 +236,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     setFilterMuzakkiNpwz("all");
     setFilterMuzakkiTipe("all");
     setSelectedInstansiFilter("all");
+    setFilterMuzakkiKlasifikasi("all");
     toastInfo("Filter direset", "Semua filter data Muzakki telah dikembalikan ke default.");
   };
 
@@ -312,7 +306,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     const rows = filteredMuzakki.map((m, idx) => [
       idx + 1, m.npwz || "-", m.nik, m.namaLengkap,
       m.tipeMuzakki === "opd" ? "OPD / INSTANSI" : "INDIVIDU",
-      m.desil || "Non-Desil", m.namaInstansi, m.noHp, m.alamat, m.totalSetoran,
+      m.desil || "Desil 7", m.namaInstansi, m.noHp, m.alamat, m.totalSetoran,
       m.status.toUpperCase(),
     ]);
     exportToExcel("Data_Muzakki_BAZNAS_Resmi", headers, rows);
@@ -326,7 +320,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     ];
     const rows = filteredSetoran.map((s) => [
       s.buktiNo, s.tanggal, s.namaMuzakki, s.nik, s.npwz || "-",
-      s.desil || "Non-Desil", s.instansi, s.jenisLabel, s.metode,
+      s.desil || "Desil 7", s.instansi, s.jenisLabel, s.metode,
       s.bank || "-", s.nominal, s.keterangan || "-", s.petugasAmil,
     ]);
     exportToExcel("Laporan_Penerimaan_ZIS_BAZNAS", headers, rows);
@@ -342,7 +336,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       alamat: r[4] || "Kota Gorontalo",
       instansiId: "inst-1",
       namaInstansi: r[5] || "Instansi Umum",
-      desil: (r[6] as DesilType) || "Non-Desil",
+      desil: (r[6] as DesilType) || "Desil 7",
       status: "aktif",
       totalSetoran: 0,
     }));
@@ -356,7 +350,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     let targetNik = "";
     let targetNpwz = "";
     let targetInstansi = "";
-    let targetDesil: DesilType = "Non-Desil";
+    let targetDesil: DesilType = "Desil 7";
 
     if (muzakkiInputMode === "database") {
       if (!currentMuzakki) {
@@ -368,7 +362,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       targetNik = currentMuzakki.nik;
       targetNpwz = currentMuzakki.npwz || "";
       targetInstansi = currentMuzakki.namaInstansi;
-      targetDesil = currentMuzakki.desil || "Non-Desil";
+      targetDesil = currentMuzakki.desil || "Desil 7";
     } else {
       if (!manualNama.trim()) {
         toastError("Nama wajib diisi", "Mode Ketik Manual: nama lengkap Muzakki belum diisi.");
@@ -566,7 +560,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                 Data Muzakki Terdaftar
               </h3>
               <p className="text-xs text-baznas-ink/55 mt-1">
-                Filter multi-kriteria: Nama, NIK (16 digit), NPWZ resmi, Tingkat Desil, dan Unit Instansi
+                Filter multi-kriteria: Nama, NIK (16 digit), NPWZ resmi, Tingkat Desil, Klasifikasi, dan Unit Instansi
               </p>
             </div>
 
@@ -601,7 +595,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
           </div>
 
           {/* Filter Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 pt-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-baznas-ink/45" />
               <input
@@ -612,6 +606,16 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                 className="w-full border border-baznas-ink-20 bg-baznas-paper/40 pl-9 pr-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 focus:bg-white min-h-t-target"
               />
             </div>
+
+            <select
+              value={filterMuzakkiKlasifikasi}
+              onChange={(e) => setFilterMuzakkiKlasifikasi(e.target.value as "all" | UserType)}
+              className="border border-baznas-ink-20 bg-baznas-paper/40 px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 font-semibold min-h-t-target"
+            >
+              <option value="all">Semua Klasifikasi</option>
+              <option value="muzakki">Muzakki (Desil 6–10)</option>
+              <option value="mustahik">Mustahik (Desil 1–5)</option>
+            </select>
 
             <select
               value={filterMuzakkiTipe}
@@ -709,11 +713,14 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${desilBadgeClass(m.desil)}`}
-                      >
-                        {m.desil || "Non-Desil"}
-                      </span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span
+                          className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${desilBadgeClass(m.desil)}`}
+                        >
+                          {m.desil || "Desil 7"}
+                        </span>
+                        <ClassificationBadge desil={m.desil} />
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-baznas-ink/80">{m.namaInstansi}</td>
                     <td className="px-4 py-3 font-mono text-baznas-ink/65">{m.noHp}</td>
@@ -852,7 +859,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                       >
                         {formFilteredMuzakkiList.map((m) => (
                           <option key={m.id} value={m.id}>
-                            {m.namaLengkap} — NPWZ: {m.npwz || "-"} | NIK: {m.nik} ({m.desil || "Non-Desil"})
+                            {m.namaLengkap} — NPWZ: {m.npwz || "-"} | NIK: {m.nik} ({m.desil || "Desil 7"})
                           </option>
                         ))}
                       </select>
@@ -874,7 +881,10 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                         </div>
                         <div>
                           <span className="text-baznas-ink/45 block text-[10px] uppercase tracking-wider">Tingkat Desil</span>
-                          <span className="font-bold text-baznas-ink">{currentMuzakki.desil || "Non-Desil"}</span>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="font-bold text-baznas-ink">{currentMuzakki.desil || "Desil 7"}</span>
+                            <ClassificationBadge desil={currentMuzakki.desil} />
+                          </div>
                         </div>
                       </div>
                     )}
@@ -1153,10 +1163,17 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                 </div>
                 <div className="flex justify-between gap-2">
                   <span className="text-baznas-ink/55">Desil:</span>
-                  <span className="font-bold text-baznas-ink/80 text-right">
+                  <span className="font-bold text-baznas-ink/80 text-right flex items-center gap-1.5 justify-end">
                     {muzakkiInputMode === "database"
-                      ? currentMuzakki?.desil || "Non-Desil"
+                      ? currentMuzakki?.desil || "Desil 7"
                       : manualDesil}
+                    <ClassificationBadge
+                      desil={
+                        muzakkiInputMode === "database"
+                          ? currentMuzakki?.desil
+                          : manualDesil
+                      }
+                    />
                   </span>
                 </div>
                 <div className="flex justify-between gap-2">
@@ -1276,11 +1293,14 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                       <p className="text-[10px] text-baznas-ink/45 font-mono">{s.npwz || s.nik}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${desilBadgeClass(s.desil)}`}
-                      >
-                        {s.desil || "Non-Desil"}
-                      </span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span
+                          className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${desilBadgeClass(s.desil)}`}
+                        >
+                          {s.desil || "Desil 7"}
+                        </span>
+                        <ClassificationBadge desil={s.desil} />
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-bold text-baznas-ink block">{s.jenisLabel}</span>

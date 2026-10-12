@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { SetoranZIS } from "@/lib/types";
 import { formatRupiah, getTerbilangRupiah } from "@/lib/utils";
+import { getKlasifikasi } from "@/lib/desil";
 import { Printer, X, ShieldCheck, QrCode } from "lucide-react";
 import { BAZNASMark } from "@/components/brand/BAZNASMark";
 import { Star8, KhatRule, CornerBracket } from "@/components/brand/IslamicOrnament";
@@ -179,6 +180,19 @@ export const KwitansiZisPrint: React.FC<KwitansiZisPrintProps> = ({
               </span>
               <span className="sm:col-span-2 text-baznas-ink">{setoran.instansi}</span>
             </div>
+            {setoran.desil && (() => {
+              const k = getKlasifikasi(setoran.desil);
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1">
+                  <span className="text-baznas-ink/55 font-medium uppercase tracking-wider text-[10px]">
+                    Klasifikasi Desil
+                  </span>
+                  <span className="sm:col-span-2 text-baznas-ink font-semibold">
+                    {setoran.desil} · {k.label} ({k.sublabel})
+                  </span>
+                </div>
+              );
+            })()}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-1">
               <span className="text-baznas-ink/55 font-medium uppercase tracking-wider text-[10px]">
                 Metode Pembayaran

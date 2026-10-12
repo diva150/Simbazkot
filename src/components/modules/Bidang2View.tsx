@@ -12,8 +12,10 @@ import {
   UserSession,
 } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
+import { DESIL_OPTIONS, KRITERIA_DESIL, desilBadgeClass, getKlasifikasi, getUserType } from "@/lib/desil";
+import type { UserType } from "@/lib/types";
 import { exportToExcel, downloadTemplateMustahik } from "@/lib/excel-utils";
-import { ImportExcelModal, ConfirmDialog, useToast, ToastContainer } from "@/components/common";
+import { ImportExcelModal, ConfirmDialog, useToast, ToastContainer, ClassificationBadge } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
   HeartHandshake,
@@ -511,11 +513,10 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
               onChange={(e) => setFilterDesil(e.target.value)}
               className="rounded-xl border border-baznas-ink-8 bg-baznas-paper/40 px-4 py-4 text-xs text-baznas-ink focus:outline-none font-semibold"
             >
-              <option value="all">Semua Desil</option>
-              <option value="Desil 1">Desil 1 (Ekstrem)</option>
-              <option value="Desil 2">Desil 2 (Miskin)</option>
-              <option value="Desil 3">Desil 3 (Hampir Miskin)</option>
-              <option value="Desil 4">Desil 4 (Rentan)</option>
+              <option value="all">Semua Desil (1–10)</option>
+              {DESIL_OPTIONS.map((d) => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
             </select>
 
             {/* Filter Kategori Pilar */}
@@ -574,17 +575,14 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                       </span>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                          m.desil === "Desil 1"
-                            ? "bg-baznas-paper border border-baznas-gold-display text-baznas-ink"
-                            : m.desil === "Desil 2"
-                            ? "bg-baznas-paper border border-baznas-ink-20 text-baznas-ink"
-                            : "bg-baznas-paper border border-baznas-ink-20 text-baznas-ink"
-                        }`}
-                      >
-                        {m.desil}
-                      </span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span
+                          className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${desilBadgeClass(m.desil)}`}
+                        >
+                          {m.desil}
+                        </span>
+                        <ClassificationBadge desil={m.desil} />
+                      </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <span
@@ -837,11 +835,10 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                 onChange={(e) => setFilterSubProgDesil(e.target.value)}
                 className="rounded-xl border border-baznas-ink-8 bg-baznas-paper/40 px-4 py-4 text-xs text-baznas-ink focus:outline-none font-semibold"
               >
-                <option value="all">Semua Tingkat Desil</option>
-                <option value="Desil 1">Desil 1 (Ekstrem)</option>
-                <option value="Desil 2">Desil 2 (Miskin)</option>
-                <option value="Desil 3">Desil 3 (Hampir Miskin)</option>
-                <option value="Desil 4">Desil 4 (Rentan)</option>
+                <option value="all">Semua Tingkat Desil (1–10)</option>
+                {DESIL_OPTIONS.map((d) => (
+                  <option key={d.value} value={d.value}>{d.label}</option>
+                ))}
               </select>
 
               {activePendistribusianSub !== "all" && (
@@ -880,17 +877,14 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                         {m.namaSubProgram}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                            m.desil === "Desil 1"
-                              ? "bg-baznas-paper border border-baznas-gold-display text-baznas-ink"
-                              : m.desil === "Desil 2"
-                              ? "bg-baznas-paper border border-baznas-ink-20 text-baznas-ink"
-                              : "bg-baznas-paper border border-baznas-ink-20 text-baznas-ink"
-                          }`}
-                        >
-                          {m.desil}
-                        </span>
+                        <div className="flex flex-col gap-1 items-start">
+                          <span
+                            className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${desilBadgeClass(m.desil)}`}
+                          >
+                            {m.desil}
+                          </span>
+                          <ClassificationBadge desil={m.desil} />
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 text-baznas-ink/80">{m.asnaf}</td>
                       <td className="py-3.5 px-4 font-bold text-baznas-ink">
@@ -1128,11 +1122,10 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                 onChange={(e) => setFilterSubProgDesil(e.target.value)}
                 className="rounded-xl border border-baznas-ink-8 bg-baznas-paper/40 px-4 py-4 text-xs text-baznas-ink focus:outline-none font-semibold"
               >
-                <option value="all">Semua Tingkat Desil</option>
-                <option value="Desil 1">Desil 1 (Ekstrem)</option>
-                <option value="Desil 2">Desil 2 (Miskin)</option>
-                <option value="Desil 3">Desil 3 (Hampir Miskin)</option>
-                <option value="Desil 4">Desil 4 (Rentan)</option>
+                <option value="all">Semua Tingkat Desil (1–10)</option>
+                {DESIL_OPTIONS.map((d) => (
+                  <option key={d.value} value={d.value}>{d.label}</option>
+                ))}
               </select>
 
               {activePendayagunaanSub !== "all" && (
@@ -1171,17 +1164,14 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                         {m.namaSubProgram}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                            m.desil === "Desil 1"
-                              ? "bg-baznas-paper border border-baznas-gold-display text-baznas-ink"
-                              : m.desil === "Desil 2"
-                              ? "bg-baznas-paper border border-baznas-ink-20 text-baznas-ink"
-                              : "bg-baznas-paper border border-baznas-ink-20 text-baznas-ink"
-                          }`}
-                        >
-                          {m.desil}
-                        </span>
+                        <div className="flex flex-col gap-1 items-start">
+                          <span
+                            className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${desilBadgeClass(m.desil)}`}
+                          >
+                            {m.desil}
+                          </span>
+                          <ClassificationBadge desil={m.desil} />
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 text-baznas-ink/80">{m.asnaf}</td>
                       <td className="py-3.5 px-4 font-bold text-baznas-ink">
@@ -1461,22 +1451,61 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
 
       {/* 8. PENGATURAN BIDANG 2 */}
       {canAccessTab(currentUser, "bidang2", "pengaturan") && activeTab === "pengaturan" && (
-        <div className="border border-baznas-ink-8 bg-white p-8 space-y-8 max-w-xl">
-          <h3 className="text-base font-bold text-baznas-ink font-poppins">
-            Pengaturan Kriteria Asesmen &amp; Ambang Batas Desil
-          </h3>
-          <div className="space-y-8 text-xs">
-            <div className="border p-3 rounded-xl bg-baznas-paper/40">
-              <span className="font-bold block">Desil 1: Pendapatan &lt; Rp 500.000 / kapita / bulan (Ekstrem)</span>
-              <span className="text-baznas-ink/55">Mendapatkan prioritas bantuan reguler dan bantuan darurat.</span>
+        <div className="border border-baznas-ink-8 bg-white p-8 space-y-8 max-w-3xl">
+          <div>
+            <h3 className="text-base font-bold text-baznas-ink font-poppins">
+              Pengaturan Kriteria Asesmen &amp; Ambang Batas Desil
+            </h3>
+            <p className="text-xs text-baznas-ink/55 mt-2">
+              Skala 1–10 (BPS-style) — <strong className="text-baznas-ink">Desil 1–5 diklasifikasikan sebagai Mustahik (penerima manfaat)</strong>, sedangkan <strong className="text-baznas-ink">Desil 6–10 sebagai Muzakki (pemberi zakat)</strong>. Aturan ini berlaku konsisten di seluruh modul BAZNAS.
+            </p>
+          </div>
+
+          {/* Group: Mustahik (Desil 1–5) */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 border-b border-baznas-ink-8 pb-2">
+              <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-baznas-paper border border-baznas-ink-20 text-baznas-ink/85">
+                Mustahik
+              </span>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-baznas-ink/70">Desil 1–5 · Penerima Manfaat</h4>
             </div>
-            <div className="border p-3 rounded-xl bg-baznas-paper/40">
-              <span className="font-bold block">Desil 2: Pendapatan Rp 500.000 – Rp 800.000 / kapita (Miskin)</span>
-              <span className="text-baznas-ink/55">Mendapatkan program bantuan pendidikan dan kesehatan.</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              {KRITERIA_DESIL.filter((k) => k.klasifikasi === "mustahik").map((k) => (
+                <div
+                  key={k.desil}
+                  className="border border-l-4 border-l-baznas-ink-20 border-baznas-ink-8 p-3 bg-baznas-paper/40 space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold block text-baznas-ink">{k.label}</span>
+                    <span className="text-[9px] text-baznas-ink/45 font-mono">{k.pendapatan}</span>
+                  </div>
+                  <span className="text-baznas-ink/55 block">{k.deskripsi}</span>
+                </div>
+              ))}
             </div>
-            <div className="border p-3 rounded-xl bg-baznas-paper/40">
-              <span className="font-bold block">Desil 3 &amp; 4: Pendapatan Rp 800.000 – Rp 1.500.000 / kapita</span>
-              <span className="text-baznas-ink/55">Dialokasikan ke Program Pendayagunaan Ekonomi produktif dan vokasi.</span>
+          </div>
+
+          {/* Group: Muzakki (Desil 6–10) */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 border-b border-baznas-ink-8 pb-2">
+              <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-baznas-paper border border-baznas-green-700 text-baznas-green-900">
+                Muzakki
+              </span>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-baznas-ink/70">Desil 6–10 · Pemberi Zakat</h4>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              {KRITERIA_DESIL.filter((k) => k.klasifikasi === "muzakki").map((k) => (
+                <div
+                  key={k.desil}
+                  className="border border-l-4 border-l-baznas-green-700 border-baznas-ink-8 p-3 bg-baznas-paper/40 space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold block text-baznas-ink">{k.label}</span>
+                    <span className="text-[9px] text-baznas-ink/45 font-mono">{k.pendapatan}</span>
+                  </div>
+                  <span className="text-baznas-ink/55 block">{k.deskripsi}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -1697,10 +1726,9 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                     onChange={(e) => setMustahikDesil(e.target.value as DesilType)}
                     className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs text-baznas-ink focus:outline-none font-semibold"
                   >
-                    <option value="Desil 1">Desil 1 (Ekstrem)</option>
-                    <option value="Desil 2">Desil 2 (Miskin)</option>
-                    <option value="Desil 3">Desil 3 (Hampir Miskin)</option>
-                    <option value="Desil 4">Desil 4 (Rentan)</option>
+                    {DESIL_OPTIONS.map((d) => (
+                      <option key={d.value} value={d.value}>{d.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -1865,11 +1893,9 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                     onChange={(e) => setEditingMustahik({ ...editingMustahik, desil: e.target.value as DesilType })}
                     className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs text-baznas-ink focus:outline-none font-semibold"
                   >
-                    <option value="Desil 1">Desil 1 (Ekstrem)</option>
-                    <option value="Desil 2">Desil 2 (Miskin)</option>
-                    <option value="Desil 3">Desil 3 (Hampir Miskin)</option>
-                    <option value="Desil 4">Desil 4 (Rentan)</option>
-                    <option value="Non-Desil">Non-Desil</option>
+                    {DESIL_OPTIONS.map((d) => (
+                      <option key={d.value} value={d.value}>{d.label}</option>
+                    ))}
                   </select>
                 </div>
 

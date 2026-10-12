@@ -30,7 +30,22 @@ export interface Instansi {
   jumlahMuzakki: number;
 }
 
-export type DesilType = "Desil 1" | "Desil 2" | "Desil 3" | "Desil 4" | "Non-Desil";
+// 10-level desil scale (BPS-style). Per klasifikasi规则 BAZNAS Kota Gorontalo:
+//   - Desil 1–5  → Mustahik (penerima manfaat)
+//   - Desil 6–10 → Muzakki (pemberi zakat / donatur)
+export type DesilType =
+  | "Desil 1"
+  | "Desil 2"
+  | "Desil 3"
+  | "Desil 4"
+  | "Desil 5"
+  | "Desil 6"
+  | "Desil 7"
+  | "Desil 8"
+  | "Desil 9"
+  | "Desil 10";
+
+export type UserType = "mustahik" | "muzakki";
 
 export interface Muzakki {
   id: string;
@@ -43,7 +58,7 @@ export interface Muzakki {
   namaInstansi: string;
   status: "aktif" | "arsip";
   totalSetoran: number;
-  desil?: DesilType;
+  desil?: DesilType; // Desil 1–5 = Mustahik; Desil 6–10 = Muzakki
   tipeMuzakki?: "individu" | "opd";
 }
 
@@ -75,7 +90,7 @@ export interface Mustahik {
   namaLengkap: string;
   nik: string;
   kk?: string;
-  desil: DesilType; // Desil 1 = Ekstrem, Desil 2 = Miskin, Desil 3 = Hampir Miskin, Desil 4 = Rentan
+  desil: DesilType; // Desil 1–5 = Mustahik (penerima); Desil 6–10 = Muzakki (donor)
   asnaf: "Fakir" | "Miskin" | "Amil" | "Mualaf" | "Riqab" | "Gharimin" | "Fisabilillah" | "Ibnu Sabil";
   kategoriBesar: KategoriPilarBidang2; // "pendistribusian" atau "pendayagunaan"
   namaSubProgram: SubProgramPendistribusian | SubProgramPendayagunaan;

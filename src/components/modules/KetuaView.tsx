@@ -209,7 +209,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
     const rows = [
       ["Bidang I (Pengumpulan)", "Penerimaan ZIS & DSKL", `${setoranList.length} Transaksi`, totalPenerimaanZIS, "Kas Masuk Loket & Bank"],
       ["Bidang I (Pengumpulan)", "Muzakki Terdaftar", `${muzakkiList.length} Jiwa`, 0, "Basis NIK & NPWZ Resmi"],
-      ["Bidang II (Pendistribusian)", "Dana Penyaluran Disetujui", `${pencairanList.filter(p => p.status === "disetujui_ketua" || p.status === "dikonfirmasi_bidang2").length} Program SPK`, totalPenyaluranDisetujui, "Mustahik Desil 1 s/d Desil 4"],
+      ["Bidang II (Pendistribusian)", "Dana Penyaluran Disetujui", `${pencairanList.filter(p => p.status === "disetujui_ketua" || p.status === "dikonfirmasi_bidang2").length} Program SPK`, totalPenyaluranDisetujui, "Mustahik Desil 1 s/d 5"],
       ["Bidang II (Pendistribusian)", "Mustahik Terdata", `${mustahikList.length} KK/Jiwa`, 0, "Asnaf Fakir Miskin dll"],
       ["Bidang III (Keuangan)", "Total Pagu RKAT Berjalan", `${rkatList.length} Pos Anggaran`, totalPaguRKAT, "Rencana Kerja Tahunan"],
       ["Bidang III (Keuangan)", "Realisasi Serapan Anggaran", `${Math.round((totalRealisasiRKAT / totalPaguRKAT) * 100)}% Terserap`, totalRealisasiRKAT, "Sesuai PSAK 109"],
@@ -632,7 +632,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
               </div>
               <div className="border-t border-baznas-ink-8 pt-2 text-[11px] text-baznas-ink/65 space-y-1">
                 <div className="flex justify-between">
-                  <span>Mustahik Desil 1–4:</span>
+                  <span>Mustahik (Desil 1–5):</span>
                   <span className="font-bold text-baznas-ink">{mustahikList.length} Mustahik</span>
                 </div>
                 <div className="flex justify-between">
