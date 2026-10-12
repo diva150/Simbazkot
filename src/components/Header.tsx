@@ -282,7 +282,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenProfile}
-                title="Buka Profil Saya"
+                title={user ? `Profil: ${user.nama} — ${user.jabatan} (${permissionLabel(user.role)})` : "Buka Profil Saya"}
                 aria-label="Buka Profil Saya"
                 className="group flex items-center gap-2 p-1.5 hover:bg-baznas-paper transition-colors text-left min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
               >
@@ -295,19 +295,30 @@ export const Header: React.FC<HeaderProps> = ({
                 ) : (
                   <div className="flex h-9 w-9 items-center justify-center bg-baznas-green-900 text-white group-hover:bg-baznas-green-800 transition-colors">
                     <span className="text-[11px] font-bold tracking-tight">
-                      {user ? monogram(user.nama) : "AM"}
+                      {user ? monogram(user.nama) : "—"}
                     </span>
                   </div>
                 )}
-                <div className="hidden md:block max-w-[180px]">
+                <div className="hidden md:block max-w-[200px]">
                   <p className="text-sm font-bold text-baznas-ink leading-tight truncate group-hover:text-baznas-green-900">
-                    {user?.nama || "Amil Pelaksana"}
+                    {user?.nama ?? "Pengguna"}
                   </p>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <span className="inline-block text-[10px] font-mono font-bold text-baznas-green-900 bg-baznas-paper px-1.5 py-0.2 truncate">
-                      {user?.email.toLowerCase() || "—"}
+                  {user?.jabatan && (
+                    <p className="text-[11px] text-baznas-ink/70 leading-tight truncate mt-0.5">
+                      {user.jabatan}
+                    </p>
+                  )}
+                  {user && (
+                    <span
+                      className={`mt-1 inline-flex items-center text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 ${
+                        user.role === "admin"
+                          ? "bg-baznas-ink text-white"
+                          : "bg-baznas-paper border border-baznas-ink-20 text-baznas-ink"
+                      }`}
+                    >
+                      {permissionLabel(user.role)}
                     </span>
-                  </div>
+                  )}
                 </div>
               </button>
             </div>
