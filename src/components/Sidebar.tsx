@@ -12,7 +12,6 @@ import {
   AdminTab,
 } from "@/lib/types";
 import {
-  ChevronLeft,
   ChevronRight,
   ChevronDown,
   X,
@@ -100,7 +99,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   adminTab,
   onChangeAdminTab,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // === AUTO-COLLAPSE BEHAVIOR (desktop) ===
+  // Sidebar collapses to icon-only when cursor leaves, expands to full
+  // when cursor enters. No button click required (per requirement).
+  const [isHovered, setIsHovered] = useState(false);
+  const isDesktopCollapsed = !isHovered;
   const isAdmin = user.role === "admin";
 
   // Admin switcher — custom dropdown (lebih reliable dari native <select>)
@@ -125,6 +128,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       document.removeEventListener("keydown", handleEscape);
     };
   }, [isSwitcherOpen]);
+
+  // Tutup sidebar mobile dengan tombol Escape
+  useEffect(() => {
+    if (!isOpenMobile) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseMobile();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpenMobile, onCloseMobile]);
 
   // Opsi modul yang bisa dipilih Superadmin
   const VIEW_OPTIONS: { value: RoleBidang; label: string; shortLabel: string }[] = [
@@ -165,18 +178,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // (TIDAK pakai arbitrary CSS selectors yang fragile)
   // ============================================
 
-  // Container utama: lebar responsif sesuai state
-  const asideClass = `no-print fixed top-0 bottom-0 left-0 z-50 flex ${
-    isCollapsed ? "w-72 lg:w-16" : "w-72 lg:w-64"
-  } flex-col border-r border-baznas-ink-8 bg-white transition-[width,transform] duration-200 ease-in-out lg:static lg:translate-x-0 ${
-    isOpenMobile ? "translate-x-0" : "-translate-x-full"
-  }`;
+  // Container utama:
+  // - Mobile: panel dropdown fixed di bawah header (top-[72px]), slide dari atas
+  //           (translate-y-full → translate-y-0). Lebar penuh, max-h viewport.
+  // - Desktop: static di dalam flex flow, lebar responsif terhadap hover
+  //            (w-16 collapsed / w-64 expanded). Tidak ada click toggle.
+  const asideClass = [
+    "no-print flex flex-col bg-white border-baznas-ink-8",
+    "transition-[width,transform,visibility] duration-200 ease-in-out",
+    // Mobile positioning & state
+    isOpenMobile
+      ? "fixed top-[72px] left-0 right-0 z-50 max-h-[calc(100vh-72px)] border-b shadow-lg translate-y-0 visible"
+      : "fixed top-[72px] left-0 right-0 z-50 max-h-[calc(100vh-72px)] border-b shadow-lg -translate-y-full invisible",
+    // Desktop positioning (override mobile fixed + translate)
+    "lg:static lg:translate-y-0 lg:visible lg:top-auto lg:left-auto lg:right-auto lg:max-h-none lg:shadow-none lg:border-b-0 lg:border-r",
+    // Width
+    isDesktopCollapsed ? "lg:w-16" : "lg:w-64",
+    "w-full",
+  ].join(" ");
 
   // Nav item: padding horizontal & justify menyesuaikan state collapse
+  // (transition-all untuk animasi padding & justify yang halus saat hover)
   const navItemClass = (isActive: boolean) =>
-    `group w-full flex items-center gap-3 ${
-      isCollapsed ? "justify-center px-2" : "pl-4 pr-3"
-    } py-3 border-l-4 text-sm transition-all min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-1 ${
+    `group w-full flex items-center gap-3 transition-all duration-200 ${
+      isDesktopCollapsed ? "justify-center px-2" : "pl-4 pr-3"
+    } py-3 border-l-4 text-sm min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-1 ${
       isActive
         ? "border-baznas-gold-display bg-baznas-paper font-bold text-baznas-ink"
         : "border-transparent text-baznas-ink/70 hover:bg-baznas-paper/50 hover:text-baznas-ink hover:border-baznas-ink-12"
@@ -185,24 +211,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItemIconClass = (isActive: boolean) =>
     `h-4 w-4 shrink-0 ${isActive ? "text-baznas-green-900" : "text-baznas-ink/45 group-hover:text-baznas-ink/70"}`;
 
-  // Group label: hidden saat collapsed
+  // Group label: hidden saat collapsed (tetap di DOM sebagai sr-only untuk screen reader)
   const groupLabel = (text: string) => (
     <p
-      className={`px-4 text-[10px] font-bold tracking-[0.18em] text-baznas-ink/40 uppercase mb-2 ${
-        isCollapsed ? "lg:hidden" : ""
+      className={`text-[10px] font-bold tracking-[0.18em] text-baznas-ink/40 uppercase mb-2 ${
+        isDesktopCollapsed ? "lg:sr-only" : "px-4"
       }`}
     >
       {text}
     </p>
   );
 
-  // Label text pada menu item: hidden saat collapsed
-  const menuLabel = (text: string) =>
-    isCollapsed ? null : <span className="flex-1 text-left">{text}</span>;
+  // Label text pada menu item: visually hidden saat collapsed (tetap di DOM untuk a11y)
+  const menuLabel = (text: string) => (
+    <span className={`flex-1 text-left ${isDesktopCollapsed ? "lg:sr-only" : ""}`}>
+      {text}
+    </span>
+  );
 
   // Chevron pada menu item: hidden saat collapsed
   const menuChevron = (isActive: boolean) =>
-    isCollapsed ? null : (
+    isDesktopCollapsed ? null : (
       <ChevronRight
         className={`h-3.5 w-3.5 shrink-0 ${
           isActive ? "text-baznas-gold-display" : "text-baznas-ink/30"
@@ -213,19 +242,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Overlay Mobile */}
+      {/* Overlay Mobile — hanya menutup area di bawah header (top-[72px])
+          agar hamburger di header tetap bisa diklik untuk menutup sidebar. */}
       {isOpenMobile && (
         <div
           onClick={onCloseMobile}
-          className="fixed inset-0 z-40 bg-baznas-ink/50 backdrop-blur-xs lg:hidden"
+          className="fixed top-[72px] right-0 bottom-0 left-0 z-40 bg-baznas-ink/50 backdrop-blur-xs lg:hidden"
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar Container */}
-      <aside className={asideClass}>
-        {/* Header Sidebar Mobile — selalu visible di mobile */}
-        <div className="flex h-16 items-center justify-between border-b border-baznas-ink-8 px-4 lg:hidden shrink-0">
+      {/* Sidebar Container — desktop auto-collapse via hover, mobile via hamburger */}
+      <aside
+        className={asideClass}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        aria-label="Navigasi utama"
+      >
+        {/* Header Sidebar Mobile — selalu visible di mobile (saat panel terbuka) */}
+        <div className="flex h-14 items-center justify-between border-b border-baznas-ink-8 px-4 lg:hidden shrink-0">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center bg-baznas-green-900 text-white font-bold text-sm">
               {monogram(user.nama)}
@@ -243,7 +278,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Identity Badge — hidden saat collapsed di desktop */}
-        <div className={`p-4 ${isCollapsed ? "lg:hidden" : ""} shrink-0`}>
+        <div className={`p-4 ${isDesktopCollapsed ? "lg:hidden" : ""} shrink-0`}>
           <div className="flex items-center gap-3 p-4 bg-baznas-paper border-l-4 border-baznas-gold-display">
             <div className="shrink-0 h-10 w-10 bg-baznas-green-900 text-white flex items-center justify-center">
               <span className="text-xs font-bold tracking-tight">
@@ -269,7 +304,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {isAdmin && (
           <div
             className={`px-4 pb-4 shrink-0 ${
-              isCollapsed ? "lg:hidden" : ""
+              isDesktopCollapsed ? "lg:hidden" : ""
             }`}
           >
             <label className="text-[10px] font-bold text-baznas-ink/50 uppercase tracking-wider block mb-2">
@@ -333,13 +368,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           aria-label="Navigasi modul"
         >
           {/* Beranda Utama — selalu di atas */}
-          <div className={isCollapsed ? "space-y-0.5" : "space-y-1"}>
+          <div className={isDesktopCollapsed ? "lg:space-y-0.5 space-y-1" : "space-y-1"}>
             <button
               type="button"
               onClick={() => handleItemClick(onSelectBeranda)}
-              aria-label="Buka Beranda Utama"
+              aria-label={isDesktopCollapsed ? "Beranda Utama" : undefined}
               aria-current={showBeranda ? "page" : undefined}
-              title={isCollapsed ? "Beranda Utama" : undefined}
+              title={isDesktopCollapsed ? "Beranda Utama" : undefined}
               className={navItemClass(showBeranda)}
             >
               <Home className={navItemIconClass(showBeranda)} aria-hidden="true" />
@@ -348,19 +383,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           </div>
 
-          {!isCollapsed && <div className="my-2 border-t border-baznas-ink-8" />}
+          {!isDesktopCollapsed && <div className="my-2 border-t border-baznas-ink-8" />}
 
           {/* BIDANG 1 */}
           {activeRoleView === "bidang1" && (
-            <div className={isCollapsed ? "space-y-0.5" : "space-y-1"}>
+            <div className={isDesktopCollapsed ? "lg:space-y-0.5 space-y-1" : "space-y-1"}>
               {groupLabel("Modul Pengumpulan")}
 
               <button
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang1Tab("dashboard"))}
                 className={navItemClass(bidang1Tab === "dashboard")}
+                aria-label={isDesktopCollapsed ? "Dashboard Ringkasan" : undefined}
                 aria-current={bidang1Tab === "dashboard" ? "page" : undefined}
-                title={isCollapsed ? "Dashboard Ringkasan" : undefined}
+                title={isDesktopCollapsed ? "Dashboard Ringkasan" : undefined}
               >
                 <LayoutDashboard className={navItemIconClass(bidang1Tab === "dashboard")} aria-hidden="true" />
                 {menuLabel("Dashboard Ringkasan")}
@@ -371,8 +407,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang1Tab("muzakki"))}
                 className={navItemClass(bidang1Tab === "muzakki")}
+                aria-label={isDesktopCollapsed ? "Data Muzakki" : undefined}
                 aria-current={bidang1Tab === "muzakki" ? "page" : undefined}
-                title={isCollapsed ? "Data Muzakki" : undefined}
+                title={isDesktopCollapsed ? "Data Muzakki" : undefined}
               >
                 <Users className={navItemIconClass(bidang1Tab === "muzakki")} aria-hidden="true" />
                 {menuLabel("Data Muzakki (NIK/NPWZ)")}
@@ -383,8 +420,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang1Tab("zakat"))}
                 className={navItemClass(bidang1Tab === "zakat")}
+                aria-label={isDesktopCollapsed ? "Zakat Profesi & Fitrah" : undefined}
                 aria-current={bidang1Tab === "zakat" ? "page" : undefined}
-                title={isCollapsed ? "Zakat Profesi & Fitrah" : undefined}
+                title={isDesktopCollapsed ? "Zakat Profesi & Fitrah" : undefined}
               >
                 <Coins className={navItemIconClass(bidang1Tab === "zakat")} aria-hidden="true" />
                 {menuLabel("Zakat Profesi & Fitrah")}
@@ -395,8 +433,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang1Tab("infak"))}
                 className={navItemClass(bidang1Tab === "infak")}
+                aria-label={isDesktopCollapsed ? "Infak & Sedekah" : undefined}
                 aria-current={bidang1Tab === "infak" ? "page" : undefined}
-                title={isCollapsed ? "Infak & Sedekah" : undefined}
+                title={isDesktopCollapsed ? "Infak & Sedekah" : undefined}
               >
                 <Heart className={navItemIconClass(bidang1Tab === "infak")} aria-hidden="true" />
                 {menuLabel("Infak & Sedekah")}
@@ -407,8 +446,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang1Tab("dskl"))}
                 className={navItemClass(bidang1Tab === "dskl")}
+                aria-label={isDesktopCollapsed ? "DSKL" : undefined}
                 aria-current={bidang1Tab === "dskl" ? "page" : undefined}
-                title={isCollapsed ? "DSKL" : undefined}
+                title={isDesktopCollapsed ? "DSKL" : undefined}
               >
                 <Gift className={navItemIconClass(bidang1Tab === "dskl")} aria-hidden="true" />
                 {menuLabel("DSKL (Qurban & Fidyah)")}
@@ -419,8 +459,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang1Tab("laporan"))}
                 className={navItemClass(bidang1Tab === "laporan")}
+                aria-label={isDesktopCollapsed ? "Laporan Kas Loket" : undefined}
                 aria-current={bidang1Tab === "laporan" ? "page" : undefined}
-                title={isCollapsed ? "Laporan Kas Loket" : undefined}
+                title={isDesktopCollapsed ? "Laporan Kas Loket" : undefined}
               >
                 <FileSpreadsheet className={navItemIconClass(bidang1Tab === "laporan")} aria-hidden="true" />
                 {menuLabel("Laporan Kas Loket")}
@@ -432,8 +473,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   type="button"
                   onClick={() => handleItemClick(() => onChangeBidang1Tab("pengaturan"))}
                   className={navItemClass(bidang1Tab === "pengaturan")}
+                  aria-label={isDesktopCollapsed ? "Pengaturan Nisab" : undefined}
                   aria-current={bidang1Tab === "pengaturan" ? "page" : undefined}
-                  title={isCollapsed ? "Pengaturan Nisab" : undefined}
+                  title={isDesktopCollapsed ? "Pengaturan Nisab" : undefined}
                 >
                   <Settings className={navItemIconClass(bidang1Tab === "pengaturan")} aria-hidden="true" />
                   {menuLabel("Pengaturan Nisab")}
@@ -445,15 +487,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* BIDANG 2 */}
           {activeRoleView === "bidang2" && (
-            <div className={isCollapsed ? "space-y-0.5" : "space-y-1"}>
+            <div className={isDesktopCollapsed ? "lg:space-y-0.5 space-y-1" : "space-y-1"}>
               {groupLabel("Modul Penyaluran")}
 
               <button
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang2Tab("dashboard"))}
                 className={navItemClass(bidang2Tab === "dashboard")}
+                aria-label={isDesktopCollapsed ? "Dashboard Penyaluran" : undefined}
                 aria-current={bidang2Tab === "dashboard" ? "page" : undefined}
-                title={isCollapsed ? "Dashboard Penyaluran" : undefined}
+                title={isDesktopCollapsed ? "Dashboard Penyaluran" : undefined}
               >
                 <LayoutDashboard className={navItemIconClass(bidang2Tab === "dashboard")} aria-hidden="true" />
                 {menuLabel("Dashboard Penyaluran")}
@@ -464,8 +507,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang2Tab("mustahik"))}
                 className={navItemClass(bidang2Tab === "mustahik")}
+                aria-label={isDesktopCollapsed ? "Data Mustahik" : undefined}
                 aria-current={bidang2Tab === "mustahik" ? "page" : undefined}
-                title={isCollapsed ? "Data Mustahik" : undefined}
+                title={isDesktopCollapsed ? "Data Mustahik" : undefined}
               >
                 <Users className={navItemIconClass(bidang2Tab === "mustahik")} aria-hidden="true" />
                 {menuLabel("Data Mustahik & Desil")}
@@ -476,8 +520,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang2Tab("pendistribusian"))}
                 className={navItemClass(bidang2Tab === "pendistribusian")}
+                aria-label={isDesktopCollapsed ? "Program Pendistribusian" : undefined}
                 aria-current={bidang2Tab === "pendistribusian" ? "page" : undefined}
-                title={isCollapsed ? "Program Pendistribusian" : undefined}
+                title={isDesktopCollapsed ? "Program Pendistribusian" : undefined}
               >
                 <GraduationCap className={navItemIconClass(bidang2Tab === "pendistribusian")} aria-hidden="true" />
                 {menuLabel("Program Pendistribusian")}
@@ -488,8 +533,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang2Tab("pendayagunaan"))}
                 className={navItemClass(bidang2Tab === "pendayagunaan")}
+                aria-label={isDesktopCollapsed ? "Program Pendayagunaan" : undefined}
                 aria-current={bidang2Tab === "pendayagunaan" ? "page" : undefined}
-                title={isCollapsed ? "Program Pendayagunaan" : undefined}
+                title={isDesktopCollapsed ? "Program Pendayagunaan" : undefined}
               >
                 <Briefcase className={navItemIconClass(bidang2Tab === "pendayagunaan")} aria-hidden="true" />
                 {menuLabel("Program Pendayagunaan")}
@@ -500,8 +546,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang2Tab("pencairan"))}
                 className={navItemClass(bidang2Tab === "pencairan")}
+                aria-label={isDesktopCollapsed ? "Persetujuan Pencairan" : undefined}
                 aria-current={bidang2Tab === "pencairan" ? "page" : undefined}
-                title={isCollapsed ? "Persetujuan Pencairan" : undefined}
+                title={isDesktopCollapsed ? "Persetujuan Pencairan" : undefined}
               >
                 <Clock className={navItemIconClass(bidang2Tab === "pencairan")} aria-hidden="true" />
                 {menuLabel("Persetujuan Pencairan (SPK)")}
@@ -512,8 +559,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang2Tab("dokumentasi"))}
                 className={navItemClass(bidang2Tab === "dokumentasi")}
+                aria-label={isDesktopCollapsed ? "Dokumentasi BAST" : undefined}
                 aria-current={bidang2Tab === "dokumentasi" ? "page" : undefined}
-                title={isCollapsed ? "Dokumentasi BAST" : undefined}
+                title={isDesktopCollapsed ? "Dokumentasi BAST" : undefined}
               >
                 <BookCheck className={navItemIconClass(bidang2Tab === "dokumentasi")} aria-hidden="true" />
                 {menuLabel("Dokumentasi BAST")}
@@ -524,8 +572,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang2Tab("laporan"))}
                 className={navItemClass(bidang2Tab === "laporan")}
+                aria-label={isDesktopCollapsed ? "Laporan Penyaluran" : undefined}
                 aria-current={bidang2Tab === "laporan" ? "page" : undefined}
-                title={isCollapsed ? "Laporan Penyaluran" : undefined}
+                title={isDesktopCollapsed ? "Laporan Penyaluran" : undefined}
               >
                 <FileSpreadsheet className={navItemIconClass(bidang2Tab === "laporan")} aria-hidden="true" />
                 {menuLabel("Laporan Penyaluran")}
@@ -537,8 +586,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   type="button"
                   onClick={() => handleItemClick(() => onChangeBidang2Tab("pengaturan"))}
                   className={navItemClass(bidang2Tab === "pengaturan")}
+                  aria-label={isDesktopCollapsed ? "Pengaturan Desil" : undefined}
                   aria-current={bidang2Tab === "pengaturan" ? "page" : undefined}
-                  title={isCollapsed ? "Pengaturan Desil" : undefined}
+                  title={isDesktopCollapsed ? "Pengaturan Desil" : undefined}
                 >
                   <Settings className={navItemIconClass(bidang2Tab === "pengaturan")} aria-hidden="true" />
                   {menuLabel("Pengaturan Desil")}
@@ -550,15 +600,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* BIDANG 3 */}
           {activeRoleView === "bidang3" && (
-            <div className={isCollapsed ? "space-y-0.5" : "space-y-1"}>
+            <div className={isDesktopCollapsed ? "lg:space-y-0.5 space-y-1" : "space-y-1"}>
               {groupLabel("Modul Keuangan")}
 
               <button
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang3Tab("dashboard"))}
                 className={navItemClass(bidang3Tab === "dashboard")}
+                aria-label={isDesktopCollapsed ? "Dashboard Keuangan" : undefined}
                 aria-current={bidang3Tab === "dashboard" ? "page" : undefined}
-                title={isCollapsed ? "Dashboard Keuangan" : undefined}
+                title={isDesktopCollapsed ? "Dashboard Keuangan" : undefined}
               >
                 <LayoutDashboard className={navItemIconClass(bidang3Tab === "dashboard")} aria-hidden="true" />
                 {menuLabel("Dashboard Keuangan")}
@@ -569,8 +620,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang3Tab("rkat"))}
                 className={navItemClass(bidang3Tab === "rkat")}
+                aria-label={isDesktopCollapsed ? "Realisasi RKAT" : undefined}
                 aria-current={bidang3Tab === "rkat" ? "page" : undefined}
-                title={isCollapsed ? "Realisasi RKAT" : undefined}
+                title={isDesktopCollapsed ? "Realisasi RKAT" : undefined}
               >
                 <LineChart className={navItemIconClass(bidang3Tab === "rkat")} aria-hidden="true" />
                 {menuLabel("Realisasi RKAT")}
@@ -581,8 +633,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang3Tab("laporan_program"))}
                 className={navItemClass(bidang3Tab === "laporan_program")}
+                aria-label={isDesktopCollapsed ? "Laporan Per Program" : undefined}
                 aria-current={bidang3Tab === "laporan_program" ? "page" : undefined}
-                title={isCollapsed ? "Laporan Per Program" : undefined}
+                title={isDesktopCollapsed ? "Laporan Per Program" : undefined}
               >
                 <FolderKanban className={navItemIconClass(bidang3Tab === "laporan_program")} aria-hidden="true" />
                 {menuLabel("Laporan Per Program")}
@@ -593,8 +646,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang3Tab("bukukas"))}
                 className={navItemClass(bidang3Tab === "bukukas")}
+                aria-label={isDesktopCollapsed ? "Buku Kas Umum" : undefined}
                 aria-current={bidang3Tab === "bukukas" ? "page" : undefined}
-                title={isCollapsed ? "Buku Kas Umum" : undefined}
+                title={isDesktopCollapsed ? "Buku Kas Umum" : undefined}
               >
                 <BookOpenCheck className={navItemIconClass(bidang3Tab === "bukukas")} aria-hidden="true" />
                 {menuLabel("Buku Kas Umum")}
@@ -605,8 +659,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang3Tab("laporan"))}
                 className={navItemClass(bidang3Tab === "laporan")}
+                aria-label={isDesktopCollapsed ? "Laporan PSAK 109" : undefined}
                 aria-current={bidang3Tab === "laporan" ? "page" : undefined}
-                title={isCollapsed ? "Laporan PSAK 109" : undefined}
+                title={isDesktopCollapsed ? "Laporan PSAK 109" : undefined}
               >
                 <FileSpreadsheet className={navItemIconClass(bidang3Tab === "laporan")} aria-hidden="true" />
                 {menuLabel("Laporan PSAK 109")}
@@ -617,8 +672,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang3Tab("lpj"))}
                 className={navItemClass(bidang3Tab === "lpj")}
+                aria-label={isDesktopCollapsed ? "Laporan LPJ" : undefined}
                 aria-current={bidang3Tab === "lpj" ? "page" : undefined}
-                title={isCollapsed ? "Laporan LPJ" : undefined}
+                title={isDesktopCollapsed ? "Laporan LPJ" : undefined}
               >
                 <FileText className={navItemIconClass(bidang3Tab === "lpj")} aria-hidden="true" />
                 {menuLabel("Laporan LPJ")}
@@ -630,8 +686,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   type="button"
                   onClick={() => handleItemClick(() => onChangeBidang3Tab("pengaturan"))}
                   className={navItemClass(bidang3Tab === "pengaturan")}
+                  aria-label={isDesktopCollapsed ? "Akun Akuntansi" : undefined}
                   aria-current={bidang3Tab === "pengaturan" ? "page" : undefined}
-                  title={isCollapsed ? "Akun Akuntansi" : undefined}
+                  title={isDesktopCollapsed ? "Akun Akuntansi" : undefined}
                 >
                   <Settings className={navItemIconClass(bidang3Tab === "pengaturan")} aria-hidden="true" />
                   {menuLabel("Akun Akuntansi")}
@@ -643,15 +700,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* BIDANG 4 */}
           {activeRoleView === "bidang4" && (
-            <div className={isCollapsed ? "space-y-0.5" : "space-y-1"}>
+            <div className={isDesktopCollapsed ? "lg:space-y-0.5 space-y-1" : "space-y-1"}>
               {groupLabel("Modul Administrasi")}
 
               <button
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang4Tab("dashboard"))}
                 className={navItemClass(bidang4Tab === "dashboard")}
+                aria-label={isDesktopCollapsed ? "Dashboard Administrasi" : undefined}
                 aria-current={bidang4Tab === "dashboard" ? "page" : undefined}
-                title={isCollapsed ? "Dashboard Administrasi" : undefined}
+                title={isDesktopCollapsed ? "Dashboard Administrasi" : undefined}
               >
                 <LayoutDashboard className={navItemIconClass(bidang4Tab === "dashboard")} aria-hidden="true" />
                 {menuLabel("Dashboard Administrasi")}
@@ -662,8 +720,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang4Tab("format_surat"))}
                 className={navItemClass(bidang4Tab === "format_surat")}
+                aria-label={isDesktopCollapsed ? "Format & Template Surat" : undefined}
                 aria-current={bidang4Tab === "format_surat" ? "page" : undefined}
-                title={isCollapsed ? "Format & Template Surat" : undefined}
+                title={isDesktopCollapsed ? "Format & Template Surat" : undefined}
               >
                 <FileSignature className={navItemIconClass(bidang4Tab === "format_surat")} aria-hidden="true" />
                 {menuLabel("Format & Template Surat")}
@@ -674,8 +733,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang4Tab("arsip_surat"))}
                 className={navItemClass(bidang4Tab === "arsip_surat")}
+                aria-label={isDesktopCollapsed ? "Arsip Terpadu" : undefined}
                 aria-current={bidang4Tab === "arsip_surat" ? "page" : undefined}
-                title={isCollapsed ? "Arsip Terpadu" : undefined}
+                title={isDesktopCollapsed ? "Arsip Terpadu" : undefined}
               >
                 <FolderArchive className={navItemIconClass(bidang4Tab === "arsip_surat")} aria-hidden="true" />
                 {menuLabel("Arsip Terpadu")}
@@ -686,8 +746,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang4Tab("surat_masuk"))}
                 className={navItemClass(bidang4Tab === "surat_masuk")}
+                aria-label={isDesktopCollapsed ? "Agenda Surat Masuk" : undefined}
                 aria-current={bidang4Tab === "surat_masuk" ? "page" : undefined}
-                title={isCollapsed ? "Agenda Surat Masuk" : undefined}
+                title={isDesktopCollapsed ? "Agenda Surat Masuk" : undefined}
               >
                 <Mail className={navItemIconClass(bidang4Tab === "surat_masuk")} aria-hidden="true" />
                 {menuLabel("Agenda Surat Masuk")}
@@ -698,8 +759,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang4Tab("surat_keluar"))}
                 className={navItemClass(bidang4Tab === "surat_keluar")}
+                aria-label={isDesktopCollapsed ? "Agenda Surat Keluar" : undefined}
                 aria-current={bidang4Tab === "surat_keluar" ? "page" : undefined}
-                title={isCollapsed ? "Agenda Surat Keluar" : undefined}
+                title={isDesktopCollapsed ? "Agenda Surat Keluar" : undefined}
               >
                 <Send className={navItemIconClass(bidang4Tab === "surat_keluar")} aria-hidden="true" />
                 {menuLabel("Agenda Surat Keluar")}
@@ -710,8 +772,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang4Tab("sop"))}
                 className={navItemClass(bidang4Tab === "sop")}
+                aria-label={isDesktopCollapsed ? "Repositori SOP" : undefined}
                 aria-current={bidang4Tab === "sop" ? "page" : undefined}
-                title={isCollapsed ? "Repositori SOP" : undefined}
+                title={isDesktopCollapsed ? "Repositori SOP" : undefined}
               >
                 <BookCheck className={navItemIconClass(bidang4Tab === "sop")} aria-hidden="true" />
                 {menuLabel("Repositori SOP")}
@@ -722,8 +785,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang4Tab("pegawai"))}
                 className={navItemClass(bidang4Tab === "pegawai")}
+                aria-label={isDesktopCollapsed ? "Direktori Pegawai" : undefined}
                 aria-current={bidang4Tab === "pegawai" ? "page" : undefined}
-                title={isCollapsed ? "Direktori Pegawai" : undefined}
+                title={isDesktopCollapsed ? "Direktori Pegawai" : undefined}
               >
                 <Users className={navItemIconClass(bidang4Tab === "pegawai")} aria-hidden="true" />
                 {menuLabel("Direktori Pegawai & Amil")}
@@ -734,8 +798,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang4Tab("aset"))}
                 className={navItemClass(bidang4Tab === "aset")}
+                aria-label={isDesktopCollapsed ? "Inventaris Aset" : undefined}
                 aria-current={bidang4Tab === "aset" ? "page" : undefined}
-                title={isCollapsed ? "Inventaris Aset" : undefined}
+                title={isDesktopCollapsed ? "Inventaris Aset" : undefined}
               >
                 <Box className={navItemIconClass(bidang4Tab === "aset")} aria-hidden="true" />
                 {menuLabel("Inventaris Aset Kantor")}
@@ -746,8 +811,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeBidang4Tab("pengaturan"))}
                 className={navItemClass(bidang4Tab === "pengaturan")}
+                aria-label={isDesktopCollapsed ? "Pengaturan Format Surat" : undefined}
                 aria-current={bidang4Tab === "pengaturan" ? "page" : undefined}
-                title={isCollapsed ? "Pengaturan Format Surat" : undefined}
+                title={isDesktopCollapsed ? "Pengaturan Format Surat" : undefined}
               >
                 <Settings className={navItemIconClass(bidang4Tab === "pengaturan")} aria-hidden="true" />
                 {menuLabel("Pengaturan Format Surat")}
@@ -758,15 +824,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* KETUA */}
           {activeRoleView === "ketua" && (
-            <div className={isCollapsed ? "space-y-0.5" : "space-y-1"}>
+            <div className={isDesktopCollapsed ? "lg:space-y-0.5 space-y-1" : "space-y-1"}>
               {groupLabel("Wewenang Ketua")}
 
               <button
                 type="button"
                 onClick={() => handleItemClick(() => onChangeKetuaTab("disposisi"))}
                 className={navItemClass(ketuaTab === "disposisi")}
+                aria-label={isDesktopCollapsed ? "Disposisi Surat" : undefined}
                 aria-current={ketuaTab === "disposisi" ? "page" : undefined}
-                title={isCollapsed ? "Disposisi Surat" : undefined}
+                title={isDesktopCollapsed ? "Disposisi Surat" : undefined}
               >
                 <FileText className={navItemIconClass(ketuaTab === "disposisi")} aria-hidden="true" />
                 {menuLabel("Disposisi Surat (Bid. IV)")}
@@ -777,8 +844,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeKetuaTab("persetujuan_spk"))}
                 className={navItemClass(ketuaTab === "persetujuan_spk")}
+                aria-label={isDesktopCollapsed ? "Persetujuan SPK" : undefined}
                 aria-current={ketuaTab === "persetujuan_spk" ? "page" : undefined}
-                title={isCollapsed ? "Persetujuan SPK" : undefined}
+                title={isDesktopCollapsed ? "Persetujuan SPK" : undefined}
               >
                 <HeartHandshake className={navItemIconClass(ketuaTab === "persetujuan_spk")} aria-hidden="true" />
                 {menuLabel("Persetujuan SPK (Bid. II)")}
@@ -789,8 +857,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeKetuaTab("laporan_semua"))}
                 className={navItemClass(ketuaTab === "laporan_semua")}
+                aria-label={isDesktopCollapsed ? "Seluruh Laporan" : undefined}
                 aria-current={ketuaTab === "laporan_semua" ? "page" : undefined}
-                title={isCollapsed ? "Seluruh Laporan" : undefined}
+                title={isDesktopCollapsed ? "Seluruh Laporan" : undefined}
               >
                 <TrendingUp className={navItemIconClass(ketuaTab === "laporan_semua")} aria-hidden="true" />
                 {menuLabel("Seluruh Laporan")}
@@ -801,15 +870,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* ADMIN */}
           {activeRoleView === "admin" && (
-            <div className={isCollapsed ? "space-y-0.5" : "space-y-1"}>
+            <div className={isDesktopCollapsed ? "lg:space-y-0.5 space-y-1" : "space-y-1"}>
               {groupLabel("Menu Administrator")}
 
               <button
                 type="button"
                 onClick={() => handleItemClick(() => onChangeAdminTab("manajemen_akun"))}
                 className={navItemClass(adminTab === "manajemen_akun")}
+                aria-label={isDesktopCollapsed ? "Manajemen Akun" : undefined}
                 aria-current={adminTab === "manajemen_akun" ? "page" : undefined}
-                title={isCollapsed ? "Manajemen Akun" : undefined}
+                title={isDesktopCollapsed ? "Manajemen Akun" : undefined}
               >
                 <UserCheck className={navItemIconClass(adminTab === "manajemen_akun")} aria-hidden="true" />
                 {menuLabel("Manajemen Akun Bidang")}
@@ -820,8 +890,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleItemClick(() => onChangeAdminTab("bidang_access"))}
                 className={navItemClass(adminTab === "bidang_access")}
+                aria-label={isDesktopCollapsed ? "Akses Lintas Bidang" : undefined}
                 aria-current={adminTab === "bidang_access" ? "page" : undefined}
-                title={isCollapsed ? "Akses Lintas Bidang" : undefined}
+                title={isDesktopCollapsed ? "Akses Lintas Bidang" : undefined}
               >
                 <Layers className={navItemIconClass(adminTab === "bidang_access")} aria-hidden="true" />
                 {menuLabel("Akses Lintas Bidang")}
@@ -831,35 +902,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </nav>
 
-        {/* Footer Sidebar: Collapse & Logout */}
-        <div className="border-t border-baznas-ink-8 p-3 space-y-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex w-full items-center justify-center gap-2 border border-baznas-ink-12 hover:border-baznas-ink-20 hover:bg-baznas-paper hover:text-baznas-ink py-2.5 text-xs font-bold text-baznas-ink/65 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
-            aria-label={isCollapsed ? "Lebarkan Sidebar" : "Ciutkan Sidebar"}
-            aria-expanded={!isCollapsed}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <>
-                <ChevronLeft className="h-4 w-4" />
-                <span className="flex-1 text-left">Ciutkan</span>
-              </>
-            )}
-          </button>
+        {/* Footer Sidebar: Tombol Logout saja.
+            (Tombol "Ciutkan" dihapus — desktop sudah auto-collapse via hover,
+             sesuai requirement "No button click should be required".) */}
+        <div className="border-t border-baznas-ink-8 p-3 shrink-0">
           <button
             type="button"
             onClick={onLogout}
             aria-label="Keluar dari sistem"
+            title={isDesktopCollapsed ? "Kembali ke Beranda Umum" : undefined}
             className="flex w-full items-center gap-2 border border-baznas-ink-12 hover:border-rose-700 hover:bg-rose-50 hover:text-rose-700 py-2.5 text-xs font-bold text-baznas-ink/70 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-700"
           >
-            {isCollapsed ? (
-              <LogOut className="h-4 w-4 mx-auto" />
+            {isDesktopCollapsed ? (
+              <LogOut className="h-4 w-4 mx-auto" aria-hidden="true" />
             ) : (
               <>
-                <LogOut className="h-4 w-4 ml-1" />
+                <LogOut className="h-4 w-4 ml-1" aria-hidden="true" />
                 <span className="flex-1 text-left">Kembali ke Beranda Umum</span>
               </>
             )}

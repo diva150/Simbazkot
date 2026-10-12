@@ -382,7 +382,7 @@ export default function Home() {
         pendingSurat={pendingSurat}
         onOpenPencairanReminder={handleOpenPencairanReminder}
         onOpenSuratReminder={handleOpenSuratReminder}
-        onToggleSidebar={() => setIsSidebarMobileOpen(true)}
+        onToggleSidebar={() => setIsSidebarMobileOpen((v) => !v)}
         user={currentUser}
         userAccounts={userAccounts}
         onUpdateUserAccount={handleUpdateUserAccount}
