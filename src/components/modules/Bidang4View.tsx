@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { Surat, Pegawai, AsetKantor, Bidang4Tab, TemplateSurat, UserSession } from "@/lib/types";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah, getLocalDateString } from "@/lib/utils";
 import { exportToExcel } from "@/lib/excel-utils";
 import { exportLetterToWord, exportLetterToWordLegacy, WordLetterData } from "@/lib/word-utils";
 import { initialTemplatesSurat } from "@/lib/mock-data";
@@ -233,7 +233,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
         nomorDokumen: "SPK-BAZNAS/09/2026/012",
         tanggal: "2026-09-22",
         kategori: "SPK Pencairan Dana",
-        pihakTerkait: "RS Mata Prov. Sulut & Mustahik Lansia",
+        pihakTerkait: "RSUD Prof. Dr. Aloei Saboe & Mustahik Lansia",
         perihal: "Surat Perintah Kerja (SPK) Pencairan Bantuan Medis Operasi Katarak Dhuafa Sebatang Kara",
         status: "terverifikasi",
         statusLabel: "Disetujui Ketua",
@@ -246,7 +246,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
         nomorDokumen: "SPK-BAZNAS/09/2026/011",
         tanggal: "2026-09-18",
         kategori: "SPK Beasiswa",
-        pihakTerkait: "Pesantren Darul Istiqamah Bailang",
+        pihakTerkait: "Pesantren Al-Hidayah Kota Gorontalo",
         perihal: "SPK Penyaluran Bantuan Beasiswa Pendidikan Santri Yatim Piatu Semester Gasal 2026",
         status: "terverifikasi",
         statusLabel: "Disetujui Ketua",
@@ -272,7 +272,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
         nomorDokumen: "SK-MUST/KES/032/BAZNAS-MDO/2026",
         tanggal: "2026-09-10",
         kategori: "SK Asnaf Mustahik",
-        pihakTerkait: "Kelurahan Sindulang Satu & Tuminting",
+        pihakTerkait: "Kelurahan Libuo & Moodu, Kota Gorontalo",
         perihal: "Surat Keputusan Penetapan Asnaf Fakir & Miskin Penerima Manfaat Program BAZNAS Sehat",
         status: "terverifikasi",
         statusLabel: "SK Sah Terbit",
@@ -423,7 +423,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
       isiPenutup: newTplPenutup,
       penandatangan: newTplPenandatangan,
       jabatanPenandatangan: newTplJabatan,
-      tanggalDibuat: new Date().toISOString().split("T")[0],
+      tanggalDibuat: getLocalDateString(),
     };
 
     if (onAddTemplateSurat) {

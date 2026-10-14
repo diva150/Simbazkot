@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { SetoranZIS } from "@/lib/types";
 import { formatRupiah, getTerbilangRupiah } from "@/lib/utils";
 import { getKlasifikasi } from "@/lib/desil";
 import { Printer, X, ShieldCheck, QrCode } from "lucide-react";
 import { BAZNASMark } from "@/components/brand/BAZNASMark";
 import { Star8, KhatRule, CornerBracket } from "@/components/brand/IslamicOrnament";
+import { Dialog } from "@/components/common/Dialog";
 
 interface KwitansiZisPrintProps {
   setoran: SetoranZIS | null;
@@ -17,15 +18,6 @@ export const KwitansiZisPrint: React.FC<KwitansiZisPrintProps> = ({
   setoran,
   onClose,
 }) => {
-  // Listen to Escape key to close modal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
   if (!setoran) return null;
 
   const handlePrint = () => {
@@ -33,13 +25,14 @@ export const KwitansiZisPrint: React.FC<KwitansiZisPrintProps> = ({
   };
 
   return (
-    <div
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-baznas-ink/75 backdrop-blur-xs overflow-y-auto"
+    <Dialog
+      open
+      onClose={onClose}
+      title="Pratinjau Bukti Setor Zakat (BSZ)"
+      size="full"
+      showCloseButton={false}
+      panelClassName="max-w-2xl bg-white border border-baznas-ink-8 shadow-lift overflow-hidden my-auto flex flex-col max-h-[95vh]"
     >
-      <div className="relative w-full max-w-2xl bg-white border border-baznas-ink-8 shadow-lift overflow-hidden my-auto flex flex-col max-h-[95vh]">
         {/* Floating Close Button — no rounded */}
         <button
           onClick={onClose}
@@ -109,7 +102,7 @@ export const KwitansiZisPrint: React.FC<KwitansiZisPrintProps> = ({
                     Lembaga Pemerintah Nonstruktural Pengelola Zakat — UU No. 23/2011
                   </p>
                   <p className="text-[10px] text-baznas-ink/55 mt-0.5">
-                    Jl. Kantor BAZNAS No. 123 · Telp: (0431) 889900 · layanan@baznas.go.id
+                    Jl. Nani Wartabone No. 88, Kota Gorontalo · Telp: (0435) 826789 · layanan@baznas.go.id
                   </p>
                 </div>
               </div>
@@ -163,7 +156,7 @@ export const KwitansiZisPrint: React.FC<KwitansiZisPrintProps> = ({
                 NPWZ
               </span>
               <span className="sm:col-span-2 font-mono font-semibold text-baznas-green-900 editorial-num">
-                {setoran.npwz || "NPWZ-7171-TERCATAT"}
+                {setoran.npwz || "NPWZ-7571-TERCATAT"}
               </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-1">
@@ -336,8 +329,7 @@ export const KwitansiZisPrint: React.FC<KwitansiZisPrintProps> = ({
             Tutup Jendela
           </button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 };
 

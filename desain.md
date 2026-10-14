@@ -241,7 +241,7 @@ Formulir yang dirancang agar kasir/amil loket dapat mencatat pembayaran dan menc
 +----------------------------------------------------------------------------------------------------+
 |  1. DATA MUZAKKI                                                                                   |
 |  Cari NIK / Nama Muzakki: [ [Ketik NIK atau Nama...] 🔍 ]  atau  [ + Muzakki Baru ]                |
-|  Nama Lengkap : H. Hendra Setiawan              NIK      : 7171092801820003 (16-digit enforced)   |
+|  Nama Lengkap : H. Hendra Setiawan              NIK      : 7571092801820003 (16-digit enforced)   |
 |  Instansi/OPD : Dinas Pendidikan Daerah         No. WA   : 081234567890                            |
 |                                                                                                    |
 |  2. RINCIAN PEMBAYARAN                                                                             |

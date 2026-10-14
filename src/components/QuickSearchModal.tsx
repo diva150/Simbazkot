@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Muzakki, Mustahik, SetoranZIS, Surat, BidangType } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
+import { Dialog } from "@/components/common/Dialog";
 
 interface QuickSearchModalProps {
   isOpen: boolean;
@@ -104,8 +105,14 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     filteredSurat.length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-6 md:p-20 bg-slate-900/50 backdrop-blur-xs">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      title="Pencarian Cepat (Ctrl + K)"
+      size="full"
+      showCloseButton={false}
+      panelClassName="rounded-2xl border border-baznas-ink-8 bg-white shadow-lift overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+    >
         {/* Search Input Bar */}
         <div className="flex items-center border-b border-slate-100 px-4 py-3 bg-slate-50/50">
           <Search className="h-5 w-5 text-baznas-green-700 mr-3" />
@@ -302,7 +309,6 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
             Tekan <kbd className="font-mono bg-white border border-slate-200 px-1 rounded">Esc</kbd> untuk menutup
           </span>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 };

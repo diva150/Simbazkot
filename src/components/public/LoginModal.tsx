@@ -432,7 +432,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
             <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-baznas-ink/70">
               <ShieldCheck className="h-3.5 w-3.5 text-baznas-green-800" aria-hidden="true" />
-              <span>Keamanan data dilindungi enkripsi standar BAZNAS RI</span>
+              <span>Akses demo internal — gunakan akun pradefinisi atau "Akun Tersimpan"</span>
             </div>
           </div>
         </div>

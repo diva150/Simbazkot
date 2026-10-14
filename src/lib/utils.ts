@@ -90,6 +90,19 @@ export function formatIndonesianLongDate(date: Date): string {
   return `${INDONESIAN_DAYS[date.getDay()]}, ${date.getDate()} ${INDONESIAN_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 }
 
+/**
+ * Format a Date as YYYY-MM-DD using the LOCAL timezone (not UTC).
+ * Use this for transaction dates, audit timestamps, and filename suffixes
+ * that represent a calendar day in WITA/WIB/WIT — `toISOString().split("T")[0]`
+ * gives the UTC date and can stamp early-morning transactions on the previous day.
+ */
+export function getLocalDateString(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 // Approximate Hijriah date from Gregorian (good enough for display purposes).
 // For a system that requires exact Islamic calendar dates, integrate a proper
 // library such as `hijri-converter` or `moment-hijri`. The approximation here

@@ -11,7 +11,7 @@ import {
   SubProgramPendayagunaan,
   UserSession,
 } from "@/lib/types";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah, getLocalDateString } from "@/lib/utils";
 import { DESIL_OPTIONS, KRITERIA_DESIL, desilBadgeClass, getKlasifikasi, getUserType } from "@/lib/desil";
 import type { UserType } from "@/lib/types";
 import { exportToExcel, downloadTemplateMustahik } from "@/lib/excel-utils";
@@ -221,8 +221,8 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
     const imported: Mustahik[] = rows.map((r, idx) => ({
       id: `mus-imp-${Date.now()}-${idx}`,
       namaLengkap: r[0] || "Mustahik Baru",
-      nik: r[1] || `717100000000000${idx}`,
-      kk: `717100000000000${idx}`,
+      nik: r[1] || `757100000000000${idx}`,
+      kk: `757100000000000${idx}`,
       asnaf: (r[2] as Mustahik["asnaf"]) || "Miskin",
       desil: (r[3] as DesilType) || "Desil 1",
       kategoriBesar: (r[4] === "pendayagunaan" ? "pendayagunaan" : "pendistribusian"),
@@ -231,7 +231,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
       kondisi: r[7] || "Prasejahtera",
       statusKelayakan: "aktif",
       totalBantuanDiterima: 0,
-      terakhirDibantu: new Date().toISOString().split("T")[0],
+      terakhirDibantu: getLocalDateString(),
     }));
     onImportMustahik(imported);
   };
@@ -244,8 +244,8 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
     const newM: Mustahik = {
       id: `mus-${Date.now()}`,
       namaLengkap: mustahikNama.trim(),
-      nik: mustahikNik.trim() || `7171${Date.now().toString().slice(-12)}`,
-      kk: mustahikKk.trim() || `7171${Date.now().toString().slice(-12)}`,
+      nik: mustahikNik.trim() || `7571${Date.now().toString().slice(-12)}`,
+      kk: mustahikKk.trim() || `7571${Date.now().toString().slice(-12)}`,
       asnaf: mustahikAsnaf,
       desil: mustahikDesil,
       kategoriBesar: targetProgramKategori,
@@ -254,7 +254,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
       kondisi: mustahikKondisi.trim() || "Keluarga Prasejahtera",
       statusKelayakan: "aktif",
       totalBantuanDiterima: mustahikBantuan,
-      terakhirDibantu: new Date().toISOString().split("T")[0],
+      terakhirDibantu: getLocalDateString(),
     };
 
     if (onAddMustahik) {
@@ -296,7 +296,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
       jumlahMustahik,
       pemohon: "Amil Bidang II",
       status: "diajukan",
-      tanggal: new Date().toISOString().split("T")[0],
+      tanggal: getLocalDateString(),
       keterangan,
     };
 
@@ -1686,7 +1686,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                     type="text"
                     value={mustahikNik}
                     onChange={(e) => setMustahikNik(e.target.value)}
-                    placeholder="7171010101850001"
+                    placeholder="7571010101850001"
                     className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs font-mono text-baznas-ink focus:outline-none"
                   />
                 </div>
@@ -1696,7 +1696,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                     type="text"
                     value={mustahikKk}
                     onChange={(e) => setMustahikKk(e.target.value)}
-                    placeholder="7171010101850002"
+                    placeholder="7571010101850002"
                     className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs font-mono text-baznas-ink focus:outline-none"
                   />
                 </div>

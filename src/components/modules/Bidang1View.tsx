@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { Muzakki, SetoranZIS, Instansi, Bidang1Tab, DesilType, UserSession } from "@/lib/types";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah, getLocalDateString } from "@/lib/utils";
 import { DESIL_OPTIONS, desilBadgeClass, getUserType } from "@/lib/desil";
 import type { UserType } from "@/lib/types";
 import { exportToExcel, downloadTemplateMuzakki } from "@/lib/excel-utils";
@@ -164,7 +164,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
   const [newMuzakkiTipe, setNewMuzakkiTipe] = useState<"individu" | "opd">("individu");
   const [newMuzakkiNama, setNewMuzakkiNama] = useState("");
   const [newMuzakkiNik, setNewMuzakkiNik] = useState("");
-  const [newMuzakkiNpwz, setNewMuzakkiNpwz] = useState(`NPWZ-7171-${Math.floor(1000 + Math.random() * 9000)}`);
+  const [newMuzakkiNpwz, setNewMuzakkiNpwz] = useState(`NPWZ-7571-${Math.floor(1000 + Math.random() * 9000)}`);
   const [newMuzakkiHp, setNewMuzakkiHp] = useState("");
   const [newMuzakkiAlamat, setNewMuzakkiAlamat] = useState("");
   const [newMuzakkiInstansiId, setNewMuzakkiInstansiId] = useState(instansiList[0]?.id || "inst-1");
@@ -270,8 +270,8 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     const newM: Muzakki = {
       id: `muz-${Date.now()}`,
       namaLengkap: newMuzakkiNama,
-      nik: newMuzakkiNik || `717100000000000${Math.floor(10 + Math.random() * 90)}`,
-      npwz: newMuzakkiNpwz || `NPWZ-7171-${Math.floor(1000 + Math.random() * 9000)}`,
+      nik: newMuzakkiNik || `757100000000000${Math.floor(10 + Math.random() * 90)}`,
+      npwz: newMuzakkiNpwz || `NPWZ-7571-${Math.floor(1000 + Math.random() * 9000)}`,
       noHp: newMuzakkiHp || "081200000000",
       alamat: newMuzakkiAlamat || "Kota Gorontalo",
       instansiId: newMuzakkiInstansiId,
@@ -330,8 +330,8 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     const imported: Muzakki[] = rows.map((r, idx) => ({
       id: `muz-imp-${Date.now()}-${idx}`,
       namaLengkap: r[0] || "Muzakki Baru",
-      nik: r[1] || `717100000000000${idx}`,
-      npwz: r[2] || `NPWZ-7171-${Date.now()}-${idx}`,
+      nik: r[1] || `757100000000000${idx}`,
+      npwz: r[2] || `NPWZ-7571-${Date.now()}-${idx}`,
       noHp: r[3] || "081200000000",
       alamat: r[4] || "Kota Gorontalo",
       instansiId: "inst-1",
@@ -370,7 +370,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       }
       targetMuzakkiId = `muz-manual-${Date.now()}`;
       targetNama = manualNama.trim();
-      targetNik = manualNik.trim() || `7171${Date.now().toString().slice(-12)}`;
+      targetNik = manualNik.trim() || `7571${Date.now().toString().slice(-12)}`;
       targetNpwz = manualNpwz.trim() || `NPWZ-INS-${Math.floor(1000 + Math.random() * 9000)}`;
       targetInstansi = manualInstansi.trim() || "Masyarakat Umum";
       targetDesil = manualDesil;
@@ -422,7 +422,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       nominal: finalNominal,
       persen: jenisZis === "zakat_profesi" ? 2.5 : undefined,
       gajiDasar: jenisZis === "zakat_profesi" ? gajiInput : undefined,
-      tanggal: new Date().toISOString().split("T")[0],
+      tanggal: getLocalDateString(),
       keterangan: keterangan,
       petugasAmil: "Amil Bidang I",
     };
@@ -918,7 +918,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                           type="text"
                           value={manualNpwz}
                           onChange={(e) => setManualNpwz(e.target.value)}
-                          placeholder="Contoh: NPWZ-7171-8899"
+                          placeholder="Contoh: NPWZ-7571-8899"
                           className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                         />
                       </div>
@@ -931,7 +931,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                           type="text"
                           value={manualNik}
                           onChange={(e) => setManualNik(e.target.value)}
-                          placeholder="Contoh: 7171090101900001"
+                          placeholder="Contoh: 7571090101900001"
                           className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-baznas-green-800 min-h-t-target"
                         />
                       </div>
@@ -1445,7 +1445,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                   required
                   value={newMuzakkiNama}
                   onChange={(e) => setNewMuzakkiNama(e.target.value)}
-                  placeholder={newMuzakkiTipe === "opd" ? "Contoh: Dinas Kesehatan Prov. Sulut" : "Contoh: H. Fatimah Al-Idrus, S.T."}
+                  placeholder={newMuzakkiTipe === "opd" ? "Contoh: Dinas Kesehatan Kota Gorontalo" : "Contoh: H. Fatimah Al-Idrus, S.T."}
                   className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                 />
               </div>
@@ -1457,7 +1457,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                     type="text"
                     value={newMuzakkiNik}
                     onChange={(e) => setNewMuzakkiNik(e.target.value)}
-                    placeholder="7171010101850001"
+                    placeholder="7571010101850001"
                     className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                   />
                 </div>
@@ -1467,7 +1467,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                     type="text"
                     value={newMuzakkiNpwz}
                     onChange={(e) => setNewMuzakkiNpwz(e.target.value)}
-                    placeholder="NPWZ-7171-XXXX"
+                    placeholder="NPWZ-7571-XXXX"
                     className="w-full border border-baznas-ink-20 bg-white px-3 py-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                   />
                 </div>

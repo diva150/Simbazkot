@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { parseSpreadsheet } from "@/lib/excel-utils";
 import { Button } from "./Button";
+import { Dialog } from "./Dialog";
 
 interface ImportExcelModalProps {
   isOpen: boolean;
@@ -34,8 +35,6 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
   const [parsedRows, setParsedRows] = useState<string[][]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isParsing, setIsParsing] = useState(false);
-
-  if (!isOpen) return null;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMsg(null);
@@ -76,8 +75,14 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white border border-baznas-ink-8 shadow-lift overflow-hidden">
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      title={title}
+      size="full"
+      showCloseButton={false}
+      panelClassName="max-w-2xl bg-white border border-baznas-ink-8 shadow-lift"
+    >
         {/* Header Modal — paper, no gradient, no rounded */}
         <div className="flex items-center justify-between border-b border-baznas-ink-8 bg-baznas-paper px-6 py-4">
           <div className="flex items-center gap-3">
@@ -211,8 +216,7 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
             Import {parsedRows.length} Baris Data
           </Button>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 };
 

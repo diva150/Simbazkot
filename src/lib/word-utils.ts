@@ -44,7 +44,7 @@ export interface WordLetterData {
 const DEFAULT_KOP_BARIS_1 = "BADAN AMIL ZAKAT NASIONAL";
 const DEFAULT_KOP_BARIS_2 = "KANTOR PERWAKILAN BAZNAS DAERAH";
 const DEFAULT_KOP_ALAMAT =
-  "Alamat: Jl. Raya Trans BAZNAS No. 123 • Telp: (0431) 889900 • WA: 0812-4567-8901\nEmail: layanan@baznas.go.id • Website: https://baznas.go.id";
+  "Alamat: Jl. Nani Wartabone No. 88, Kota Gorontalo • Telp: (0435) 826789 • WA: 0812-4567-8901\nEmail: layanan@baznas.go.id • Website: https://baznas.go.id";
 
 // ── Borderless cell helper ────────────────────────────────────────────
 const noBorder = {

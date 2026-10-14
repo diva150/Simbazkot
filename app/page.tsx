@@ -158,7 +158,7 @@ export default function Home() {
   };
 
   const handleCreateUser = (newUser: Omit<UserSession, "id" | "createdAt">) => {
-    const id = `u-${String(userAccounts.length + 1).padStart(3, "0")}`;
+    const id = `u-${crypto.randomUUID().slice(0, 8)}`;
     setUserAccounts((prev) => [
       ...prev,
       { ...newUser, id, createdAt: new Date().toISOString() },
@@ -238,6 +238,10 @@ export default function Home() {
       "Setoran berhasil dicatat",
       `Bukti ${newSetoran.buktiNo} untuk ${newSetoran.namaMuzakki}`
     );
+  };
+
+  const handleAddMuzakki = (newM: Muzakki) => {
+    setMuzakkiList((prev) => [newM, ...prev]);
   };
 
   const handleImportMuzakki = (newMuzakki: Muzakki[]) => {
@@ -492,6 +496,7 @@ export default function Home() {
                   setoranList={setoranList}
                   instansiList={initialInstansi}
                   currentUser={currentUser}
+                  onAddMuzakki={handleAddMuzakki}
                   onAddSetoran={handleAddSetoran}
                   onViewKwitansi={(s) => setSelectedKwitansi(s)}
                   onImportMuzakki={handleImportMuzakki}

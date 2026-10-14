@@ -11,6 +11,7 @@
  */
 
 import * as XLSX from "xlsx";
+import { getLocalDateString } from "./utils";
 
 // BAZNAS brand colors (hex without #)
 const BAZNAS_GREEN = "0F5132";
@@ -237,7 +238,7 @@ export function exportToExcel(
   };
 
   const cleanFilename = filename.replace(/[^a-zA-Z0-9_\-]/g, "_");
-  const datedFilename = `${cleanFilename}_${new Date().toISOString().split("T")[0]}.xlsx`;
+  const datedFilename = `${cleanFilename}_${getLocalDateString()}.xlsx`;
   XLSX.writeFile(wb, datedFilename);
 }
 
@@ -270,7 +271,7 @@ export function exportMultiSheetToExcel(
   };
 
   const cleanFilename = filename.replace(/[^a-zA-Z0-9_\-]/g, "_");
-  const datedFilename = `${cleanFilename}_${new Date().toISOString().split("T")[0]}.xlsx`;
+  const datedFilename = `${cleanFilename}_${getLocalDateString()}.xlsx`;
   XLSX.writeFile(wb, datedFilename);
 }
 
@@ -463,7 +464,7 @@ function buildTemplateWorkbook(t: ImportTemplate): XLSX.WorkBook {
 
 function writeTemplateWorkbook(wb: XLSX.WorkBook, filename: string): void {
   const cleanFilename = filename.replace(/[^a-zA-Z0-9_\-]/g, "_");
-  const datedFilename = `${cleanFilename}_${new Date().toISOString().split("T")[0]}.xlsx`;
+  const datedFilename = `${cleanFilename}_${getLocalDateString()}.xlsx`;
   XLSX.writeFile(wb, datedFilename);
 }
 

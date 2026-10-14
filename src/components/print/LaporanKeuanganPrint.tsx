@@ -6,6 +6,7 @@ import { formatRupiah } from "@/lib/utils";
 import { Printer, X } from "lucide-react";
 import { BAZNASMark } from "@/components/brand/BAZNASMark";
 import { Star8, CornerBracket } from "@/components/brand/IslamicOrnament";
+import { Dialog } from "@/components/common/Dialog";
 
 interface LaporanKeuanganPrintProps {
   rkatList: ItemRKAT[];
@@ -26,8 +27,14 @@ export const LaporanKeuanganPrint: React.FC<LaporanKeuanganPrintProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-5xl bg-white border border-baznas-ink-8 shadow-lift overflow-hidden">
+    <Dialog
+      open
+      onClose={onClose}
+      title="Pratinjau Laporan Realisasi RKAT & Keuangan"
+      size="full"
+      showCloseButton={false}
+      panelClassName="max-w-5xl bg-white border border-baznas-ink-8 shadow-lift"
+    >
         {/* Action Header (no-print) */}
         <div className="no-print flex items-center justify-between border-b border-baznas-ink-8 bg-baznas-paper px-5 py-3">
           <div className="flex items-center gap-2">
@@ -275,8 +282,7 @@ export const LaporanKeuanganPrint: React.FC<LaporanKeuanganPrintProps> = ({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 };
 

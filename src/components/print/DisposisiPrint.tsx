@@ -5,6 +5,7 @@ import { Surat } from "@/lib/types";
 import { Printer, X } from "lucide-react";
 import { BAZNASMark } from "@/components/brand/BAZNASMark";
 import { Star8, KhatRule, CornerBracket } from "@/components/brand/IslamicOrnament";
+import { Dialog } from "@/components/common/Dialog";
 
 interface DisposisiPrintProps {
   surat: Surat | null;
@@ -22,8 +23,14 @@ export const DisposisiPrint: React.FC<DisposisiPrintProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white border border-baznas-ink-8 shadow-lift overflow-hidden">
+    <Dialog
+      open
+      onClose={onClose}
+      title="Pratinjau Lembar Disposisi Surat"
+      size="full"
+      showCloseButton={false}
+      panelClassName="max-w-2xl bg-white border border-baznas-ink-8 shadow-lift"
+    >
         {/* Action Header (no-print) */}
         <div className="no-print flex items-center justify-between border-b border-baznas-ink-8 bg-baznas-paper px-5 py-3">
           <div className="flex items-center gap-2">
@@ -75,7 +82,17 @@ export const DisposisiPrint: React.FC<DisposisiPrintProps> = ({
               <Star8 size={10} />
             </div>
             <p className="text-[10px] text-baznas-ink/55 mt-1.5 uppercase tracking-wider">
-              Sifat: [✓] Sangat Segera / Segera / [ ] Biasa
+              Sifat:{" "}
+              {[
+                { label: "Sangat Segera", match: "Sangat Segera" },
+                { label: "Segera", match: "Segera" },
+                { label: "Biasa", match: "Biasa" },
+              ].map((opt, i) => (
+                <span key={opt.label}>
+                  {i > 0 && " / "}
+                  {surat.sifatDisposisi === opt.match ? "[✓]" : "[ ]"} {opt.label}
+                </span>
+              ))}
             </p>
           </div>
 
@@ -136,16 +153,12 @@ export const DisposisiPrint: React.FC<DisposisiPrintProps> = ({
                   { label: "Wakil Ketua IV (SDM & Umum)", match: "Wakil Ketua IV" },
                   { label: "Sekretariat Pelaksana / TU", match: null },
                 ].map((opt) => (
-                  <label key={opt.label} className="flex items-center gap-2 text-baznas-ink">
-                    <input
-                      type="checkbox"
-                      defaultChecked={
-                        !!opt.match && !!surat.disposisiTujuan?.includes(opt.match)
-                      }
-                      className="h-3.5 w-3.5 accent-baznas-green-800"
-                    />
+                  <p key={opt.label} className="flex items-center gap-2 text-baznas-ink">
+                    <span className="inline-block w-3.5 font-mono text-[10px]">
+                      {!!opt.match && !!surat.disposisiTujuan?.includes(opt.match) ? "[✓]" : "[ ]"}
+                    </span>
                     <span>{opt.label}</span>
-                  </label>
+                  </p>
                 ))}
               </div>
             </div>
@@ -163,14 +176,12 @@ export const DisposisiPrint: React.FC<DisposisiPrintProps> = ({
                   "Siapkan telaah / tanggapan",
                   "Bicarakan dengan saya",
                 ].map((label) => (
-                  <label key={label} className="flex items-center gap-2 text-baznas-ink">
-                    <input
-                      type="checkbox"
-                      defaultChecked={label === "Tindak lanjuti segera"}
-                      className="h-3.5 w-3.5 accent-baznas-green-800"
-                    />
+                  <p key={label} className="flex items-center gap-2 text-baznas-ink">
+                    <span className="inline-block w-3.5 font-mono text-[10px]">
+                      {!!surat.instruksiDisposisi?.includes(label) ? "[✓]" : "[ ]"}
+                    </span>
                     <span>{label}</span>
-                  </label>
+                  </p>
                 ))}
               </div>
             </div>
@@ -182,9 +193,11 @@ export const DisposisiPrint: React.FC<DisposisiPrintProps> = ({
               Catatan / Arahan Ketua
             </p>
             <p className="italic text-baznas-ink text-xs mt-2 pl-2 leading-relaxed">
-              {surat.catatanArahan
-                ? `&ldquo;${surat.catatanArahan}&rdquo;`
-                : "(Belum ada catatan khusus, lakukan tindak lanjut sesuai SOP bidang terkait.)"}
+              {surat.catatanArahan ? (
+                <>&ldquo;{surat.catatanArahan}&rdquo;</>
+              ) : (
+                "(Belum ada catatan khusus, lakukan tindak lanjut sesuai SOP bidang terkait.)"
+              )}
             </p>
           </div>
 
@@ -201,8 +214,7 @@ export const DisposisiPrint: React.FC<DisposisiPrintProps> = ({
             </p>
           </div>
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 };
 
