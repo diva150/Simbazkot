@@ -44,6 +44,13 @@ import {
   Trash2,
   Share2,
 } from "lucide-react";
+// Per-tab components — extracted from this file as part of the per-tab
+// split (Phase 8 of MEDIUM+LOW cleanup).
+import { DashboardTab } from "./bidang2/DashboardTab";
+import { PencairanTab } from "./bidang2/PencairanTab";
+import { DokumentasiTab } from "./bidang2/DokumentasiTab";
+import { LaporanTab } from "./bidang2/LaporanTab";
+import { PengaturanTab } from "./bidang2/PengaturanTab";
 
 interface Bidang2ViewProps {
   mustahikList: Mustahik[];
@@ -471,70 +478,10 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
 
       {/* 1. DASHBOARD RINGKASAN BIDANG 2 */}
       {canAccessTab(currentUser, "bidang2", "dashboard") && activeTab === "dashboard" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-xs font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Mustahik Terdata
-              </span>
-              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
-                {mustahikList.length} <span className="text-sm font-normal text-baznas-ink/55">Jiwa / KK</span>
-              </p>
-              <p className="text-[11px] text-baznas-green-900 mt-1">Terverifikasi Asnaf &amp; SKTM</p>
-            </div>
-
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-xs font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Desil 1 (Kemiskinan Ekstrem)
-              </span>
-              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
-                {mustahikList.filter((m) => m.desil === "Desil 1").length} <span className="text-sm font-normal text-baznas-ink/55">Penerima</span>
-              </p>
-              <p className="text-[11px] text-baznas-ink/55 mt-1">Prioritas Penyaluran Utama</p>
-            </div>
-
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-xs font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Program Pendistribusian
-              </span>
-              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
-                {mustahikList.filter((m) => m.kategoriBesar === "pendistribusian").length} <span className="text-sm font-normal text-baznas-ink/55">Mustahik</span>
-              </p>
-              <p className="text-[11px] text-baznas-ink mt-1">Pendidikan, Kesehatan, Dakwah/Advokasi</p>
-            </div>
-
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-xs font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Program Pendayagunaan
-              </span>
-              <p className="text-2xl font-bold text-baznas-green-900 font-poppins mt-2">
-                {mustahikList.filter((m) => m.kategoriBesar === "pendayagunaan").length} <span className="text-sm font-normal text-baznas-ink/55">Mustahik</span>
-              </p>
-              <p className="text-[11px] text-baznas-green-900 mt-1">Ekonomi, Pendidikan Sebagian, Sanitasi</p>
-            </div>
-          </div>
-
-          {/* Quick Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div
-              onClick={() => setActiveTab("pendistribusian")}
-              className="cursor-pointer border border-baznas-ink-8 bg-baznas-paper/40 p-8 hover:bg-baznas-paper/40 transition-colors"
-            >
-              <GraduationCap className="h-6 w-6 text-baznas-ink mb-2" />
-              <h3 className="text-sm font-bold text-baznas-ink font-poppins">Program Pendistribusian</h3>
-              <p className="text-xs text-baznas-ink/55 mt-1">Penyaluran konsumtif darurat: Pendidikan, Kesehatan, Dakwah dan Advokasi.</p>
-            </div>
-
-            <div
-              onClick={() => setActiveTab("pendayagunaan")}
-              className="cursor-pointer border border-baznas-ink-8 bg-baznas-paper/40 p-8 hover:bg-baznas-paper/40 transition-colors"
-            >
-              <Briefcase className="h-6 w-6 text-baznas-green-900 mb-2" />
-              <h3 className="text-sm font-bold text-baznas-ink font-poppins">Program Pendayagunaan</h3>
-              <p className="text-xs text-baznas-ink/55 mt-1">Transformasi produktif: Modal Usaha Z-Mart, Vokasi, dan Sanitasi Sehat.</p>
-            </div>
-          </div>
-        </div>
+        <DashboardTab
+          mustahikList={mustahikList}
+          onNavigate={(tab) => setActiveTab(tab)}
+        />
       )}
 
       {/* 2. DATA MUSTAHIK MASTER (FILTER NIK, DESIL 1-4, IMPORT & EXPORT) */}
@@ -1316,286 +1263,27 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
 
       {/* 5. PERSETUJUAN PENCAIRAN DANA (SPK) DENGAN ALUR 2 TAHAP: KETUA DULU LALU KONFIRMASI BIDANG 2 */}
       {canAccessTab(currentUser, "bidang2", "pencairan") && activeTab === "pencairan" && (
-        <div className="border border-baznas-ink-8 bg-white p-8 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 className="text-base font-bold text-baznas-ink font-poppins">
-                Alur Persetujuan Pencairan Dana Bantuan (SPK)
-              </h3>
-              <p className="text-xs text-baznas-ink/55">
-                Alur resmi 2 tahap: Pengajuan Bidang II ➔ Disetujui Ketua BAZNAS ➔ Dikonfirmasi Kembali oleh Bidang II ➔ Diteruskan ke Kas Bidang III
-              </p>
-            </div>
-            <button
-              onClick={() => setShowModalNew(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-baznas-error-700 px-4 py-2.5 text-xs font-semibold text-white shadow-rest hover:bg-baznas-error-800 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              Buat Pengajuan Baru (SPK)
-            </button>
-          </div>
-
-          {/* Diagram Alur SPK */}
-          <div className="rounded-xl border border-baznas-ink-8 bg-baznas-paper/30/70 p-4">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-baznas-ink/45 block mb-2">
-              Siklus Alur Otorisasi SPK:
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-center text-xs">
-              <div className="bg-white p-2.5 rounded-lg border border-baznas-ink-8">
-                <span className="font-bold text-baznas-warning-700 block">1. Diajukan</span>
-                <span className="text-[10px] text-baznas-ink/55">Oleh Amil Bidang II</span>
-              </div>
-              <div className="bg-white p-2.5 rounded-lg border border-baznas-ink-12">
-                <span className="font-bold text-baznas-ink block">2. Disetujui Ketua</span>
-                <span className="text-[10px] text-baznas-ink/55">Ketua Mohamad Husain Rauf</span>
-              </div>
-              <div className="bg-white p-2.5 rounded-lg border border-baznas-green-200">
-                <span className="font-bold text-baznas-green-800 block">3. Dikonfirmasi Bidang II</span>
-                <span className="text-[10px] text-baznas-ink/55">Verifikasi Berkas Akhir</span>
-              </div>
-              <div className="bg-white p-2.5 rounded-lg border border-baznas-ink-8">
-                <span className="font-bold text-baznas-ink block">4. Cair ke Bidang III</span>
-                <span className="text-[10px] text-baznas-ink/55">Transfer Kas Bendahara</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-8 pt-2">
-            {pencairanList.map((p) => {
-              const isPendingKetua = p.status === "diajukan";
-              const isApprovedKetua = p.status === "disetujui_ketua";
-              const isConfirmedBidang2 = p.status === "dikonfirmasi_bidang2";
-              const isRejected = p.status === "ditolak";
-
-              return (
-                <div
-                  key={p.id}
-                  className={`rounded-md border p-8 transition-all ${
-                    isPendingKetua
-                      ? "border border-baznas-ink-20 bg-baznas-paper/30"
-                      : isApprovedKetua
-                      ? "border border-baznas-ink-20 bg-baznas-paper/30"
-                      : isConfirmedBidang2
-                      ? "border border-baznas-ink-20 bg-baznas-paper/30"
-                      : "border-baznas-error-200 bg-baznas-paper/30"
-                  }`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-baznas-ink/80">
-                          {p.nomorSPK}
-                        </span>
-
-                        {isPendingKetua && (
-                          <span className="inline-block bg-baznas-paper border border-baznas-ink-20 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-warning-300 flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Menunggu Persetujuan Ketua BAZNAS
-                          </span>
-                        )}
-
-                        {isApprovedKetua && (
-                          <span className="inline-block bg-baznas-paper border border-baznas-ink-20 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-ink-20 flex items-center gap-1">
-                            <CheckCircle2 className="h-3 w-3" />
-                            Disetujui Ketua — Siap Dikonfirmasi Bidang II
-                          </span>
-                        )}
-
-                        {isConfirmedBidang2 && (
-                          <span className="inline-block bg-baznas-paper border border-baznas-ink-12 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-green-300 flex items-center gap-1">
-                            <Check className="h-3 w-3" />
-                            Dikonfirmasi Bidang II (Siap Diberikan)
-                          </span>
-                        )}
-
-                        {isRejected && (
-                          <span className="inline-block bg-baznas-paper border border-baznas-gold-display text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-error-300 flex items-center gap-1">
-                            <XCircle className="h-3 w-3" />
-                            Ditolak
-                          </span>
-                        )}
-
-                        <span className="inline-block bg-baznas-paper/40 px-2 py-0.5 text-[10px] font-bold text-baznas-ink/80 uppercase">
-                          {p.kategoriBesar === "pendistribusian" ? "Pendistribusian" : "Pendayagunaan"} • {p.namaSubProgram}
-                        </span>
-                      </div>
-
-                      <h4 className="text-sm font-bold text-baznas-ink font-poppins">
-                        {p.namaProgram}
-                      </h4>
-                      <p className="text-xs text-baznas-ink/65">{p.keterangan}</p>
-
-                      <p className="text-[11px] text-baznas-ink/55">
-                        Target: <strong>{p.jumlahMustahik} Mustahik</strong> • Tanggal: {p.tanggal}
-                        {p.approver && ` • Disetujui oleh: ${p.approver}`}
-                        {p.catatanPenolakan && (
-                          <span className="text-baznas-ink font-semibold block mt-0.5">
-                            Alasan Penolakan: {p.catatanPenolakan}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col sm:items-end justify-between gap-3">
-                      <span className="text-base font-bold text-baznas-green-900 font-poppins">
-                        {formatRupiah(p.nominal)}
-                      </span>
-
-                      {/* Aksi Sesuai Status Alur */}
-                      <div className="flex items-center gap-2">
-                        {isPendingKetua && (
-                          <span className="text-[11px] text-baznas-ink/80 bg-baznas-paper border border-baznas-ink-20 px-2.5 py-1 italic">
-                            Sedang direview Ketua...
-                          </span>
-                        )}
-
-                        {/* TAHAP 2: KONFIRMASI DARI BIDANG 2 SETELAH DISETUJUI KETUA */}
-                        {isApprovedKetua && (
-                          <button
-                            onClick={() => {
-                              if (onConfirmPencairan) {
-                                onConfirmPencairan(p.id);
-                              } else {
-                                p.status = "dikonfirmasi_bidang2";
-                                setActiveTab("pencairan");
-                              }
-                            }}
-                            className="flex items-center gap-1.5 rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-3.5 py-2.5 text-xs font-bold text-white transition-colors"
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                            Konfirmasi Pencairan Dana (Bidang II)
-                          </button>
-                        )}
-
-                        {isConfirmedBidang2 && (
-                          <span className="text-[11px] font-bold text-baznas-green-900 bg-baznas-paper border border-baznas-ink-12 px-2.5 py-1">
-                            Terkonfirmasi Lengkap
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <PencairanTab
+          pencairanList={pencairanList}
+          onConfirmPencairan={onConfirmPencairan}
+          onAddPencairan={onAddPencairan}
+          onRejectPencairan={onRejectPencairan}
+        />
       )}
 
       {/* 6. DOKUMENTASI PENYALURAN (BAST) */}
       {canAccessTab(currentUser, "bidang2", "dokumentasi") && activeTab === "dokumentasi" && (
-        <div className="border border-baznas-ink-8 bg-white p-8 space-y-6">
-          <h3 className="text-base font-bold text-baznas-ink font-poppins">
-            Berita Acara Serah Terima (BAST) &amp; Dokumentasi Lapangan
-          </h3>
-          <p className="text-xs text-baznas-ink/55">
-            Arsip tanda terima dan dokumentasi foto penyerahan hak mustahik
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-baznas-ink-8 p-8 bg-baznas-paper/40 space-y-2">
-              <span className="text-xs font-bold text-baznas-ink font-mono">BAST-2026/09/018</span>
-              <p className="font-semibold text-baznas-ink text-xs">Penyerahan Bantuan Beasiswa Santri Yatim 15 Orang</p>
-              <p className="text-[11px] text-baznas-ink/55">Kategori: Program Pendistribusian (Pendidikan) • Tgl: 18 Sep 2026</p>
-              <span className="inline-block text-[10px] bg-baznas-paper border border-baznas-ink-12 text-baznas-ink font-bold px-2 py-0.5 rounded">
-                Dokumen Lengkap &amp; Terverifikasi
-              </span>
-            </div>
-            <div className="rounded-xl border border-baznas-ink-8 p-8 bg-baznas-paper/40 space-y-2">
-              <span className="text-xs font-bold text-baznas-ink font-mono">BAST-2026/08/042</span>
-              <p className="font-semibold text-baznas-ink text-xs">Penyerahan Bantuan Modal Usaha Z-Mart 5 Mustahik</p>
-              <p className="text-[11px] text-baznas-ink/55">Kategori: Program Pendayagunaan (Ekonomi) • Tgl: 15 Agu 2026</p>
-              <span className="inline-block text-[10px] bg-baznas-paper border border-baznas-ink-12 text-baznas-ink font-bold px-2 py-0.5 rounded">
-                Dokumen Lengkap &amp; Terverifikasi
-              </span>
-            </div>
-          </div>
-        </div>
+        <DokumentasiTab />
       )}
 
       {/* 7. LAPORAN PENYALURAN */}
       {canAccessTab(currentUser, "bidang2", "laporan") && activeTab === "laporan" && (
-        <div className="border border-baznas-ink-8 bg-white p-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-baznas-ink font-poppins">
-                Laporan Rekapitulasi Penyaluran Mustahik
-              </h3>
-              <p className="text-xs text-baznas-ink/55">
-                Daftar lengkap mustahik terdaftar dan total alokasi dana bantuan tersalurkan.
-              </p>
-            </div>
-            <button
-              onClick={() => handleExportMustahik()}
-              className="flex items-center gap-1.5 rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-4 py-2.5 text-xs font-semibold text-white"
-            >
-              <Download className="h-4 w-4" />
-              Export Laporan ke Excel
-            </button>
-          </div>
-        </div>
+        <LaporanTab onExport={() => handleExportMustahik()} />
       )}
 
       {/* 8. PENGATURAN BIDANG 2 */}
       {canAccessTab(currentUser, "bidang2", "pengaturan") && activeTab === "pengaturan" && (
-        <div className="border border-baznas-ink-8 bg-white p-8 space-y-8 max-w-3xl">
-          <div>
-            <h3 className="text-base font-bold text-baznas-ink font-poppins">
-              Pengaturan Kriteria Asesmen &amp; Ambang Batas Desil
-            </h3>
-            <p className="text-xs text-baznas-ink/55 mt-2">
-              Skala 1–10 (BPS-style) — <strong className="text-baznas-ink">Desil 1–5 diklasifikasikan sebagai Mustahik (penerima manfaat)</strong>, sedangkan <strong className="text-baznas-ink">Desil 6–10 sebagai Muzakki (pemberi zakat)</strong>. Aturan ini berlaku konsisten di seluruh modul BAZNAS.
-            </p>
-          </div>
-
-          {/* Group: Mustahik (Desil 1–5) */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 border-b border-baznas-ink-8 pb-2">
-              <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-baznas-paper border border-baznas-ink-20 text-baznas-ink/85">
-                Mustahik
-              </span>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-baznas-ink/70">Desil 1–5 · Penerima Manfaat</h4>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              {KRITERIA_DESIL.filter((k) => k.klasifikasi === "mustahik").map((k) => (
-                <div
-                  key={k.desil}
-                  className="border border-l-4 border-l-baznas-ink-20 border-baznas-ink-8 p-3 bg-baznas-paper/40 space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold block text-baznas-ink">{k.label}</span>
-                    <span className="text-[9px] text-baznas-ink/45 font-mono">{k.pendapatan}</span>
-                  </div>
-                  <span className="text-baznas-ink/55 block">{k.deskripsi}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Group: Muzakki (Desil 6–10) */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 border-b border-baznas-ink-8 pb-2">
-              <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-baznas-paper border border-baznas-green-700 text-baznas-green-900">
-                Muzakki
-              </span>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-baznas-ink/70">Desil 6–10 · Pemberi Zakat</h4>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              {KRITERIA_DESIL.filter((k) => k.klasifikasi === "muzakki").map((k) => (
-                <div
-                  key={k.desil}
-                  className="border border-l-4 border-l-baznas-green-700 border-baznas-ink-8 p-3 bg-baznas-paper/40 space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold block text-baznas-ink">{k.label}</span>
-                    <span className="text-[9px] text-baznas-ink/45 font-mono">{k.pendapatan}</span>
-                  </div>
-                  <span className="text-baznas-ink/55 block">{k.deskripsi}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <PengaturanTab />
       )}
 
       {/* MODAL PENGAJUAN SPK BARU */}
