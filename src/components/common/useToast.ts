@@ -12,6 +12,10 @@ interface ToastItem {
   onUndo?: () => void;
 }
 
+// Re-export so ToastProvider can pass the items straight to ToastContainer
+// without an awkward intermediate type.
+export type { ToastItem };
+
 /**
  * useToast — hook for managing a stack of toast notifications.
  *

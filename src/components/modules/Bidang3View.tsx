@@ -11,7 +11,7 @@ import {
   Bidang3Tab,
   UserSession,
 } from "@/lib/types";
-import { useToast, ToastContainer } from "@/components/common";
+import { useToast } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import { LineChart } from "lucide-react";
 import { DashboardTab } from "./bidang3/DashboardTab";
@@ -105,7 +105,7 @@ export const Bidang3View: React.FC<Bidang3ViewProps> = ({
 }) => {
   const [localTab, setLocalTab] = useState<Bidang3Tab>("dashboard");
   const activeTab = propTab || localTab;
-  const { error: toastError, toasts, dismiss } = useToast();
+  const { error: toastError } = useToast();
 
   const setActiveTab = (tab: Bidang3Tab) => {
     if (!canAccessTab(currentUser, "bidang3", tab)) {
@@ -217,8 +217,6 @@ export const Bidang3View: React.FC<Bidang3ViewProps> = ({
           onDelete={onDeleteAkun}
         />
       )}
-
-      <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 };

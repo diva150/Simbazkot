@@ -48,7 +48,7 @@ import {
 import { PublicNavbar } from "@/components/public/PublicNavbar";
 import { PublicLandingView } from "@/components/public/PublicLandingView";
 import { LoginModal } from "@/components/public/LoginModal";
-import { ToastContainer, useToast } from "@/components/common";
+import { ToastContainer, ToastProvider, useToast } from "@/components/common";
 import { canAccessView, getHomeViewFor } from "@/lib/access";
 import { getLocalDateString } from "@/lib/utils";
 import { PRINT_AUTO_OPEN_DELAY_MS } from "@/lib/constants";
@@ -109,8 +109,16 @@ const LaporanKeuanganPrint = dynamic(
 );
 
 export default function Home() {
+  return (
+    <ToastProvider>
+      <HomeContent />
+    </ToastProvider>
+  );
+}
+
+function HomeContent() {
   // Toast notifications (UX-IMPROVEMENT-PLAN §3.2)
-  const { toasts, dismiss: dismissToast, success: toastSuccess, error: toastError, info: toastInfo } = useToast();
+  const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
 
   // Authentication & Navigation State
   const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
@@ -844,9 +852,6 @@ export default function Home() {
           onClose={() => setIsLaporanPrintOpen(false)}
         />
       )}
-
-      {/* Toast notifications (UX-IMPROVEMENT-PLAN-30-60.md §3.2) */}
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

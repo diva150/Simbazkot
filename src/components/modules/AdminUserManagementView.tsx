@@ -15,7 +15,6 @@ import {
 import { canAccessTab } from "@/lib/access";
 import {
   useToast,
-  ToastContainer,
   ConfirmDialog,
   Dialog,
 } from "@/components/common";
@@ -141,7 +140,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
   const [content, setContent] = useState<BerandaContent>(propContent || initialBerandaContent);
 
   // Toast
-  const { success: toastSuccess, error: toastError, toasts, dismiss } = useToast();
+  const { success: toastSuccess, error: toastError } = useToast();
 
   // ── Derived list ────────────────────────────────────────────────
   const filteredUsers = useMemo(() => {
@@ -388,8 +387,6 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
           </button>
         </div>
       </div>
-
-      <ToastContainer toasts={toasts} onDismiss={dismiss} />
 
       {/* ═══ TAB 1: MANAJEMEN AKUN ═══ */}
       {canAccessTab(currentUser, "admin", "manajemen_akun") &&

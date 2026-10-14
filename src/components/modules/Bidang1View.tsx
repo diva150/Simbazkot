@@ -13,7 +13,7 @@ const handleDownloadMuzakkiTemplate = async () => {
   const { downloadTemplateMuzakki } = await import("@/lib/excel-utils");
   downloadTemplateMuzakki();
 };
-import { ImportExcelModal, useToast, Button, ToastContainer, ClassificationBadge, Dialog } from "@/components/common";
+import { ImportExcelModal, useToast, Button, ClassificationBadge, Dialog } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
   HandCoins,
@@ -115,7 +115,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isAddMuzakkiModalOpen, setIsAddMuzakkiModalOpen] = useState(false);
 
-  const { success: toastSuccess, error: toastError, info: toastInfo, toasts, dismiss } = useToast();
+  const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
 
   // Form State
   const [muzakkiInputMode, setMuzakkiInputMode] = useState<"database" | "manual">("database");
@@ -1583,8 +1583,6 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
         onImportData={handleImportParsedMuzakki}
         sampleHeaders={["Nama Lengkap", "NIK", "NPWZ", "No WhatsApp", "Alamat", "Instansi", "Tingkat Desil"]}
       />
-
-      <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 };

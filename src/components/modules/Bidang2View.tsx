@@ -22,7 +22,7 @@ const handleDownloadMustahikTemplate = async () => {
   const { downloadTemplateMustahik } = await import("@/lib/excel-utils");
   downloadTemplateMustahik();
 };
-import { ImportExcelModal, ConfirmDialog, useToast, ToastContainer, ClassificationBadge, Dialog } from "@/components/common";
+import { ImportExcelModal, ConfirmDialog, useToast, ClassificationBadge, Dialog } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
   HeartHandshake,
@@ -137,7 +137,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
 }) => {
   const [localTab, setLocalTab] = useState<Bidang2Tab>("dashboard");
   const activeTab = propTab || localTab;
-  const { success: toastSuccess, error: toastError, info: toastInfo, toasts, dismiss } = useToast();
+  const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
   const setActiveTab = (tab: Bidang2Tab) => {
     if (!canAccessTab(currentUser, "bidang2", tab)) {
       toastError("Akses Ditolak", `Anda tidak memiliki akses ke tab "${tab}".`);
@@ -2126,9 +2126,6 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-
-      {/* Toast Container — render global toast UI */}
-      <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 };

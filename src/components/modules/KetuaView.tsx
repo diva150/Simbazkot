@@ -16,7 +16,7 @@ import {
 import { formatRupiah } from "@/lib/utils";
 // NOTE: exportToExcel is dynamically imported inside its handler so the
 // heavy xlsx library is only fetched when the user actually exports.
-import { ConfirmDialog, useToast, ToastContainer, Dialog } from "@/components/common";
+import { ConfirmDialog, useToast, Dialog } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
   FileText,
@@ -114,7 +114,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
   const [approveSpkId, setApproveSpkId] = useState<string | null>(null);
 
   // Toast notifications
-  const { success: toastSuccess, error: toastError, toasts, dismiss } = useToast();
+  const { success: toastSuccess, error: toastError } = useToast();
 
   // Filter Surat Masuk
   const [filterStatusSurat, setFilterStatusSurat] = useState<"all" | "belum_disposisi" | "sudah_disposisi">("all");
@@ -882,9 +882,6 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
           />
         );
       })()}
-
-      {/* Toast Container — render global toast UI */}
-      <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 };

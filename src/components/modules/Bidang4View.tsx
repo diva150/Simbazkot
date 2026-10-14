@@ -8,7 +8,7 @@ import { formatRupiah, getLocalDateString } from "@/lib/utils";
 // libraries are only fetched when the user actually exports / generates.
 import type { WordLetterData } from "@/lib/word-utils";
 import { initialTemplatesSurat } from "@/lib/mock-data";
-import { useToast, ToastContainer, Dialog } from "@/components/common";
+import { useToast, Dialog } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
   FolderArchive,
@@ -63,7 +63,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
 }) => {
   const [localTab, setLocalTab] = useState<Bidang4Tab>("dashboard");
   const activeTab = propTab || localTab;
-  const { error: toastError, info: toastInfo, toasts, dismiss } = useToast();
+  const { error: toastError, info: toastInfo } = useToast();
   const setActiveTab = (tab: Bidang4Tab) => {
     if (!canAccessTab(currentUser, "bidang4", tab)) {
       toastError("Akses Ditolak", `Anda tidak memiliki akses ke tab "${tab}".`);
@@ -1447,9 +1447,6 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
             </form>
         </Dialog>
       )}
-
-      {/* Toast Container — render global toast UI */}
-      <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 };
