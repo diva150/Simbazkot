@@ -577,7 +577,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
               <h2 className="text-base font-bold font-poppins">
                 Monitoring Laporan Konsolidasi 4 Bidang BAZNAS
               </h2>
-              <p className="text-xs text-slate-300 mt-0.5">
+              <p className="text-xs text-baznas-ink/55 mt-0.5">
                 Pengawasan komprehensif penghimpunan, penyaluran, realisasi anggaran dan tata kelola kantor
               </p>
             </div>
