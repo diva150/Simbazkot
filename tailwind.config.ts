@@ -62,6 +62,34 @@ const config: Config = {
           // Hampir-hitam dengan sedikit tint hijau — untuk teks body
           // Ganti slate-900 (biru-keabuan) dengan ini agar cohesive
           ink: "#0E1A14",
+          // === Error & Warning palette (Phase 1) ===
+          // Mirror rose-* (for destructive: error/clear/quit/delete) and
+          // amber-* (for caution: warning/stale/pending) so we can keep the
+          // visual semantics without depending on tailwind's default palette.
+          error: {
+            50: "#FFF1F2",
+            100: "#FFE4E6",
+            200: "#FECDD3",
+            300: "#FDA4AF",
+            400: "#FB7185",
+            500: "#F43F5E",
+            600: "#E11D48",
+            700: "#BE123C",   // ✦ destructive bar/button (mirrors baznasError700)
+            800: "#9F1239",   // ✦ destructive hover
+            900: "#881337",   // ✦ destructive active
+          },
+          warning: {
+            50: "#FFFBEB",
+            100: "#FEF3C7",
+            200: "#FDE68A",
+            300: "#FCD34D",
+            400: "#FBBF24",
+            500: "#F59E0B",
+            600: "#D97706",   // ✦ warning icon/accent (mirrors baznasWarning600)
+            700: "#B45309",   // ✦ warning bar/button
+            800: "#92400E",
+            900: "#78350F",
+          },
         },
       },
       boxShadow: {

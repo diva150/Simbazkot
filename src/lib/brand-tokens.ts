@@ -22,6 +22,15 @@ export const brandTokens = {
     baznasPaper: "#FAF7F1",
     // Near-black untuk teks body
     baznasInk: "#0E1A14",
+    // === Error & Warning (destructive & caution states) ===
+    // These mirror the standard tailwind rose-*/amber-* values so we can
+    // keep WCAG-compliant contrast (e.g. 700 shade = 4.5:1 on white) without
+    // locking the design into the rose/amber palette name.
+    baznasError700: "#BE123C",     // destructive bar/button bg (destructive)
+    baznasError800: "#9F1239",     // destructive hover
+    baznasError900: "#881337",     // destructive active
+    baznasWarning600: "#D97706",   // warning icon/accent
+    baznasWarning700: "#B45309",   // warning bar/button bg
   },
 
   // === Typography (mengikuti Panduan) ===

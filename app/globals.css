@@ -15,6 +15,12 @@
   --baznas-gold-display: #FEBF21;
   --baznas-paper: #FAF7F1;
   --baznas-ink: #0E1A14;
+  /* Error & Warning tokens (Phase 1) — destructive + caution states */
+  --baznas-error-700: #BE123C;
+  --baznas-error-800: #9F1239;
+  --baznas-error-900: #881337;
+  --baznas-warning-600: #D97706;
+  --baznas-warning-700: #B45309;
 }
 
 html {
