@@ -198,8 +198,6 @@ export const initialPredefinedUsers: UserSession[] = [
   },
 ];
 
-export const predefinedUsers = initialPredefinedUsers;
-
 export const strukturOrganisasiResmiData: StrukturOrganisasiResmi = {
   ketua: {
     nama: "Mohamad Husain Rauf",

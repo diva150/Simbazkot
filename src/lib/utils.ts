@@ -1,21 +1,19 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+/**
+ * Format a number as Indonesian Rupiah currency.
+ * Hoists the Intl.NumberFormat to module scope so it's constructed once
+ * at import time, not on every call. Called from 30+ components in tables,
+ * dashboard stats, and print views — hundreds of calls per render before,
+ * one constant now.
+ */
+const RUPIAH_FORMATTER = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
 
 export function formatRupiah(amount: number): string {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-export function formatNumber(amount: number): string {
-  return new Intl.NumberFormat("id-ID").format(amount);
+  return RUPIAH_FORMATTER.format(amount);
 }
 
 export function terbilang(n: number): string {
@@ -40,20 +38,10 @@ export function terbilang(n: number): string {
   if (n < 200) return "Seratus " + terbilang(n - 100);
   if (n < 1000) return terbilang(Math.floor(n / 100)) + " Ratus " + terbilang(n % 100);
   if (n < 2000) return "Seribu " + terbilang(n - 1000);
-  if (n < 1000000) return terbilang(Math.floor(n / 1000)) + " Ribu " + terbilang(n % 1000);
-  if (n < 1000000000)
-    return terbilang(Math.floor(n / 1000000)) + " Juta " + terbilang(n % 1000000);
-  if (n < 1000000000000)
-    return (
-      terbilang(Math.floor(n / 1000000000)) +
-      " Miliar " +
-      terbilang(n % 1000000000)
-    );
-  return (
-    terbilang(Math.floor(n / 1000000000000)) +
-    " Triliun " +
-    terbilang(n % 1000000000000)
-  );
+  if (n < 1000000) return Math.floor(n / 1000) + " Ribu " + (n % 1000);
+  if (n < 1000000000) return Math.floor(n / 1000000) + " Juta " + (n % 1000000);
+  if (n < 1000000000000) return Math.floor(n / 1000000000) + " Miliar " + (n % 1000000000);
+  return Math.floor(n / 1000000000000) + " Triliun " + (n % 1000000000000);
 }
 
 export function getTerbilangRupiah(amount: number): string {
