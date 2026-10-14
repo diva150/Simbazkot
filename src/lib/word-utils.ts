@@ -123,8 +123,9 @@ export async function exportLetterToWord(
     ? filename
     : filename.replace(/\.doc$/, "") + ".docx";
 
-  // Build document sections
-  const sections: Paragraph[] = [];
+  // Build document sections. docx's Document children accept both Paragraph
+  // and Table, so we type the array as the union.
+  const sections: (Paragraph | Table)[] = [];
 
   // ── KOP SURAT ─────────────────────────────────────────────────────
   sections.push(
@@ -220,7 +221,7 @@ export async function exportLetterToWord(
     rows: metaRows,
   });
 
-  sections.push(metaTable as unknown as Paragraph);
+  sections.push(metaTable);
   sections.push(emptyParagraph(200));
 
   // ── TUJUAN SURAT ──────────────────────────────────────────────────
@@ -304,7 +305,7 @@ export async function exportLetterToWord(
     ],
   });
 
-  sections.push(sigTable as unknown as Paragraph);
+  sections.push(sigTable);
   sections.push(emptyParagraph(400));
 
   // ── TEMBUSAN ──────────────────────────────────────────────────────

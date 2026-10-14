@@ -61,6 +61,65 @@ interface Bidang2ViewProps {
   onTabChange?: (tab: Bidang2Tab) => void;
 }
 
+// === Excel import validation helpers ===
+// Whitelists for the enum-like cells in imported mustahik rows. A typo in
+// an Excel cell (e.g. "Miskkin" or "Desil 11") falls back to the default
+// rather than silently being coerced to a value the type system claims
+// is valid.
+const ASNAF_WHITELIST = [
+  "Fakir",
+  "Miskin",
+  "Amil",
+  "Mualaf",
+  "Riqab",
+  "Gharimin",
+  "Fisabilillah",
+  "Ibnu Sabil",
+] as const;
+
+const DESIL_WHITELIST = [
+  "Desil 1",
+  "Desil 2",
+  "Desil 3",
+  "Desil 4",
+  "Desil 5",
+  "Desil 6",
+  "Desil 7",
+  "Desil 8",
+  "Desil 9",
+  "Desil 10",
+] as const;
+
+const SUB_PROGRAM_DISTRIBUSI = [
+  "Pendidikan",
+  "Kesehatan",
+  "Dakwah dan Advokasi",
+] as const;
+
+const SUB_PROGRAM_DAYAGUNAAN = [
+  "Pendidikan Sebagian",
+  "Modal Usaha Z-Mart",
+  "Vokasi",
+  "Sanitasi Sehat",
+] as const;
+
+const ALL_SUB_PROGRAMS = [
+  ...SUB_PROGRAM_DISTRIBUSI,
+  ...SUB_PROGRAM_DAYAGUNAAN,
+] as const;
+
+function isValidAsnaf(v: string): v is Mustahik["asnaf"] {
+  return (ASNAF_WHITELIST as readonly string[]).includes(v);
+}
+function isValidDesil(v: string): v is DesilType {
+  return (DESIL_WHITELIST as readonly string[]).includes(v);
+}
+function isValidSubProgram(
+  v: string
+): v is SubProgramPendayagunaan | SubProgramPendistribusian {
+  return (ALL_SUB_PROGRAMS as readonly string[]).includes(v);
+}
+
 export const Bidang2View: React.FC<Bidang2ViewProps> = ({
   mustahikList,
   pencairanList,
@@ -226,21 +285,31 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
 
   // Import Mustahik from Excel (.xlsx)
   const handleImportParsedMustahik = (rows: string[][]) => {
-    const imported: Mustahik[] = rows.map((r, idx) => ({
-      id: `mus-imp-${Date.now()}-${idx}`,
-      namaLengkap: r[0] || "Mustahik Baru",
-      nik: r[1] || `757100000000000${idx}`,
-      kk: `757100000000000${idx}`,
-      asnaf: (r[2] as Mustahik["asnaf"]) || "Miskin",
-      desil: (r[3] as DesilType) || "Desil 1",
-      kategoriBesar: (r[4] === "pendayagunaan" ? "pendayagunaan" : "pendistribusian"),
-      namaSubProgram: (r[5] as SubProgramPendayagunaan | SubProgramPendistribusian) || "Pendidikan",
-      alamat: r[6] || "Kota Gorontalo",
-      kondisi: r[7] || "Prasejahtera",
-      statusKelayakan: "aktif",
-      totalBantuanDiterima: 0,
-      terakhirDibantu: getLocalDateString(),
-    }));
+    // Excel cells are strings. We validate each enum cell against a
+    // whitelist before casting, so a typo ("Miskkin", "Desil 11") falls
+    // back to the default rather than silently being accepted as valid.
+    const imported: Mustahik[] = rows.map((r, idx) => {
+      const asnafCell = (r[2] || "").trim();
+      const desilCell = (r[3] || "").trim();
+      const subProgramCell = (r[5] || "").trim();
+      return {
+        id: `mus-imp-${Date.now()}-${idx}`,
+        namaLengkap: r[0] || "Mustahik Baru",
+        nik: r[1] || `757100000000000${idx}`,
+        kk: `757100000000000${idx}`,
+        asnaf: isValidAsnaf(asnafCell) ? (asnafCell as Mustahik["asnaf"]) : "Miskin",
+        desil: isValidDesil(desilCell) ? (desilCell as DesilType) : "Desil 1",
+        kategoriBesar: r[4] === "pendayagunaan" ? "pendayagunaan" : "pendistribusian",
+        namaSubProgram: isValidSubProgram(subProgramCell)
+          ? (subProgramCell as SubProgramPendayagunaan | SubProgramPendistribusian)
+          : "Pendidikan",
+        alamat: r[6] || "Kota Gorontalo",
+        kondisi: r[7] || "Prasejahtera",
+        statusKelayakan: "aktif",
+        totalBantuanDiterima: 0,
+        terakhirDibantu: getLocalDateString(),
+      };
+    });
     onImportMustahik(imported);
   };
 
