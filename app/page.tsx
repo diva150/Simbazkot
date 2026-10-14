@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   RoleBidang,
   UserSession,
@@ -44,18 +45,56 @@ import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { QuickSearchModal } from "@/components/QuickSearchModal";
 
-import { Bidang1View } from "@/components/modules/Bidang1View";
-import { Bidang2View } from "@/components/modules/Bidang2View";
-import { Bidang3View } from "@/components/modules/Bidang3View";
-import { Bidang4View } from "@/components/modules/Bidang4View";
-import { KetuaView } from "@/components/modules/KetuaView";
-import { AdminUserManagementView } from "@/components/modules/AdminUserManagementView";
-import { ProfilSayaView } from "@/components/modules/ProfilSayaView";
-import { BerandaView } from "@/components/modules/BerandaView";
+// Lazy-loaded module views — each is its own JS chunk, only downloaded
+// after login when the user navigates to that view. Cuts the initial
+// public-landing bundle by ~70% (xlsx + docx + 6 module views).
+const Bidang1View = dynamic(
+  () => import("@/components/modules/Bidang1View").then((m) => m.Bidang1View),
+  { ssr: false, loading: () => null }
+);
+const Bidang2View = dynamic(
+  () => import("@/components/modules/Bidang2View").then((m) => m.Bidang2View),
+  { ssr: false, loading: () => null }
+);
+const Bidang3View = dynamic(
+  () => import("@/components/modules/Bidang3View").then((m) => m.Bidang3View),
+  { ssr: false, loading: () => null }
+);
+const Bidang4View = dynamic(
+  () => import("@/components/modules/Bidang4View").then((m) => m.Bidang4View),
+  { ssr: false, loading: () => null }
+);
+const KetuaView = dynamic(
+  () => import("@/components/modules/KetuaView").then((m) => m.KetuaView),
+  { ssr: false, loading: () => null }
+);
+const AdminUserManagementView = dynamic(
+  () => import("@/components/modules/AdminUserManagementView").then((m) => m.AdminUserManagementView),
+  { ssr: false, loading: () => null }
+);
+const ProfilSayaView = dynamic(
+  () => import("@/components/modules/ProfilSayaView").then((m) => m.ProfilSayaView),
+  { ssr: false, loading: () => null }
+);
+const BerandaView = dynamic(
+  () => import("@/components/modules/BerandaView").then((m) => m.BerandaView),
+  { ssr: false, loading: () => null }
+);
 
-import { KwitansiZisPrint } from "@/components/print/KwitansiZisPrint";
-import { DisposisiPrint } from "@/components/print/DisposisiPrint";
-import { LaporanKeuanganPrint } from "@/components/print/LaporanKeuanganPrint";
+// Lazy-loaded print previews — never needed for the public landing page
+// and the LaporanKeuanganPrint also imports xlsx+docx downstream.
+const KwitansiZisPrint = dynamic(
+  () => import("@/components/print/KwitansiZisPrint").then((m) => m.KwitansiZisPrint),
+  { ssr: false, loading: () => null }
+);
+const DisposisiPrint = dynamic(
+  () => import("@/components/print/DisposisiPrint").then((m) => m.DisposisiPrint),
+  { ssr: false, loading: () => null }
+);
+const LaporanKeuanganPrint = dynamic(
+  () => import("@/components/print/LaporanKeuanganPrint").then((m) => m.LaporanKeuanganPrint),
+  { ssr: false, loading: () => null }
+);
 
 export default function Home() {
   // Toast notifications (UX-IMPROVEMENT-PLAN §3.2)

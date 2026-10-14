@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
-import { parseSpreadsheet } from "@/lib/excel-utils";
 import { Button } from "./Button";
 import { Dialog } from "./Dialog";
 
@@ -47,6 +46,7 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
     setIsParsing(true);
 
     try {
+      const { parseSpreadsheet } = await import("@/lib/excel-utils");
       const result = await parseSpreadsheet(selected);
       if (result.headers.length === 0 || result.rows.length === 0) {
         setErrorMsg("File tidak memiliki baris data yang valid.");

@@ -5,8 +5,15 @@ import { Muzakki, SetoranZIS, Instansi, Bidang1Tab, DesilType, UserSession } fro
 import { formatRupiah, getLocalDateString } from "@/lib/utils";
 import { DESIL_OPTIONS, desilBadgeClass, getUserType } from "@/lib/desil";
 import type { UserType } from "@/lib/types";
-import { exportToExcel, downloadTemplateMuzakki } from "@/lib/excel-utils";
-import { ImportExcelModal, useToast, Button, ToastContainer, ClassificationBadge } from "@/components/common";
+// NOTE: exportToExcel / downloadTemplateMuzakki are dynamically imported
+// inside their respective click handlers so the heavy xlsx library is only
+// fetched when the user actually exports data.
+
+const handleDownloadMuzakkiTemplate = async () => {
+  const { downloadTemplateMuzakki } = await import("@/lib/excel-utils");
+  downloadTemplateMuzakki();
+};
+import { ImportExcelModal, useToast, Button, ToastContainer, ClassificationBadge, Dialog } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
   HandCoins,
@@ -296,7 +303,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
     setNewMuzakkiAlamat("");
   };
 
-  const handleExportMuzakki = () => {
+  const handleExportMuzakki = async () => {
     const headers = [
       "No", "Nomor Pokok Wajib Zakat (NPWZ)", "NIK / No Identitas",
       "Nama Lengkap Muzakki / OPD", "Tipe Muzakki", "Tingkat Desil",
@@ -309,10 +316,11 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       m.desil || "Desil 7", m.namaInstansi, m.noHp, m.alamat, m.totalSetoran,
       m.status.toUpperCase(),
     ]);
+    const { exportToExcel } = await import("@/lib/excel-utils");
     exportToExcel("Data_Muzakki_BAZNAS_Resmi", headers, rows);
   };
 
-  const handleExportSetoran = () => {
+  const handleExportSetoran = async () => {
     const headers = [
       "No Bukti", "Tanggal", "Nama Muzakki", "NIK", "NPWZ", "Tingkat Desil",
       "Instansi", "Jenis Penerimaan", "Metode", "Bank",
@@ -323,6 +331,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       s.desil || "Desil 7", s.instansi, s.jenisLabel, s.metode,
       s.bank || "-", s.nominal, s.keterangan || "-", s.petugasAmil,
     ]);
+    const { exportToExcel } = await import("@/lib/excel-utils");
     exportToExcel("Laporan_Penerimaan_ZIS_BAZNAS", headers, rows);
   };
 
@@ -1386,8 +1395,14 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
       {/* MODAL TAMBAH MUZAKKI — BAZNAS palette, no gradient */}
       {isAddMuzakkiModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-lg bg-white border border-baznas-ink-8 shadow-lift max-h-[92vh] flex flex-col">
+        <Dialog
+          open={isAddMuzakkiModalOpen}
+          onClose={() => setIsAddMuzakkiModalOpen(false)}
+          title="Tambah Muzakki Baru"
+          size="lg"
+          showCloseButton={false}
+          panelClassName="max-w-lg bg-white border border-baznas-ink-8 shadow-lift max-h-[92vh] flex flex-col"
+        >
             {/* Header — paper, NO gradient */}
             <div className="border-b border-baznas-ink-8 bg-baznas-paper px-6 py-5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
@@ -1541,14 +1556,14 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
 
       <ImportExcelModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         title="Import Data Muzakki dari Excel"
-        onDownloadTemplate={downloadTemplateMuzakki}
+        onDownloadTemplate={handleDownloadMuzakkiTemplate}
         onImportData={handleImportParsedMuzakki}
         sampleHeaders={["Nama Lengkap", "NIK", "NPWZ", "No WhatsApp", "Alamat", "Instansi", "Tingkat Desil"]}
       />

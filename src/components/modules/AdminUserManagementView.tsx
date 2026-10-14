@@ -17,6 +17,7 @@ import {
   useToast,
   ToastContainer,
   ConfirmDialog,
+  Dialog,
 } from "@/components/common";
 import { initialBerandaContent } from "@/lib/mock-data";
 import {
@@ -857,8 +858,14 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
 
       {/* ═══ MODAL: BUAT / UBAH AKUN ═══ */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-baznas-ink/70 backdrop-blur-xs">
-          <div className="relative w-full max-w-2xl bg-white border border-baznas-ink-8 shadow-lift overflow-hidden my-auto max-h-[94vh] flex flex-col">
+        <Dialog
+          open={isCreateOpen}
+          onClose={closeForm}
+          title={editingUserId ? "Ubah Akun Pengguna" : "Buat Akun Baru"}
+          size="full"
+          showCloseButton={false}
+          panelClassName="max-w-2xl bg-white border border-baznas-ink-8 shadow-lift overflow-hidden my-auto max-h-[94vh] flex flex-col"
+        >
             <div className="border border-baznas-ink-8 bg-baznas-ink px-6 py-5 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="border border-baznas-gold-display p-2 text-baznas-gold-display">
@@ -1134,7 +1141,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
 
       {/* ═══ CONFIRM: HAPUS AKUN ═══ */}

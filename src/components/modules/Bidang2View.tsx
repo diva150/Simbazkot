@@ -14,8 +14,15 @@ import {
 import { formatRupiah, getLocalDateString } from "@/lib/utils";
 import { DESIL_OPTIONS, KRITERIA_DESIL, desilBadgeClass, getKlasifikasi, getUserType } from "@/lib/desil";
 import type { UserType } from "@/lib/types";
-import { exportToExcel, downloadTemplateMustahik } from "@/lib/excel-utils";
-import { ImportExcelModal, ConfirmDialog, useToast, ToastContainer, ClassificationBadge } from "@/components/common";
+// NOTE: exportToExcel / downloadTemplateMustahik are dynamically imported
+// inside their respective click handlers so the heavy xlsx library is only
+// fetched when the user actually exports data.
+
+const handleDownloadMustahikTemplate = async () => {
+  const { downloadTemplateMustahik } = await import("@/lib/excel-utils");
+  downloadTemplateMustahik();
+};
+import { ImportExcelModal, ConfirmDialog, useToast, ToastContainer, ClassificationBadge, Dialog } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
   HeartHandshake,
@@ -186,7 +193,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
   }, [mustahikList, activePendayagunaanSub, searchSubProg, filterSubProgDesil]);
 
   // Export Mustahik to Excel
-  const handleExportMustahik = (listToExport = filteredMustahik, filename = "Data_Mustahik_BAZNAS") => {
+  const handleExportMustahik = async (listToExport = filteredMustahik, filename = "Data_Mustahik_BAZNAS") => {
     const headers = [
       "Nama Lengkap",
       "NIK",
@@ -213,6 +220,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
       m.alamat,
       m.kondisi,
     ]);
+    const { exportToExcel } = await import("@/lib/excel-utils");
     exportToExcel(filename, headers, rows);
   };
 
@@ -1513,8 +1521,14 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
 
       {/* MODAL PENGAJUAN SPK BARU */}
       {showModalNew && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-lift border border-baznas-ink-8 overflow-hidden">
+        <Dialog
+          open={showModalNew}
+          onClose={() => setShowModalNew(false)}
+          title="Formulir Pengajuan SPK Pencairan Baru"
+          size="lg"
+          showCloseButton={false}
+          panelClassName="max-w-lg bg-white border border-baznas-ink-8 shadow-lift"
+        >
             <div className="border border-baznas-ink-8 bg-baznas-paper">
               <div>
                 <h3 className="text-base font-bold font-poppins text-white">
@@ -1636,13 +1650,19 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
 
       {/* MODAL TAMBAH PENERIMA PROGRAM / MUSTAHIK */}
       {isAddMustahikModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-lift border border-baznas-ink-8 overflow-hidden">
+        <Dialog
+          open={isAddMustahikModalOpen}
+          onClose={() => setIsAddMustahikModalOpen(false)}
+          title="Tambah Penerima Program / Mustahik"
+          size="lg"
+          showCloseButton={false}
+          panelClassName="max-w-lg bg-white border border-baznas-ink-8 shadow-lift"
+        >
             <div className="border border-baznas-ink-8 bg-baznas-paper">
               <div className="flex items-center gap-2.5">
                 <div className="rounded-xl bg-white/10 p-2 text-white">
@@ -1785,7 +1805,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
 
       {/* MODAL IMPORT EXCEL MUSTAHIK */}
@@ -1793,7 +1813,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         title="Import Data Mustahik dari Excel"
-        onDownloadTemplate={downloadTemplateMustahik}
+        onDownloadTemplate={handleDownloadMustahikTemplate}
         onImportData={handleImportParsedMustahik}
         sampleHeaders={[
           "Nama Lengkap",
@@ -1809,8 +1829,14 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
 
       {/* MODAL EDIT DATA MUSTAHIK */}
       {editingMustahik && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-lift border border-baznas-ink-8 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+        <Dialog
+          open={!!editingMustahik}
+          onClose={() => setEditingMustahik(null)}
+          title="Edit Data Mustahik"
+          size="xl"
+          showCloseButton={false}
+          panelClassName="max-w-xl bg-white border border-baznas-ink-8 shadow-lift my-auto max-h-[92vh] flex flex-col"
+        >
             <div className="border border-baznas-ink-8 bg-baznas-paper">
               <div className="flex items-center gap-2.5">
                 <div className="rounded-xl bg-white/10 p-2 text-white">
@@ -2004,7 +2030,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
 
       {/* MODAL KONFIRMASI HAPUS MUSTAHIK (UX Plan §3.2) */}

@@ -3,10 +3,12 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Surat, Pegawai, AsetKantor, Bidang4Tab, TemplateSurat, UserSession } from "@/lib/types";
 import { formatRupiah, getLocalDateString } from "@/lib/utils";
-import { exportToExcel } from "@/lib/excel-utils";
-import { exportLetterToWord, exportLetterToWordLegacy, WordLetterData } from "@/lib/word-utils";
+// NOTE: exportToExcel / exportLetterToWord / exportLetterToWordLegacy are
+// dynamically imported inside their handlers so the heavy xlsx + docx
+// libraries are only fetched when the user actually exports / generates.
+import type { WordLetterData } from "@/lib/word-utils";
 import { initialTemplatesSurat } from "@/lib/mock-data";
-import { useToast, ToastContainer } from "@/components/common";
+import { useToast, ToastContainer, Dialog } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
   FolderArchive,
@@ -397,9 +399,11 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
 
     const cleanName = selectedTemplateForGen.namaTemplate.replace(/[^a-zA-Z0-9]/g, "_");
     try {
+      const { exportLetterToWord } = await import("@/lib/word-utils");
       await exportLetterToWord(`${cleanName}_${Date.now()}`, data);
     } catch (err) {
       console.error("Gagal membuat file .docx, fallback ke .doc:", err);
+      const { exportLetterToWordLegacy } = await import("@/lib/word-utils");
       exportLetterToWordLegacy(`${cleanName}_${Date.now()}`, data);
     }
     setSelectedTemplateForGen(null);
@@ -442,7 +446,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
   };
 
   // Export Arsip Terpadu Lintas Bidang (Bidang 1 - 4) ke Excel
-  const handleExportArsip = () => {
+  const handleExportArsip = async () => {
     const headers = [
       "Bidang Asal",
       "Kategori Dokumen",
@@ -463,10 +467,11 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
       d.fileFormat,
       d.statusLabel,
     ]);
+    const { exportToExcel } = await import("@/lib/excel-utils");
     exportToExcel("Arsip_Terpadu_BAZNAS_Bidang1-4", headers, rows);
   };
 
-  const handleExportPegawai = () => {
+  const handleExportPegawai = async () => {
     const headers = ["Nama Lengkap", "Jabatan", "Bidang", "Kontak HP/WA", "Status"];
     const rows = pegawaiList.map((p) => [
       p.nama,
@@ -475,10 +480,11 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
       p.kontak,
       p.status.toUpperCase(),
     ]);
+    const { exportToExcel } = await import("@/lib/excel-utils");
     exportToExcel("Data_Pegawai_Amil_BAZNAS", headers, rows);
   };
 
-  const handleExportAset = () => {
+  const handleExportAset = async () => {
     const headers = [
       "Kode Aset",
       "Nama Aset / Barang",
@@ -495,6 +501,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
       a.tanggalPerolehan,
       a.nilaiAset,
     ]);
+    const { exportToExcel } = await import("@/lib/excel-utils");
     exportToExcel("Data_Inventaris_Aset_BAZNAS", headers, rows);
   };
 
@@ -1103,8 +1110,14 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
 
       {/* MODAL GENERATOR SURAT KE MICROSOFT WORD (.DOC) */}
       {selectedTemplateForGen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-lift border border-baznas-ink-8 overflow-hidden">
+        <Dialog
+          open={!!selectedTemplateForGen}
+          onClose={() => setSelectedTemplateForGen(null)}
+          title="Generator Surat Resmi ke Microsoft Word"
+          size="full"
+          showCloseButton={false}
+          panelClassName="max-w-2xl bg-white border border-baznas-ink-8 shadow-lift"
+        >
             <div className="border border-baznas-ink-8 bg-baznas-paper">
               <div className="flex items-center gap-2.5">
                 <div className="rounded-xl bg-white/10 p-2 text-white">
@@ -1278,13 +1291,19 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
 
       {/* MODAL TAMBAH FORMAT SURAT BARU */}
       {isAddTemplateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-lift border border-baznas-ink-8 overflow-hidden">
+        <Dialog
+          open={isAddTemplateModalOpen}
+          onClose={() => setIsAddTemplateModalOpen(false)}
+          title="Tambah Format Surat Baru"
+          size="lg"
+          showCloseButton={false}
+          panelClassName="max-w-lg bg-white border border-baznas-ink-8 shadow-lift"
+        >
             <div className="border border-baznas-ink-8 bg-baznas-paper">
               <div>
                 <h3 className="text-base font-bold font-poppins text-white">
@@ -1415,7 +1434,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
 
       {/* Toast Container — render global toast UI */}

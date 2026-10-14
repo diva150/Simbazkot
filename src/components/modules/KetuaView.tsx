@@ -14,8 +14,9 @@ import {
   UserSession,
 } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
-import { exportToExcel } from "@/lib/excel-utils";
-import { ConfirmDialog, useToast, ToastContainer } from "@/components/common";
+// NOTE: exportToExcel is dynamically imported inside its handler so the
+// heavy xlsx library is only fetched when the user actually exports.
+import { ConfirmDialog, useToast, ToastContainer, Dialog } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
   FileText,
@@ -204,7 +205,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
     setApproveSpkId(null);
   };
 
-  const handleExportLaporanTerpadu = () => {
+  const handleExportLaporanTerpadu = async () => {
     const headers = ["Bidang", "Komponen / Indikator", "Volume / Jumlah", "Total Nominal (Rp)", "Keterangan"];
     const rows = [
       ["Bidang I (Pengumpulan)", "Penerimaan ZIS & DSKL", `${setoranList.length} Transaksi`, totalPenerimaanZIS, "Kas Masuk Loket & Bank"],
@@ -217,6 +218,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
       ["Bidang IV (Administrasi)", "SDM & Amil Aktif", `${pegawaiList.length} Personel`, 0, "Pimpinan & Staf Pelaksana"],
       ["Bidang IV (Administrasi)", "Inventaris Aset BAZNAS", `${asetList.length} Unit Barang`, totalNilaiAset, "Kondisi Fisik Terverifikasi"],
     ];
+    const { exportToExcel } = await import("@/lib/excel-utils");
     exportToExcel("Laporan_Terpadu_Ketua_BAZNAS", headers, rows);
   };
 
@@ -703,8 +705,14 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
       {/* MODAL BERI / UBAH DISPOSISI */}
       {/* ============================================================ */}
       {selectedSuratForDisposisi && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-baznas-ink/70 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-lift border border-baznas-ink-8 overflow-hidden">
+        <Dialog
+          open={!!selectedSuratForDisposisi}
+          onClose={() => setSelectedSuratForDisposisi(null)}
+          title="Lembar Disposisi Ketua BAZNAS"
+          size="lg"
+          showCloseButton={false}
+          panelClassName="max-w-lg bg-white border border-baznas-ink-8 shadow-lift"
+        >
             <div className="border border-baznas-ink-8 bg-baznas-green-900 p-6 text-white flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold font-poppins text-white">
@@ -824,7 +832,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </Dialog>
       )}
 
       {/* MODAL KONFIRMASI TOLAK SPK (UX Plan §3.1) */}

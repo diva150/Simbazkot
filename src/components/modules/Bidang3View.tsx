@@ -3,7 +3,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { ItemRKAT, Bidang3Tab, UserSession } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
-import { exportToExcel } from "@/lib/excel-utils";
+// NOTE: exportToExcel is dynamically imported inside each handler so the
+// heavy xlsx library is only fetched when the user actually exports.
 import { useToast, ToastContainer } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
@@ -128,7 +129,7 @@ export const Bidang3View: React.FC<Bidang3ViewProps> = ({
     });
   }, [allProgramsList, searchProgramQuery, filterBidangProgram, filterStatusProgram]);
 
-  const handleExportRKAT = () => {
+  const handleExportRKAT = async () => {
     const headers = [
       "Kode Akun", "Nama Program", "Bidang Penanggung Jawab",
       "Pagu Anggaran (Rp)", "Realisasi Terserap (Rp)", "Sisa Pagu (Rp)", "Persentase (%)",
@@ -139,10 +140,11 @@ export const Bidang3View: React.FC<Bidang3ViewProps> = ({
       item.paguAnggaran - item.realisasi,
       `${Math.round((item.realisasi / item.paguAnggaran) * 100)}%`,
     ]);
+    const { exportToExcel } = await import("@/lib/excel-utils");
     exportToExcel("Laporan_Realisasi_RKAT_BAZNAS", headers, rows);
   };
 
-  const handleExportProgramLintasBidang = () => {
+  const handleExportProgramLintasBidang = async () => {
     const headers = [
       "Kode Program", "Bidang Kerja", "Kategori / Unit", "Nama Program Kerja",
       "Pagu Anggaran (Rp)", "Realisasi Kas (Rp)", "Sisa Anggaran (Rp)",
@@ -155,6 +157,7 @@ export const Bidang3View: React.FC<Bidang3ViewProps> = ({
       `${Math.round((p.realisasi / p.paguAnggaran) * 100)}%`,
       p.targetVolume, p.status,
     ]);
+    const { exportToExcel } = await import("@/lib/excel-utils");
     exportToExcel("Laporan_Per_Program_Lintas_Bidang_BAZNAS", headers, rows);
   };
 
