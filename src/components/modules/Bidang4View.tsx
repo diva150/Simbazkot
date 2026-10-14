@@ -489,7 +489,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
       p.nama,
       p.jabatan,
       p.bidang,
-      p.kontak,
+      p.noHp,
       p.status.toUpperCase(),
     ]);
     const { exportToExcel } = await import("@/lib/excel-utils");
@@ -1046,7 +1046,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
                     <td className="p-3 font-semibold text-baznas-ink">{p.nama}</td>
                     <td className="p-3 text-baznas-ink/80">{p.jabatan}</td>
                     <td className="p-3 text-baznas-ink/65">{p.bidang}</td>
-                    <td className="p-3 font-mono text-baznas-ink/55">{p.kontak}</td>
+                    <td className="p-3 font-mono text-baznas-ink/55">{p.noHp}</td>
                     <td className="p-3 text-center">
                       <span className="inline-block bg-baznas-paper/60 px-2 py-0.5 text-[10px] font-bold text-baznas-green-900">
                         {p.status.toUpperCase()}

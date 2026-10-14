@@ -840,7 +840,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Ketua BAZNAS",
     bidang: "Pimpinan",
     status: "aktif",
-    kontak: "08114300001",
+    noHp: "08114300001",
   },
   {
     id: "peg-2",
@@ -848,7 +848,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Wakil Ketua 1 – Bidang Pengumpulan",
     bidang: "Bidang I",
     status: "aktif",
-    kontak: "08124400002",
+    noHp: "08124400002",
   },
   {
     id: "peg-3",
@@ -856,7 +856,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Wakil Ketua 2 – Pendistribusian & Pendayagunaan",
     bidang: "Bidang II",
     status: "aktif",
-    kontak: "08134500003",
+    noHp: "08134500003",
   },
   {
     id: "peg-4",
@@ -864,7 +864,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Wakil Ketua 3 – Keuangan, Perencanaan & Pelaporan",
     bidang: "Bidang III",
     status: "aktif",
-    kontak: "08125500004",
+    noHp: "08125500004",
   },
   {
     id: "peg-5",
@@ -872,7 +872,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Wakil Ketua 4 – Administrasi, SDM & Umum",
     bidang: "Bidang IV",
     status: "aktif",
-    kontak: "08116600005",
+    noHp: "08116600005",
   },
   {
     id: "peg-6",
@@ -880,7 +880,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Staf Pengumpulan ZIS",
     bidang: "Bidang I",
     status: "aktif",
-    kontak: "081245678910",
+    noHp: "081245678910",
   },
   {
     id: "peg-7",
@@ -888,7 +888,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Staf Pelaporan & Perencanaan",
     bidang: "Bidang I",
     status: "aktif",
-    kontak: "081398765411",
+    noHp: "081398765411",
   },
   {
     id: "peg-8",
@@ -896,7 +896,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Staf Pendistribusian",
     bidang: "Bidang II",
     status: "aktif",
-    kontak: "081245678912",
+    noHp: "081245678912",
   },
   {
     id: "peg-9",
@@ -904,7 +904,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Staf Pendayagunaan",
     bidang: "Bidang II",
     status: "aktif",
-    kontak: "081398765413",
+    noHp: "081398765413",
   },
   {
     id: "peg-10",
@@ -912,7 +912,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Staf Keuangan",
     bidang: "Bidang III",
     status: "aktif",
-    kontak: "081245678914",
+    noHp: "081245678914",
   },
   {
     id: "peg-11",
@@ -920,7 +920,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Staf Keuangan",
     bidang: "Bidang III",
     status: "aktif",
-    kontak: "081398765415",
+    noHp: "081398765415",
   },
   {
     id: "peg-12",
@@ -928,7 +928,7 @@ export const initialPegawai: Pegawai[] = [
     jabatan: "Staf Administrasi & SDM",
     bidang: "Bidang IV",
     status: "aktif",
-    kontak: "081245678916",
+    noHp: "081245678916",
   },
 ];
 

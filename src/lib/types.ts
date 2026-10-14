@@ -298,7 +298,7 @@ export interface Pegawai {
   jabatan: string;
   bidang: string;
   status: "aktif" | "nonaktif";
-  kontak: string;
+  noHp: string;
 }
 
 export interface AsetKantor {
