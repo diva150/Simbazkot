@@ -12,6 +12,11 @@ import {
   StrukturOrganisasiResmi,
   TemplateSurat,
   BerandaContent,
+  ProgramLintasBidang,
+  BukuKasEntry,
+  LaporanPSAK,
+  LPJEntry,
+  AkunAkuntansi,
 } from "./types";
 
 export const initialPredefinedUsers: UserSession[] = [
@@ -737,6 +742,57 @@ export const initialRKAT: ItemRKAT[] = [
     tahun: 2026,
   },
 ];
+
+// 16 program lintas bidang (extracted from Bidang3View allProgramsList)
+export const initialProgramLintasBidang: ProgramLintasBidang[] = [
+  { id: "prog-1", kodeProgram: "PRG-B1-01", bidang: "Bidang I", namaBidang: "Pengumpulan ZIS", namaProgram: "Optimalisasi UPZ & Payroll Zakat Profesi ASN", paguAnggaran: 120000000, realisasi: 98500000, targetVolume: "14 OPD & 650 Muzakki ASN", status: "Berjalan Baik" },
+  { id: "prog-2", kodeProgram: "PRG-B1-02", bidang: "Bidang I", namaBidang: "Pengumpulan ZIS", namaProgram: "Pengumpulan Zakat Maal & Zakat Fitrah Ramadhan", paguAnggaran: 250000000, realisasi: 215000000, targetVolume: "4.500 Muzakki Masyarakat", status: "Berjalan Baik" },
+  { id: "prog-3", kodeProgram: "PRG-B1-03", bidang: "Bidang I", namaBidang: "Pengumpulan ZIS", namaProgram: "Kampanye Infak Terikat & Sedekah Harian Digital", paguAnggaran: 45000000, realisasi: 32000000, targetVolume: "10 Gerai Loket & QRIS", status: "Berjalan Baik" },
+  { id: "prog-4", kodeProgram: "PRG-B1-04", bidang: "Bidang I", namaBidang: "Pengumpulan ZIS", namaProgram: "Penerimaan DSKL, Fidyah, Kafarat & Qurban", paguAnggaran: 85000000, realisasi: 54000000, targetVolume: "120 Hewan Qurban & Fidyah", status: "Perlu Percepatan" },
+  { id: "prog-5", kodeProgram: "PRG-B2-01", bidang: "Bidang II", namaBidang: "Pendistribusian (Pendidikan)", namaProgram: "BAZNAS Cerdas — Beasiswa Santri & Dhuafa", paguAnggaran: 180000000, realisasi: 145000000, targetVolume: "150 Santri & Siswa Miskin", status: "Berjalan Baik" },
+  { id: "prog-6", kodeProgram: "PRG-B2-02", bidang: "Bidang II", namaBidang: "Pendistribusian (Kesehatan)", namaProgram: "BAZNAS Sehat — Bantuan Obat & Ambulans Dhuafa", paguAnggaran: 95000000, realisasi: 78500000, targetVolume: "210 Pasien SKTM Non-BPJS", status: "Berjalan Baik" },
+  { id: "prog-7", kodeProgram: "PRG-B2-03", bidang: "Bidang II", namaBidang: "Pendistribusian (Dakwah)", namaProgram: "BAZNAS Peduli Dakwah — Bisyarah Da'i Perbatasan", paguAnggaran: 60000000, realisasi: 45000000, targetVolume: "25 Da'i & 40 Mualaf Binaan", status: "Berjalan Baik" },
+  { id: "prog-8", kodeProgram: "PRG-B2-04", bidang: "Bidang II", namaBidang: "Pendayagunaan (Ekonomi)", namaProgram: "BAZNAS Mandiri — Modal Usaha Mikro Z-Mart", paguAnggaran: 150000000, realisasi: 110000000, targetVolume: "30 Mustahik Pelaku Usaha", status: "Berjalan Baik" },
+  { id: "prog-9", kodeProgram: "PRG-B2-05", bidang: "Bidang II", namaBidang: "Pendayagunaan (Vokasi)", namaProgram: "Pelatihan Keterampilan Teknis & Vokasi BLK", paguAnggaran: 70000000, realisasi: 38000000, targetVolume: "50 Pemuda Usia Produktif", status: "Perlu Percepatan" },
+  { id: "prog-10", kodeProgram: "PRG-B2-06", bidang: "Bidang II", namaBidang: "Pendayagunaan (Sanitasi)", namaProgram: "Instalasi Air Bersih & Jamban Sehat Keluarga Desil 1", paguAnggaran: 65000000, realisasi: 50000000, targetVolume: "15 Titik Sanitasi Wilayah Rentan", status: "Berjalan Baik" },
+  { id: "prog-11", kodeProgram: "PRG-B3-01", bidang: "Bidang III", namaBidang: "Keuangan & RKAT", namaProgram: "Penyusunan Rencana Kerja & Anggaran Tahunan (RKAT)", paguAnggaran: 35000000, realisasi: 30000000, targetVolume: "1 Dokumen RKAT Terpadu", status: "Selesai" },
+  { id: "prog-12", kodeProgram: "PRG-B3-02", bidang: "Bidang III", namaBidang: "Keuangan & RKAT", namaProgram: "Pengauditan Syariah & KAP Independen (Opini WTP)", paguAnggaran: 45000000, realisasi: 35000000, targetVolume: "1 Laporan Audit Keuangan", status: "Berjalan Baik" },
+  { id: "prog-13", kodeProgram: "PRG-B3-03", bidang: "Bidang III", namaBidang: "Keuangan & RKAT", namaProgram: "Modernisasi Sistem Informasi Manajemen Akuntansi Zakat", paguAnggaran: 30000000, realisasi: 28000000, targetVolume: "1 Server Cloud & Lisensi PSAK", status: "Berjalan Baik" },
+  { id: "prog-14", kodeProgram: "PRG-B4-01", bidang: "Bidang IV", namaBidang: "Administrasi & Umum", namaProgram: "Digitalisasi Tata Persuratan & Pengarsipan Resmi", paguAnggaran: 25000000, realisasi: 22000000, targetVolume: "1.200 Surat Masuk & Keluar", status: "Berjalan Baik" },
+  { id: "prog-15", kodeProgram: "PRG-B4-02", bidang: "Bidang IV", namaBidang: "Administrasi & SDM", namaProgram: "Sertifikasi Kompetensi Amil Zakat & Pembinaan Staf", paguAnggaran: 40000000, realisasi: 28000000, targetVolume: "18 Personel Amil BAZNAS", status: "Berjalan Baik" },
+  { id: "prog-16", kodeProgram: "PRG-B4-03", bidang: "Bidang IV", namaBidang: "Administrasi & Aset", namaProgram: "Pemeliharaan Inventaris Kantor & Operasional Gedung", paguAnggaran: 50000000, realisasi: 42000000, targetVolume: "35 Unit Aset Utama Terpelihara", status: "Berjalan Baik" },
+];
+
+// 2 entri buku kas (extracted from Bidang3View hardcoded rows)
+export const initialBukuKas: BukuKasEntry[] = [
+  {
+    id: "bku-1",
+    tanggal: "2026-09-23",
+    uraian: "Penerimaan Zakat Profesi ASN Dikda (BZ-202609-00142)",
+    jenis: "penerimaan",
+    nominal: 250000,
+    saldo: 361950000,
+    bankRekening: "Giro Sulutgo",
+    referensi: "BZ-202609-00142",
+    petugasAmil: "Minarti Alhabsyi",
+  },
+  {
+    id: "bku-2",
+    tanggal: "2026-09-22",
+    uraian: "Penyaluran Beasiswa Santri Yatim 15 Orang (SPK-011)",
+    jenis: "penyaluran",
+    nominal: 18000000,
+    saldo: 361700000,
+    bankRekening: "Bank Muamalat",
+    referensi: "SPK-BAZNAS/09/2026/011",
+    petugasAmil: "Azmi K. Jassin",
+  },
+];
+
+// 3 entri baru — array kosong per requirement (no seed mocks)
+export const initialLaporanPSAK: LaporanPSAK[] = [];
+export const initialLPJ: LPJEntry[] = [];
+export const initialAkun: AkunAkuntansi[] = [];
 
 export const initialSurat: Surat[] = [
   {

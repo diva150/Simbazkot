@@ -1555,7 +1555,6 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                 </button>
               </div>
             </form>
-          </div>
         </Dialog>
       )}
 

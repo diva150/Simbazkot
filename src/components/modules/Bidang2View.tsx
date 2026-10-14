@@ -1649,7 +1649,6 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                 </button>
               </div>
             </form>
-          </div>
         </Dialog>
       )}
 
@@ -1804,7 +1803,6 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                 </button>
               </div>
             </form>
-          </div>
         </Dialog>
       )}
 
@@ -2029,7 +2027,6 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                 </button>
               </div>
             </form>
-          </div>
         </Dialog>
       )}
 

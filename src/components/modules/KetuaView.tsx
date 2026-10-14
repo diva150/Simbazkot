@@ -831,7 +831,6 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
                 </button>
               </div>
             </form>
-          </div>
         </Dialog>
       )}
 

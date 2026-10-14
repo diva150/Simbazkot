@@ -1140,7 +1140,6 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                 </button>
               </div>
             </form>
-          </div>
         </Dialog>
       )}
 

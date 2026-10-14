@@ -193,6 +193,69 @@ export interface ItemRKAT {
   tahun: number;
 }
 
+export interface ProgramLintasBidang {
+  id: string;
+  kodeProgram: string;
+  bidang: "Bidang I" | "Bidang II" | "Bidang III" | "Bidang IV";
+  namaBidang: string;
+  namaProgram: string;
+  paguAnggaran: number;
+  realisasi: number;
+  targetVolume: string;
+  status: "Berjalan Baik" | "Perlu Percepatan" | "Selesai";
+}
+
+export interface BukuKasEntry {
+  id: string;
+  tanggal: string;
+  uraian: string;
+  jenis: "penerimaan" | "penyaluran";
+  nominal: number;
+  saldo: number;
+  bankRekening?: "Giro Sulutgo" | "Bank Muamalat" | "Bank BTN Syariah" | "";
+  referensi?: string;
+  petugasAmil: string;
+}
+
+export interface LaporanPSAK {
+  id: string;
+  judul: string;
+  periode: string;
+  tanggalTerbit: string;
+  status: "draft" | "diajukan" | "disetujui" | "diaudit";
+  totalAset: number;
+  totalKewajiban: number;
+  totalDana: number;
+  totalPenerimaan: number;
+  totalPenyaluran: number;
+  auditedBy?: string;
+  catatan?: string;
+}
+
+export interface LPJEntry {
+  id: string;
+  nomorLPJ: string;
+  programId?: string;
+  programNama: string;
+  bidang: "Bidang I" | "Bidang II" | "Bidang III" | "Bidang IV";
+  tanggalLPJ: string;
+  totalPenyaluran: number;
+  totalPenerimaan: number;
+  status: "draft" | "diajukan" | "disetujui" | "ditolak";
+  keterangan: string;
+  lampiranUrl?: string;
+}
+
+export interface AkunAkuntansi {
+  id: string;
+  kodeAkun: string;
+  namaAkun: string;
+  kategori: "Aset" | "Kewajiban" | "Dana" | "Penerimaan" | "Penyaluran" | "Beban";
+  saldoNormal: "Debit" | "Kredit";
+  parentId?: string;
+  aktif: boolean;
+}
+
 export interface Surat {
   id: string;
   jenis: "masuk" | "keluar";

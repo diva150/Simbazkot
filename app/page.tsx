@@ -20,6 +20,11 @@ import {
   KetuaTab,
   AdminTab,
   BerandaContent,
+  BukuKasEntry,
+  LaporanPSAK,
+  LPJEntry,
+  AkunAkuntansi,
+  ProgramLintasBidang,
 } from "@/lib/types";
 import {
   initialInstansi,
@@ -33,6 +38,11 @@ import {
   initialAset,
   initialPredefinedUsers,
   initialBerandaContent,
+  initialBukuKas,
+  initialLaporanPSAK,
+  initialLPJ,
+  initialAkun,
+  initialProgramLintasBidang,
 } from "@/lib/mock-data";
 
 import { PublicNavbar } from "@/components/public/PublicNavbar";
@@ -129,6 +139,10 @@ export default function Home() {
   const [mustahikList, setMustahikList] = useState<Mustahik[]>(initialMustahik);
   const [pencairanList, setPencairanList] = useState<PermohonanPencairan[]>(initialPencairan);
   const [rkatList, setRkatList] = useState<ItemRKAT[]>(initialRKAT);
+  const [bukuKasList, setBukuKasList] = useState<BukuKasEntry[]>(initialBukuKas);
+  const [laporanList, setLaporanList] = useState<LaporanPSAK[]>(initialLaporanPSAK);
+  const [lpjList, setLpjList] = useState<LPJEntry[]>(initialLPJ);
+  const [pengaturanList, setPengaturanList] = useState<AkunAkuntansi[]>(initialAkun);
   const [suratList, setSuratList] = useState<Surat[]>(initialSurat);
   const [pegawaiList] = useState<Pegawai[]>(initialPegawai);
   const [asetList] = useState<AsetKantor[]>(initialAset);
@@ -289,6 +303,94 @@ export default function Home() {
       "Import berhasil",
       `${newMuzakki.length} data Muzakki ditambahkan`
     );
+  };
+
+  // ── CRUD handlers for Bidang III modules ──
+  // RKAT
+  const handleAddRkat = (r: ItemRKAT) => {
+    setRkatList((prev) => [r, ...prev]);
+    toastSuccess("RKAT ditambahkan", r.namaProgram);
+  };
+  const handleUpdateRkat = (r: ItemRKAT) => {
+    setRkatList((prev) => prev.map((x) => (x.id === r.id ? r : x)));
+    toastSuccess("RKAT diperbarui", r.namaProgram);
+  };
+  const handleDeleteRkat = (id: string) => {
+    const target = rkatList.find((x) => x.id === id);
+    setRkatList((prev) => prev.filter((x) => x.id !== id));
+    if (target) toastSuccess("RKAT dihapus", target.namaProgram);
+  };
+
+  // Buku Kas
+  const handleAddBukuKas = (e: BukuKasEntry) => {
+    setBukuKasList((prev) => [e, ...prev]);
+    toastSuccess("Entri buku kas ditambahkan", e.uraian);
+  };
+  const handleUpdateBukuKas = (e: BukuKasEntry) => {
+    setBukuKasList((prev) => prev.map((x) => (x.id === e.id ? e : x)));
+    toastSuccess("Entri buku kas diperbarui", e.uraian);
+  };
+  const handleDeleteBukuKas = (id: string) => {
+    setBukuKasList((prev) => prev.filter((x) => x.id !== id));
+    toastSuccess("Entri buku kas dihapus");
+  };
+
+  // Laporan PSAK
+  const handleAddLaporan = (e: LaporanPSAK) => {
+    setLaporanList((prev) => [e, ...prev]);
+    toastSuccess("Laporan PSAK ditambahkan", e.judul);
+  };
+  const handleUpdateLaporan = (e: LaporanPSAK) => {
+    setLaporanList((prev) => prev.map((x) => (x.id === e.id ? e : x)));
+    toastSuccess("Laporan PSAK diperbarui", e.judul);
+  };
+  const handleDeleteLaporan = (id: string) => {
+    setLaporanList((prev) => prev.filter((x) => x.id !== id));
+    toastSuccess("Laporan PSAK dihapus");
+  };
+
+  // LPJ
+  const handleAddLpj = (e: LPJEntry) => {
+    setLpjList((prev) => [e, ...prev]);
+    toastSuccess("LPJ ditambahkan", e.nomorLPJ);
+  };
+  const handleUpdateLpj = (e: LPJEntry) => {
+    setLpjList((prev) => prev.map((x) => (x.id === e.id ? e : x)));
+    toastSuccess("LPJ diperbarui", e.nomorLPJ);
+  };
+  const handleDeleteLpj = (id: string) => {
+    setLpjList((prev) => prev.filter((x) => x.id !== id));
+    toastSuccess("LPJ dihapus");
+  };
+
+  // Pengaturan (Akun)
+  const handleAddAkun = (a: AkunAkuntansi) => {
+    setPengaturanList((prev) => [a, ...prev]);
+    toastSuccess("Akun ditambahkan", a.namaAkun);
+  };
+  const handleUpdateAkun = (a: AkunAkuntansi) => {
+    setPengaturanList((prev) => prev.map((x) => (x.id === a.id ? a : x)));
+    toastSuccess("Akun diperbarui", a.namaAkun);
+  };
+  const handleDeleteAkun = (id: string) => {
+    setPengaturanList((prev) => prev.filter((x) => x.id !== id));
+    toastSuccess("Akun dihapus");
+  };
+
+  // Laporan Program (Bidang III tab laporan_program) — uses initialProgramLintasBidang via field-state
+  const [programList, setProgramList] = useState<ProgramLintasBidang[]>(initialProgramLintasBidang);
+  const handleAddProgram = (p: ProgramLintasBidang) => {
+    setProgramList((prev) => [p, ...prev]);
+    toastSuccess("Program ditambahkan", p.namaProgram);
+  };
+  const handleUpdateProgram = (p: ProgramLintasBidang) => {
+    setProgramList((prev) => prev.map((x) => (x.id === p.id ? p : x)));
+    toastSuccess("Program diperbarui", p.namaProgram);
+  };
+  const handleDeleteProgram = (id: string) => {
+    const target = programList.find((x) => x.id === id);
+    setProgramList((prev) => prev.filter((x) => x.id !== id));
+    if (target) toastSuccess("Program dihapus", target.namaProgram);
   };
 
   const handleImportMustahik = (newMustahik: Mustahik[]) => {
@@ -565,8 +667,31 @@ export default function Home() {
               {activeRoleView === "bidang3" && canAccessView(currentUser, "bidang3") && (
                 <Bidang3View
                   rkatList={rkatList}
+                  programList={programList}
+                  bukuKasList={bukuKasList}
+                  laporanList={laporanList}
+                  lpjList={lpjList}
+                  pengaturanList={pengaturanList}
                   currentUser={currentUser}
                   onOpenLaporanPrint={() => setIsLaporanPrintOpen(true)}
+                  onAddRkat={handleAddRkat}
+                  onUpdateRkat={handleUpdateRkat}
+                  onDeleteRkat={handleDeleteRkat}
+                  onAddProgram={handleAddProgram}
+                  onUpdateProgram={handleUpdateProgram}
+                  onDeleteProgram={handleDeleteProgram}
+                  onAddBukuKas={handleAddBukuKas}
+                  onUpdateBukuKas={handleUpdateBukuKas}
+                  onDeleteBukuKas={handleDeleteBukuKas}
+                  onAddLaporan={handleAddLaporan}
+                  onUpdateLaporan={handleUpdateLaporan}
+                  onDeleteLaporan={handleDeleteLaporan}
+                  onAddLpj={handleAddLpj}
+                  onUpdateLpj={handleUpdateLpj}
+                  onDeleteLpj={handleDeleteLpj}
+                  onAddAkun={handleAddAkun}
+                  onUpdateAkun={handleUpdateAkun}
+                  onDeleteAkun={handleDeleteAkun}
                   activeTab={bidang3Tab}
                   onTabChange={setBidang3Tab}
                 />
