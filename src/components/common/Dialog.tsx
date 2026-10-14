@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
+import { DIALOG_FOCUS_DELAY_MS } from "@/lib/constants";
 
 export type DialogSize = "sm" | "md" | "lg" | "xl" | "2xl" | "full";
 
@@ -78,7 +79,7 @@ export const Dialog: React.FC<DialogProps> = ({
     };
 
     // Defer focus to next tick so the dialog has time to render its children
-    const focusTimer = window.setTimeout(focusFirst, 0);
+    const focusTimer = window.setTimeout(focusFirst, DIALOG_FOCUS_DELAY_MS);
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {

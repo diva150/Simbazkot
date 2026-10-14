@@ -51,6 +51,7 @@ import { LoginModal } from "@/components/public/LoginModal";
 import { ToastContainer, useToast } from "@/components/common";
 import { canAccessView, getHomeViewFor } from "@/lib/access";
 import { getLocalDateString } from "@/lib/utils";
+import { PRINT_AUTO_OPEN_DELAY_MS } from "@/lib/constants";
 
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
@@ -158,21 +159,21 @@ export default function Home() {
   // or duplicate prints if the state were ever to be re-set in the same cycle.
   useEffect(() => {
     if (selectedKwitansi) {
-      const timer = setTimeout(() => window.print(), 500);
+      const timer = setTimeout(() => window.print(), PRINT_AUTO_OPEN_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [selectedKwitansi]);
 
   useEffect(() => {
     if (selectedDisposisi) {
-      const timer = setTimeout(() => window.print(), 500);
+      const timer = setTimeout(() => window.print(), PRINT_AUTO_OPEN_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [selectedDisposisi]);
 
   useEffect(() => {
     if (isLaporanPrintOpen) {
-      const timer = setTimeout(() => window.print(), 500);
+      const timer = setTimeout(() => window.print(), PRINT_AUTO_OPEN_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [isLaporanPrintOpen]);

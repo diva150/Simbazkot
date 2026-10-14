@@ -29,6 +29,7 @@ import {
   bidangLabel,
   permissionLabel,
 } from "@/lib/types";
+import { MAX_PHOTO_BYTES, MAX_PHOTO_BYTES_HUMAN } from "@/lib/constants";
 import { useToast } from "@/components/common";
 import { BAZNASMark } from "@/components/brand/BAZNASMark";
 
@@ -71,8 +72,8 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 500_000) {
-      setErrorMsg("Ukuran foto maksimal 500KB. Pilih gambar yang lebih kecil.");
+    if (file.size > MAX_PHOTO_BYTES) {
+      setErrorMsg(`Ukuran foto maksimal ${MAX_PHOTO_BYTES_HUMAN}. Pilih gambar yang lebih kecil.`);
       return;
     }
 

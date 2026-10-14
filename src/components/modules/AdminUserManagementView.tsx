@@ -20,6 +20,7 @@ import {
   Dialog,
 } from "@/components/common";
 import { initialBerandaContent } from "@/lib/mock-data";
+import { MAX_PHOTO_BYTES, MAX_PHOTO_BYTES_HUMAN } from "@/lib/constants";
 import {
   ShieldAlert,
   UserCheck,
@@ -194,8 +195,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
     setFormError(null);
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 500_000) {
-      setFormError("Ukuran foto maksimal 500KB.");
+    if (file.size > MAX_PHOTO_BYTES) {
+      setFormError(`Ukuran foto maksimal ${MAX_PHOTO_BYTES_HUMAN}.`);
       return;
     }
     if (!file.type.startsWith("image/")) {

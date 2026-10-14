@@ -20,6 +20,11 @@ import {
 import { BAZNASMark } from "@/components/brand/BAZNASMark";
 import { initialPredefinedUsers } from "@/lib/mock-data";
 import { UserSession } from "@/lib/types";
+import {
+  LOGIN_AUTH_DELAY_MS,
+  LOGIN_FOCUS_DELAY_MS,
+  LOGIN_UNMOUNT_DELAY_MS,
+} from "@/lib/constants";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -60,11 +65,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       }
       // Set render true for entrance animation, then focus email
       setShouldRender(true);
-      const t = setTimeout(() => emailRef.current?.focus(), 350);
+      const t = setTimeout(() => emailRef.current?.focus(), LOGIN_FOCUS_DELAY_MS);
       return () => clearTimeout(t);
     } else if (!isOpen) {
       // Defer unmount for exit animation
-      const t = setTimeout(() => setShouldRender(false), 250);
+      const t = setTimeout(() => setShouldRender(false), LOGIN_UNMOUNT_DELAY_MS);
       return () => clearTimeout(t);
     }
   }, [isOpen]);
@@ -147,7 +152,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       setIsSubmitting(false);
       onLoginSuccess(user);
       onClose();
-    }, 600);
+    }, LOGIN_AUTH_DELAY_MS);
   };
 
   const handleQuickLogin = (u: UserSession) => {
