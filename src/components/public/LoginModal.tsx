@@ -69,6 +69,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
   }, [isOpen]);
 
+  // Focus return: when the modal opens, save the previously focused element
+  // so we can restore it on close (a11y — WCAG 2.4.3 focus order).
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    return () => {
+      // Restore focus only if the previously focused element is still in
+      // the DOM and focusable. (Skip if it was the body or null.)
+      if (previous && typeof previous.focus === "function" && previous !== document.body) {
+        previous.focus();
+      }
+    };
+  }, [isOpen]);
+
   // Keyboard: Escape close
   useEffect(() => {
     if (!isOpen) return;
@@ -299,7 +313,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isSubmitting}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center text-baznas-ink/70 hover:text-baznas-ink h-9 w-9 transition-all duration-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 disabled:opacity-50"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center text-baznas-ink/70 hover:text-baznas-ink h-t-target w-t-target transition-all duration-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 disabled:opacity-50"
                     title={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
                     aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
                   >

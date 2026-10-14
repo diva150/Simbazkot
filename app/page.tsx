@@ -547,6 +547,14 @@ export default function Home() {
   // ==========================================
   return (
     <div className="min-h-screen bg-baznas-paper flex flex-col font-sans overflow-x-hidden">
+      {/* Skip-to-content link (a11y — WCAG 2.4.1) */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-baznas-ink focus:text-white focus:px-4 focus:py-2 focus:text-sm focus:font-bold"
+      >
+        Lewati ke konten utama
+      </a>
+
       {/* Top Header Internal */}
       <Header
         onOpenSearch={() => setIsSearchOpen(true)}
@@ -596,7 +604,7 @@ export default function Home() {
         />
 
         {/* Area Kerja Sesuai Role & View yang Dipilih */}
-        <main className="flex-1 min-w-0 p-6 sm:p-10 lg:p-12 overflow-y-auto max-w-full">
+        <main id="main-content" tabIndex={-1} className="flex-1 min-w-0 p-6 sm:p-10 lg:p-12 overflow-y-auto max-w-full focus:outline-none">
           {showBeranda && currentUser && (
             <BerandaView
               user={currentUser}

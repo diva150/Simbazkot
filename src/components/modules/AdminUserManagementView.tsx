@@ -245,13 +245,19 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
     return null;
   };
 
+  // Double-submit guard for handleSubmitForm (user create/edit).
+  const isSubmittingUserFormRef = useRef(false);
+  const [isSubmittingUserForm, setIsSubmittingUserForm] = useState(false);
   const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingUserFormRef.current) return;
     const err = validateForm(!editingUserId);
     if (err) {
       setFormError(err);
       return;
     }
+    isSubmittingUserFormRef.current = true;
+    setIsSubmittingUserForm(true);
 
     const cleanEmail = form.email.trim().toLowerCase();
     if (editingUserId) {
@@ -285,6 +291,10 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
       toastSuccess("Akun Dibuat", `Akun ${form.nama.trim()} berhasil ditambahkan.`);
     }
     closeForm();
+    setTimeout(() => {
+      isSubmittingUserFormRef.current = false;
+      setIsSubmittingUserForm(false);
+    }, 0);
   };
 
   const handleDeleteConfirmed = () => {
@@ -1133,7 +1143,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 text-sm font-bold text-white transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
+                  disabled={isSubmittingUserForm}
+                  className="flex items-center gap-2 bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 text-sm font-bold text-white transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="h-4 w-4" />
                   <span>{editingUserId ? "Simpan Perubahan" : "Buat Akun"}</span>

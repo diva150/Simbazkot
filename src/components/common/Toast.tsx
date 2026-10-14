@@ -129,7 +129,7 @@ export const Toast: React.FC<ToastProps> = ({
           type="button"
           onClick={onClose}
           aria-label="Tutup notifikasi"
-          className="shrink-0 inline-flex h-8 w-8 items-center justify-center text-baznas-ink/45 hover:text-baznas-ink hover:bg-baznas-paper focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-1 transition-colors"
+          className="shrink-0 inline-flex h-t-target w-t-target items-center justify-center text-baznas-ink/45 hover:text-baznas-ink hover:bg-baznas-paper focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-1 transition-colors"
         >
           <X className="h-4 w-4" />
         </button>

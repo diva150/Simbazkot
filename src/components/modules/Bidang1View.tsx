@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Muzakki, SetoranZIS, Instansi, Bidang1Tab, DesilType, UserSession } from "@/lib/types";
 import { formatRupiah, getLocalDateString } from "@/lib/utils";
 import { DESIL_OPTIONS, desilBadgeClass, getUserType } from "@/lib/desil";
@@ -97,6 +97,11 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 }) => {
   const [localTab, setLocalTab] = useState<Bidang1Tab>("dashboard");
   const activeTab = propTab || localTab;
+  // Double-submit guard for handleSimpanSetoran (financial form).
+  // useRef blocks synchronous double-clicks; useState drives the button's
+  // disabled attribute.
+  const isSubmittingSetoranRef = useRef(false);
+  const [isSubmittingSetoran, setIsSubmittingSetoran] = useState(false);
   const setActiveTab = (tab: Bidang1Tab) => {
     if (!canAccessTab(currentUser, "bidang1", tab)) {
       toastError("Akses Ditolak", `Anda tidak memiliki akses ke tab "${tab}".`);
@@ -354,6 +359,11 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
   const handleSimpanSetoran = (e: React.FormEvent) => {
     e.preventDefault();
+    // Double-submit guard — blocks synchronous double-clicks and disables
+    // the submit button while the work is in flight.
+    if (isSubmittingSetoranRef.current) return;
+    isSubmittingSetoranRef.current = true;
+    setIsSubmittingSetoran(true);
     let targetMuzakkiId = "";
     let targetNama = "";
     let targetNik = "";
@@ -438,6 +448,12 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
     onAddSetoran(newSetoran);
     onViewKwitansi(newSetoran);
+    // Release the submit guard on the next tick so React re-renders with
+    // the disabled state visible (otherwise the click is too fast to block).
+    setTimeout(() => {
+      isSubmittingSetoranRef.current = false;
+      setIsSubmittingSetoran(false);
+    }, 0);
   };
 
   const totalZIS = setoranList.reduce((acc, curr) => acc + curr.nominal, 0);
@@ -1134,7 +1150,8 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                 </p>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2 min-h-t-target-lg border border-baznas-ink bg-baznas-ink hover:bg-baznas-ink/90 px-6 py-3 text-sm font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
+                  disabled={isSubmittingSetoran}
+                  className="inline-flex items-center justify-center gap-2 min-h-t-target-lg border border-baznas-ink bg-baznas-ink hover:bg-baznas-ink/90 px-6 py-3 text-sm font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Printer className="h-4 w-4" />
                   Simpan &amp; Cetak Kwitansi

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   Mustahik,
   PermohonanPencairan,
@@ -290,9 +290,15 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
   };
 
   // Buat SPK Pencairan Baru
+  const isSubmittingPencairanRef = useRef(false);
+  const [isSubmittingPencairan, setIsSubmittingPencairan] = useState(false);
   const handleCreatePencairan = (e: React.FormEvent) => {
     e.preventDefault();
+    // Double-submit guard — blocks synchronous double-clicks.
+    if (isSubmittingPencairanRef.current) return;
     if (!namaProgram) return;
+    isSubmittingPencairanRef.current = true;
+    setIsSubmittingPencairan(true);
 
     const newP: PermohonanPencairan = {
       id: `penc-${Date.now()}`,
@@ -313,6 +319,10 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
     setNamaProgram("");
     setKeterangan("");
     setActiveTab("pencairan");
+    setTimeout(() => {
+      isSubmittingPencairanRef.current = false;
+      setIsSubmittingPencairan(false);
+    }, 0);
   };
 
   // State Edit Mustahik & Toast Notifikasi
@@ -1643,7 +1653,8 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-baznas-error-700 hover:bg-baznas-error-800 px-5 py-2.5 text-xs font-bold text-white shadow-rest transition-all"
+                  disabled={isSubmittingPencairan}
+                  className="rounded-xl bg-baznas-error-700 hover:bg-baznas-error-800 px-5 py-2.5 text-xs font-bold text-white shadow-rest transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Kirim Pengajuan ke Ketua
                 </button>

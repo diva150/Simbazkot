@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Surat, Pegawai, AsetKantor, Bidang4Tab, TemplateSurat, UserSession } from "@/lib/types";
 import { formatRupiah, getLocalDateString } from "@/lib/utils";
 // NOTE: exportToExcel / exportLetterToWord / exportLetterToWordLegacy are
@@ -410,9 +410,15 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
   };
 
   // Simpan Template Surat Baru
+  const isSubmittingTemplateRef = useRef(false);
+  const [isSubmittingTemplate, setIsSubmittingTemplate] = useState(false);
   const handleSaveNewTemplate = (e: React.FormEvent) => {
     e.preventDefault();
+    // Double-submit guard — blocks synchronous double-clicks.
+    if (isSubmittingTemplateRef.current) return;
     if (!newTplNama.trim()) return;
+    isSubmittingTemplateRef.current = true;
+    setIsSubmittingTemplate(true);
 
     const newTpl: TemplateSurat = {
       id: `tpl-${Date.now()}`,
@@ -443,6 +449,10 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
     setNewTplPembuka("");
     setNewTplUtama("");
     setNewTplPenutup("");
+    setTimeout(() => {
+      isSubmittingTemplateRef.current = false;
+      setIsSubmittingTemplate(false);
+    }, 0);
   };
 
   // Export Arsip Terpadu Lintas Bidang (Bidang 1 - 4) ke Excel
@@ -1426,7 +1436,8 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 font-bold text-white shadow-md"
+                  disabled={isSubmittingTemplate}
+                  className="rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 font-bold text-white shadow-rest disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Simpan Format Surat
                 </button>
