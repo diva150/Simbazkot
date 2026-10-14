@@ -60,8 +60,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed)) setSavedEmails(parsed);
         }
-      } catch (err) {
-        console.error("Gagal membaca akun tersimpan:", err);
+      } catch {
+        // Silently swallow — localStorage may be disabled (private browsing,
+        // quota exceeded). The "Akun Tersimpan" feature is non-critical.
       }
       // Set render true for entrance animation, then focus email
       setShouldRender(true);
@@ -144,8 +145,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           const updated = Array.from(new Set([...savedEmails, user.email]));
           setSavedEmails(updated);
           localStorage.setItem("baznas_saved_emails", JSON.stringify(updated));
-        } catch (err) {
-          console.error("Gagal menyimpan akun:", err);
+        } catch {
+          // Silently swallow — see comment on the localStorage read above.
         }
       }
 
@@ -167,8 +168,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem("baznas_saved_emails", JSON.stringify(updated));
-      } catch (err) {
-        console.error("Gagal memperbarui akun tersimpan:", err);
+      } catch {
+        // Silently swallow — see comment on the localStorage read above.
       }
     }
   };

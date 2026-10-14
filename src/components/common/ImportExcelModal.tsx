@@ -55,7 +55,8 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
       setParsedHeaders(result.headers);
       setParsedRows(result.rows);
     } catch (err) {
-      console.error("Gagal membaca spreadsheet:", err);
+      // The error is surfaced to the user via setErrorMsg below — no need
+      // to also log to the console.
       setErrorMsg(
         err instanceof Error
           ? err.message

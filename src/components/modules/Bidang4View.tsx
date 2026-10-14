@@ -401,8 +401,10 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
     try {
       const { exportLetterToWord } = await import("@/lib/word-utils");
       await exportLetterToWord(`${cleanName}_${Date.now()}`, data);
-    } catch (err) {
-      console.error("Gagal membuat file .docx, fallback ke .doc:", err);
+    } catch {
+      // .docx export failed (e.g. older browser, missing dependency) —
+      // fall back to legacy .doc export. No need to log: the user will
+      // still get a file, just in the older format.
       const { exportLetterToWordLegacy } = await import("@/lib/word-utils");
       exportLetterToWordLegacy(`${cleanName}_${Date.now()}`, data);
     }
