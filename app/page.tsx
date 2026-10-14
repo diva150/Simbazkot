@@ -50,6 +50,7 @@ import { PublicLandingView } from "@/components/public/PublicLandingView";
 import { LoginModal } from "@/components/public/LoginModal";
 import { ToastContainer, useToast } from "@/components/common";
 import { canAccessView, getHomeViewFor } from "@/lib/access";
+import { getLocalDateString } from "@/lib/utils";
 
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
@@ -405,7 +406,9 @@ export default function Home() {
               ...p,
               status: "disetujui_ketua",
               approver: currentUser?.nama || "Mohamad Husain Rauf (Ketua BAZNAS)",
-              tanggalDisetujuiKetua: new Date().toISOString().split("T")[0],
+              // Use local date (WITA) — `toISOString()` would stamp 00:00-08:00
+              // local transactions on the previous day.
+              tanggalDisetujuiKetua: getLocalDateString(),
             }
           : p
       )
@@ -419,7 +422,7 @@ export default function Home() {
           ? {
               ...p,
               status: "dikonfirmasi_bidang2",
-              tanggalKonfirmasiBidang2: new Date().toISOString().split("T")[0],
+              tanggalKonfirmasiBidang2: getLocalDateString(),
             }
           : p
       )
@@ -543,7 +546,7 @@ export default function Home() {
   // 2. TAMPILAN SETELAH LOGIN (DASHBOARD INTERNAL)
   // ==========================================
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-baznas-paper flex flex-col font-sans overflow-x-hidden">
       {/* Top Header Internal */}
       <Header
         onOpenSearch={() => setIsSearchOpen(true)}
