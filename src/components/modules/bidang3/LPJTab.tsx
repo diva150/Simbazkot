@@ -29,7 +29,7 @@ const STATUS_BADGE: Record<string, string> = {
   draft: "bg-baznas-paper text-baznas-ink/70 border border-baznas-ink-8",
   diajukan: "bg-baznas-paper border border-baznas-gold-display text-baznas-ink",
   disetujui: "bg-baznas-paper text-baznas-green-900 border border-baznas-green-800",
-  ditolak: "bg-rose-50 text-rose-900 border border-rose-700",
+  ditolak: "bg-baznas-error-50 text-baznas-error-900 border border-baznas-error-700",
 };
 
 export const LPJTab: React.FC<LPJTabProps> = ({ lpjList, onAdd, onUpdate, onDelete }) => {
@@ -140,7 +140,7 @@ export const LPJTab: React.FC<LPJTabProps> = ({ lpjList, onAdd, onUpdate, onDele
                   <button
                     type="button"
                     onClick={() => handleOpenEdit(e)}
-                    className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
+                    className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
                     aria-label={`Edit LPJ ${e.nomorLPJ}`}
                   >
                     <Edit className="h-3.5 w-3.5" />
@@ -148,7 +148,7 @@ export const LPJTab: React.FC<LPJTabProps> = ({ lpjList, onAdd, onUpdate, onDele
                   <button
                     type="button"
                     onClick={() => setPendingDelete(e)}
-                    className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                    className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-error-700 hover:bg-baznas-error-50 transition-colors"
                     aria-label={`Hapus LPJ ${e.nomorLPJ}`}
                   >
                     <Trash2 className="h-3.5 w-3.5" />

@@ -175,7 +175,7 @@ export const LaporanPSAKTab: React.FC<LaporanPSAKTabProps> = ({
                   <button
                     type="button"
                     onClick={() => handleOpenEdit(e)}
-                    className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
+                    className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
                     aria-label={`Edit ${e.judul}`}
                   >
                     <Edit className="h-3.5 w-3.5" />
@@ -183,7 +183,7 @@ export const LaporanPSAKTab: React.FC<LaporanPSAKTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setPendingDelete(e)}
-                    className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                    className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-error-700 hover:bg-baznas-error-50 transition-colors"
                     aria-label={`Hapus ${e.judul}`}
                   >
                     <Trash2 className="h-3.5 w-3.5" />

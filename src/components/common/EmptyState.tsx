@@ -32,7 +32,7 @@ interface EmptyStateProps {
 const variantAccent: Record<EmptyVariant, string> = {
   empty: "text-baznas-green-900",
   "no-results": "text-baznas-gold-display",
-  error: "text-rose-700",
+  error: "text-baznas-error-700",
 };
 
 export const EmptyState: React.FC<EmptyStateProps> = ({

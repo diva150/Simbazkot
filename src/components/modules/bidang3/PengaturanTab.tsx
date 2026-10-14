@@ -26,7 +26,7 @@ const KATEGORI_BADGE: Record<string, string> = {
   Kewajiban: "bg-baznas-paper border border-baznas-gold-display text-baznas-ink",
   Dana: "bg-baznas-paper text-baznas-ink border border-baznas-ink-8",
   Penerimaan: "bg-baznas-paper text-baznas-green-900 border border-baznas-green-800",
-  Penyaluran: "bg-baznas-paper border border-rose-700 text-baznas-ink",
+  Penyaluran: "bg-baznas-paper border border-baznas-error-700 text-baznas-ink",
   Beban: "bg-baznas-paper text-baznas-ink/65 border border-baznas-ink-8",
 };
 
@@ -181,7 +181,7 @@ export const PengaturanTab: React.FC<PengaturanTabProps> = ({
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(a)}
-                        className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
+                        className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
                         aria-label={`Edit akun ${a.kodeAkun}`}
                       >
                         <Edit className="h-3.5 w-3.5" />
@@ -189,7 +189,7 @@ export const PengaturanTab: React.FC<PengaturanTabProps> = ({
                       <button
                         type="button"
                         onClick={() => setPendingDelete(a)}
-                        className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                        className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-error-700 hover:bg-baznas-error-50 transition-colors"
                         aria-label={`Hapus akun ${a.kodeAkun}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

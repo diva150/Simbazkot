@@ -530,7 +530,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
               {
                 tab: "infak" as const, icon: Heart, title: "Catat Infak / Sedekah",
                 desc: "Penerimaan infak terikat program atau sedekah umum harian.",
-                accentColor: "text-amber-700",
+                accentColor: "text-baznas-warning-700",
               },
               {
                 tab: "dskl" as const, icon: Gift, title: "Catat DSKL &amp; Qurban",

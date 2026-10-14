@@ -233,10 +233,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             {errorMsg && (
               <div
                 role="alert"
-                className="flex items-start gap-2 border-l-4 border-rose-700 bg-rose-50 p-3 text-xs text-rose-900 animate-in fade-in slide-in-from-top-2 duration-300"
+                className="flex items-start gap-2 border-l-4 border-baznas-error-700 bg-baznas-error-50 p-3 text-xs text-baznas-error-900 animate-in fade-in slide-in-from-top-2 duration-300"
               >
                 <AlertCircle
-                  className="h-4 w-4 shrink-0 text-rose-700 mt-0.5"
+                  className="h-4 w-4 shrink-0 text-baznas-error-700 mt-0.5"
                   aria-hidden="true"
                 />
                 <span className="font-medium">{errorMsg}</span>
@@ -412,7 +412,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                         type="button"
                         title="Hapus dari akun tersimpan"
                         onClick={(e) => handleForgetSavedAccount(e, u.email)}
-                        className="absolute top-2 right-2 text-baznas-ink/70 hover:text-rose-700 p-1 transition-all duration-200 hover:scale-110"
+                        className="absolute top-2 right-2 text-baznas-ink/70 hover:text-baznas-error-700 p-1 transition-all duration-200 hover:scale-110"
                         aria-label={`Hapus akun ${u.email}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

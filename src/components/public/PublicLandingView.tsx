@@ -444,8 +444,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               {[
                 { label: "Zakat", pct: 62, color: "bg-baznas-gold-display" },
                 { label: "Infak", pct: 23, color: "bg-baznas-green-800" },
-                { label: "Sedekah", pct: 11, color: "bg-emerald-500" },
-                { label: "DSKL", pct: 4, color: "bg-amber-500" },
+                { label: "Sedekah", pct: 11, color: "bg-baznas-green-700" },
+                { label: "DSKL", pct: 4, color: "bg-baznas-gold-700" },
               ].map((item) => (
                 <div key={item.label}>
                   <div className="flex items-baseline justify-between mb-1.5">
@@ -642,7 +642,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                       {formatRupiah(totalHartaMaal)}
                     </strong>
                     {totalHartaMaal < nisabMaalBulanan && (
-                      <span className="block mt-1 text-rose-700">
+                      <span className="block mt-1 text-baznas-error-700">
                         Belum mencapai nisab, zakat tidak wajib.
                       </span>
                     )}

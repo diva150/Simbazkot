@@ -246,7 +246,7 @@ export const LaporanProgramTab: React.FC<LaporanProgramTabProps> = ({
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(prog)}
-                          className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
+                          className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
                           aria-label={`Edit ${prog.namaProgram}`}
                         >
                           <Edit className="h-3.5 w-3.5" />
@@ -254,7 +254,7 @@ export const LaporanProgramTab: React.FC<LaporanProgramTabProps> = ({
                         <button
                           type="button"
                           onClick={() => setPendingDelete(prog)}
-                          className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                          className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-error-700 hover:bg-baznas-error-50 transition-colors"
                           aria-label={`Hapus ${prog.namaProgram}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

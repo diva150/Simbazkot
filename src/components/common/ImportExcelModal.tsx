@@ -151,8 +151,8 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({
 
           {/* Error Message */}
           {errorMsg && (
-            <div className="flex items-start gap-2 border-l-4 border-rose-700 bg-rose-50 p-3 text-xs text-rose-900">
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-700 mt-0.5" />
+            <div className="flex items-start gap-2 border-l-4 border-baznas-error-700 bg-baznas-error-50 p-3 text-xs text-baznas-error-900">
+              <AlertCircle className="h-4 w-4 shrink-0 text-baznas-error-700 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
           )}

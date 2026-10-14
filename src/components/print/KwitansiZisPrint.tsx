@@ -36,7 +36,7 @@ export const KwitansiZisPrint: React.FC<KwitansiZisPrintProps> = ({
         {/* Floating Close Button — no rounded */}
         <button
           onClick={onClose}
-          className="no-print absolute top-3 right-3 z-10 bg-rose-700 hover:bg-rose-800 text-white p-2 transition-colors"
+          className="no-print absolute top-3 right-3 z-10 bg-baznas-error-700 hover:bg-baznas-error-800 text-white p-2 transition-colors"
           aria-label="Tutup pratinjau (ESC)"
           title="Tutup Pratinjau (ESC)"
         >
@@ -70,7 +70,7 @@ export const KwitansiZisPrint: React.FC<KwitansiZisPrintProps> = ({
             </button>
             <button
               onClick={onClose}
-              className="inline-flex items-center gap-1.5 border border-baznas-ink-20 hover:bg-rose-50 hover:border-rose-700 hover:text-rose-700 px-3.5 py-2 text-xs font-bold text-baznas-ink/80 transition-colors min-h-t-target"
+              className="inline-flex items-center gap-1.5 border border-baznas-ink-20 hover:bg-baznas-error-50 hover:border-baznas-error-700 hover:text-baznas-error-700 px-3.5 py-2 text-xs font-bold text-baznas-ink/80 transition-colors min-h-t-target"
             >
               <X className="h-4 w-4" />
               <span>Tutup Pratinjau</span>

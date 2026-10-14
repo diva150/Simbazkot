@@ -938,7 +938,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onLogout}
             aria-label="Keluar dari sistem"
             title={isDesktopCollapsed ? "Kembali ke Beranda Umum" : undefined}
-            className="flex w-full items-center gap-2 border border-baznas-ink-12 hover:border-rose-700 hover:bg-rose-50 hover:text-rose-700 py-2.5 text-xs font-bold text-baznas-ink/70 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-700"
+            className="flex w-full items-center gap-2 border border-baznas-ink-12 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 py-2.5 text-xs font-bold text-baznas-ink/70 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-error-700"
           >
             {isDesktopCollapsed ? (
               <LogOut className="h-4 w-4 mx-auto" aria-hidden="true" />

@@ -54,9 +54,9 @@ const variantClasses: Record<ButtonVariant, string> = {
   // Secondary: white + hairline border. Calm, used everywhere.
   secondary:
     "bg-white text-baznas-ink border border-baznas-ink-20 hover:bg-baznas-paper hover:border-baznas-ink-40 active:bg-baznas-paper/80 transition-colors",
-  // Danger: rose-700, no shadow
+  // Danger: baznas-error-700, no shadow (Phase 1+2 — destructive state)
   danger:
-    "bg-rose-700 text-white border border-rose-700 hover:bg-rose-800 hover:border-rose-800 active:bg-rose-900 transition-colors",
+    "bg-baznas-error-700 text-white border border-baznas-error-700 hover:bg-baznas-error-800 hover:border-baznas-error-800 active:bg-baznas-error-900 transition-colors",
   // Ghost: transparent. Tertiary, low commitment.
   ghost:
     "bg-transparent text-baznas-ink/80 border border-transparent hover:bg-baznas-paper hover:text-baznas-ink active:bg-baznas-paper/80 transition-colors",

@@ -53,9 +53,9 @@ const variantStyles: Record<
     titleColor: "text-baznas-ink",
   },
   error: {
-    bar: "bg-rose-700",
+    bar: "bg-baznas-error-700",
     icon: <AlertCircle className="h-4 w-4" />,
-    iconColor: "text-rose-700",
+    iconColor: "text-baznas-error-700",
     titleColor: "text-baznas-ink",
   },
   info: {
@@ -65,9 +65,9 @@ const variantStyles: Record<
     titleColor: "text-baznas-ink",
   },
   warning: {
-    bar: "bg-amber-600",
+    bar: "bg-baznas-warning-700",
     icon: <AlertTriangle className="h-4 w-4" />,
-    iconColor: "text-amber-600",
+    iconColor: "text-baznas-warning-600",
     titleColor: "text-baznas-ink",
   },
 };

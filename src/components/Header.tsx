@@ -166,7 +166,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <Bell className="h-5 w-5" />
                 {totalPending > 0 && (
                   <span
-                    className="absolute top-0.5 right-0.5 flex h-5 min-w-[20px] items-center justify-center bg-rose-700 px-1.5 text-[10px] font-bold text-white ring-2 ring-white"
+                    className="absolute top-0.5 right-0.5 flex h-5 min-w-[20px] items-center justify-center bg-baznas-error-700 px-1.5 text-[10px] font-bold text-white ring-2 ring-white"
                     aria-label={`${totalPending} tugas tertunda`}
                   >
                     {totalPending}
@@ -190,7 +190,7 @@ export const Header: React.FC<HeaderProps> = ({
                       </h3>
                     </div>
                     {totalPending > 0 && (
-                      <span className="inline-flex items-center justify-center bg-rose-700 px-2 py-0.5 text-[10px] font-bold text-white">
+                      <span className="inline-flex items-center justify-center bg-baznas-error-700 px-2 py-0.5 text-[10px] font-bold text-white">
                         {totalPending}
                       </span>
                     )}
@@ -222,7 +222,7 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
                       <span
                         className={`shrink-0 inline-flex items-center justify-center px-2 py-0.5 text-[11px] font-bold text-white min-w-[24px] ${
-                          pendingPencairan > 0 ? "bg-rose-700" : "bg-baznas-ink-20"
+                          pendingPencairan > 0 ? "bg-baznas-error-700" : "bg-baznas-ink-20"
                         }`}
                         aria-hidden="true"
                       >
@@ -254,7 +254,7 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
                       <span
                         className={`shrink-0 inline-flex items-center justify-center px-2 py-0.5 text-[11px] font-bold text-white min-w-[22px] ${
-                          pendingSurat > 0 ? "bg-rose-700" : "bg-baznas-ink-20"
+                          pendingSurat > 0 ? "bg-baznas-error-700" : "bg-baznas-ink-20"
                         }`}
                         aria-hidden="true"
                       >
@@ -328,7 +328,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onLogout}
               title="Keluar ke Beranda Umum"
               aria-label="Keluar dari sistem"
-              className="inline-flex items-center gap-1.5 border border-baznas-ink-20 hover:border-rose-700 hover:bg-rose-50 hover:text-rose-700 text-baznas-ink/70 px-3 sm:px-4 py-2 text-sm font-semibold transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+              className="inline-flex items-center gap-1.5 border border-baznas-ink-20 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 text-baznas-ink/70 px-3 sm:px-4 py-2 text-sm font-semibold transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
             >
               <span className="hidden sm:inline">Keluar</span>
               <svg

@@ -227,7 +227,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
       {/* Header Ketua */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-baznas-ink-8 pb-4">
         <div className="flex items-center gap-3">
-          <div className="rounded-2xl border border-baznas-gold-display bg-baznas-green-800 p-3 text-white">
+          <div className="rounded-md border border-baznas-gold-display bg-baznas-green-800 p-3 text-white">
             <ShieldCheck className="h-7 w-7 text-baznas-gold-400" />
           </div>
           <div>
@@ -235,7 +235,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
               <h1 className="text-xl font-bold text-baznas-ink font-poppins">
                 Dashboard Pimpinan — Ketua BAZNAS
               </h1>
-              <span className="inline-block bg-baznas-paper/60 px-3 py-0.5 text-xs font-bold text-baznas-green-900 border border-emerald-200">
+              <span className="inline-block bg-baznas-paper/60 px-3 py-0.5 text-xs font-bold text-baznas-green-900 border border-baznas-green-200">
                 Pimpinan Tertinggi
               </span>
             </div>
@@ -268,7 +268,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
               </div>
             </div>
 
-            <div className="rounded-2xl border border-baznas-gold-display bg-baznas-paper p-7 flex items-center justify-between">
+            <div className="rounded-md border border-baznas-gold-display bg-baznas-paper p-7 flex items-center justify-between">
               <div>
                 <span className="text-xs font-semibold text-baznas-ink uppercase tracking-wider">
                   Menunggu Disposisi Ketua
@@ -283,7 +283,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
               </div>
             </div>
 
-            <div className="rounded-2xl border border-baznas-gold-display bg-baznas-paper p-7 flex items-center justify-between">
+            <div className="rounded-md border border-baznas-gold-display bg-baznas-paper p-7 flex items-center justify-between">
               <div>
                 <span className="text-xs font-semibold text-baznas-green-900 uppercase tracking-wider">
                   Selesai Didisposisi
@@ -422,7 +422,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
       {/* ============================================================ */}
       {canAccessTab(currentUser, "ketua", "persetujuan_spk") && activeTab === "persetujuan_spk" && (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-baznas-gold-display bg-baznas-paper p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="rounded-md border border-baznas-gold-display bg-baznas-paper p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-bold text-baznas-green-900 font-poppins">
                 Otorisasi Permohonan Pencairan Bantuan (SPK) Bidang II
@@ -431,7 +431,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
                 Ketua BAZNAS menyetujui atau menolak permohonan SPK yang diajukan oleh Wakil Ketua 2 / Staf Bidang II sebelum dikonfirmasi dan dicairkan oleh Bendahara Bidang III.
               </p>
             </div>
-            <span className="inline-block bg-baznas-paper/60 text-baznas-green-900 border border-emerald-300 px-3 py-1 text-xs font-bold">
+            <span className="inline-block bg-baznas-paper/60 text-baznas-green-900 border border-baznas-green-300 px-3 py-1 text-xs font-bold">
               {pendingSpkCount} SPK Menunggu Persetujuan
             </span>
           </div>
@@ -446,14 +446,14 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
               return (
                 <div
                   key={p.id}
-                  className={`rounded-2xl border p-8 transition-all ${
+                  className={`rounded-md border p-8 transition-all ${
                     isPending
                       ? "border-baznas-gold-display bg-baznas-paper"
                       : isApprovedKetua
-                      ? "border-blue-200 bg-baznas-paper/30"
+                      ? "border-baznas-ink-12 bg-baznas-paper/30"
                       : isConfirmedBidang2
-                      ? "border-emerald-200 bg-baznas-paper/30"
-                      : "border-rose-200 bg-baznas-paper/30"
+                      ? "border-baznas-green-200 bg-baznas-paper/30"
+                      : "border-baznas-error-200 bg-baznas-paper/30"
                   }`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -464,28 +464,28 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
                         </span>
 
                         {isPending && (
-                          <span className="inline-block bg-baznas-paper/60 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-amber-300 flex items-center gap-1">
+                          <span className="inline-block bg-baznas-paper/60 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-warning-300 flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             Menunggu Otorisasi Ketua
                           </span>
                         )}
 
                         {isApprovedKetua && (
-                          <span className="inline-block bg-baznas-paper/60 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-blue-300 flex items-center gap-1">
+                          <span className="inline-block bg-baznas-paper/60 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-ink-20 flex items-center gap-1">
                             <Check className="h-3 w-3" />
                             Disetujui Ketua — Menunggu Konfirmasi Bidang II
                           </span>
                         )}
 
                         {isConfirmedBidang2 && (
-                          <span className="inline-block bg-baznas-paper/60 text-baznas-green-900 px-2.5 py-0.5 text-[10px] font-bold border border-emerald-300 flex items-center gap-1">
+                          <span className="inline-block bg-baznas-paper/60 text-baznas-green-900 px-2.5 py-0.5 text-[10px] font-bold border border-baznas-green-300 flex items-center gap-1">
                             <CheckCircle2 className="h-3 w-3" />
                             Telah Dikonfirmasi Lengkap (Siap Cair)
                           </span>
                         )}
 
                         {isRejected && (
-                          <span className="inline-block bg-baznas-paper/60 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-rose-300 flex items-center gap-1">
+                          <span className="inline-block bg-baznas-paper/60 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-error-300 flex items-center gap-1">
                             <XCircle className="h-3 w-3" />
                             Ditolak Ketua
                           </span>
@@ -509,7 +509,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
                       </div>
 
                       {p.catatanPenolakan && (
-                        <div className="rounded-lg bg-baznas-paper/60/70 border border-rose-200 p-2 text-xs text-baznas-ink font-semibold mt-1">
+                        <div className="rounded-lg bg-baznas-paper/60/70 border border-baznas-error-200 p-2 text-xs text-baznas-ink font-semibold mt-1">
                           Alasan Penolakan: {p.catatanPenolakan}
                         </div>
                       )}
@@ -530,7 +530,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => setRejectSpkId(p.id)}
-                            className="flex items-center gap-1 rounded-xl border border-rose-300 bg-white hover:bg-baznas-paper/40 px-3 py-2.5 text-xs font-bold text-baznas-ink transition-colors min-h-t-target"
+                            className="flex items-center gap-1 rounded-xl border border-baznas-error-300 bg-white hover:bg-baznas-paper/40 px-3 py-2.5 text-xs font-bold text-baznas-ink transition-colors min-h-t-target"
                           >
                             <XCircle className="h-4 w-4" />
                             Tolak SPK
@@ -547,13 +547,13 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
                       )}
 
                       {isApprovedKetua && (
-                        <span className="text-xs text-baznas-ink bg-baznas-paper/60/70 border border-blue-200 px-3 py-1 rounded-xl font-semibold">
+                        <span className="text-xs text-baznas-ink bg-baznas-paper/60/70 border border-baznas-ink-12 px-3 py-1 rounded-xl font-semibold">
                           Telah Disetujui • Menunggu Verifikasi Bidang II
                         </span>
                       )}
 
                       {isConfirmedBidang2 && (
-                        <span className="text-xs text-baznas-green-900 bg-baznas-paper/60/80 border border-emerald-200 px-3 py-1 rounded-xl font-semibold">
+                        <span className="text-xs text-baznas-green-900 bg-baznas-paper/60/80 border border-baznas-green-200 px-3 py-1 rounded-xl font-semibold">
                           Otorisasi Selesai • Diteruskan ke Kas Bidang III
                         </span>
                       )}
@@ -593,7 +593,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
           {/* 4 Cards Ringkasan Bidang */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Bidang 1 */}
-            <div className="rounded-2xl border border-emerald-200 bg-white p-8 space-y-4">
+            <div className="rounded-md border border-baznas-green-200 bg-white p-8 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-baznas-green-800 uppercase tracking-wider">
                   Bidang I — Pengumpulan
@@ -619,7 +619,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
             </div>
 
             {/* Bidang 2 */}
-            <div className="rounded-2xl border border-rose-200 bg-white p-8 space-y-4">
+            <div className="rounded-md border border-baznas-error-200 bg-white p-8 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-baznas-ink uppercase tracking-wider">
                   Bidang II — Pendistribusian
@@ -647,7 +647,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
             </div>
 
             {/* Bidang 3 */}
-            <div className="rounded-2xl border border-amber-200 bg-white p-8 space-y-4">
+            <div className="rounded-md border border-baznas-warning-200 bg-white p-8 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-baznas-ink uppercase tracking-wider">
                   Bidang III — Keuangan &amp; RKAT
@@ -673,7 +673,7 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
             </div>
 
             {/* Bidang 4 */}
-            <div className="rounded-2xl border border-blue-200 bg-white p-8 space-y-4">
+            <div className="rounded-md border border-baznas-ink-12 bg-white p-8 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-baznas-ink uppercase tracking-wider">
                   Bidang IV — Administrasi &amp; SDM

@@ -610,7 +610,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
             {templates.map((tpl) => (
               <div
                 key={tpl.id}
-                className="rounded-2xl border border-baznas-ink-8 bg-baznas-paper/50 p-8 hover:border-blue-400 hover:bg-white transition-all flex flex-col justify-between space-y-4"
+                className="rounded-md border border-baznas-ink-8 bg-baznas-paper/50 p-8 hover:border-baznas-green-800 hover:bg-white transition-all flex flex-col justify-between space-y-4"
               >
                 <div>
                   <div className="flex items-center justify-between">
@@ -702,7 +702,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
                   : "text-baznas-green-900 hover:bg-baznas-paper/40"
               }`}
             >
-              <span className="h-2 w-2 inline-block bg-emerald-400" />
+              <span className="h-2 w-2 inline-block bg-baznas-green-600" />
               <span>Bidang I: Pengumpulan ({multiBidangArsipList.filter((d) => d.bidang === "bidang1").length})</span>
             </button>
             <button
@@ -710,11 +710,11 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
               onClick={() => setFilterArsipBidang("bidang2")}
               className={`px-3 py-2.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
                 filterArsipBidang === "bidang2"
-                  ? "bg-orange-700 text-white"
-                  : "text-orange-800 hover:bg-orange-50"
+                  ? "bg-baznas-warning-700 text-white"
+                  : "text-baznas-warning-700 hover:bg-baznas-warning-50"
               }`}
             >
-              <span className="h-2 w-2 inline-block bg-orange-400" />
+              <span className="h-2 w-2 inline-block bg-baznas-warning-600" />
               <span>Bidang II: Pendistribusian ({multiBidangArsipList.filter((d) => d.bidang === "bidang2").length})</span>
             </button>
             <button
@@ -726,7 +726,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
                   : "text-baznas-ink hover:bg-baznas-paper/40"
               }`}
             >
-              <span className="h-2 w-2 inline-block bg-amber-400" />
+              <span className="h-2 w-2 inline-block bg-baznas-gold-display" />
               <span>Bidang III: Keuangan ({multiBidangArsipList.filter((d) => d.bidang === "bidang3").length})</span>
             </button>
             <button
@@ -738,7 +738,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
                   : "text-baznas-ink hover:bg-baznas-paper/40"
               }`}
             >
-              <span className="h-2 w-2 inline-block bg-blue-400" />
+              <span className="h-2 w-2 inline-block bg-baznas-green-800" />
               <span>Bidang IV: Administrasi ({multiBidangArsipList.filter((d) => d.bidang === "bidang4").length})</span>
             </button>
           </div>
@@ -799,12 +799,12 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
                 {filteredArsipTerpadu.map((doc) => {
                   const bidangBadgeClasses =
                     doc.bidang === "bidang1"
-                      ? "bg-baznas-paper/60 text-baznas-green-900 border-emerald-200"
+                      ? "bg-baznas-paper/60 text-baznas-green-900 border-baznas-green-200"
                       : doc.bidang === "bidang2"
-                      ? "bg-orange-100 text-orange-800 border-orange-200"
+                      ? "bg-baznas-warning-100 text-baznas-warning-700 border-baznas-warning-200"
                       : doc.bidang === "bidang3"
-                      ? "bg-baznas-paper/60 text-baznas-ink border-amber-200"
-                      : "bg-baznas-paper/60 text-baznas-ink border-blue-200";
+                      ? "bg-baznas-paper/60 text-baznas-ink border-baznas-gold-display"
+                      : "bg-baznas-paper/60 text-baznas-ink border-baznas-ink-12";
 
                   return (
                     <tr key={doc.id} className="hover:bg-baznas-paper/80 transition-colors">
@@ -1127,7 +1127,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
                   <h3 className="text-base font-bold font-poppins text-white">
                     Buat Surat Word: {selectedTemplateForGen.namaTemplate}
                   </h3>
-                  <p className="text-xs text-blue-100">
+                  <p className="text-xs text-white/80">
                     Sesuaikan rincian sebelum diekspor ke Microsoft Word (.doc)
                   </p>
                 </div>
@@ -1283,7 +1283,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 font-bold text-white shadow-md shadow-blue-700/25 transition-all"
+                  className="flex items-center gap-2 rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 font-bold text-white shadow-rest transition-all"
                 >
                   <FileDown className="h-4 w-4" />
                   <span>Unduh Dokumen Word (.doc)</span>
@@ -1308,7 +1308,7 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
                 <h3 className="text-base font-bold font-poppins text-white">
                   Tambah Format / Template Surat Baru
                 </h3>
-                <p className="text-xs text-blue-100">
+                <p className="text-xs text-white/80">
                   Daftarkan format surat dinas baru untuk digunakan staf BAZNAS
                 </p>
               </div>

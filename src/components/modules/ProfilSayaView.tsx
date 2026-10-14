@@ -245,7 +245,7 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
                   <button
                     type="button"
                     onClick={handleRemovePhoto}
-                    className="flex items-center justify-center gap-2 border border-baznas-ink-20 hover:border-rose-700 hover:bg-rose-50 hover:text-rose-700 px-3 py-2 text-xs font-semibold text-baznas-ink/70 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-700"
+                    className="flex items-center justify-center gap-2 border border-baznas-ink-20 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 px-3 py-2 text-xs font-semibold text-baznas-ink/70 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-error-700"
                   >
                     <X className="h-3.5 w-3.5" />
                     <span>Hapus Foto</span>
@@ -312,9 +312,9 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
           {errorMsg && (
             <div
               role="alert"
-              className="flex items-start gap-2 border-l-4 border-rose-700 bg-rose-50 p-3 text-xs text-rose-900"
+              className="flex items-start gap-2 border-l-4 border-baznas-error-700 bg-baznas-error-50 p-3 text-xs text-baznas-error-900"
             >
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-700 mt-0.5" aria-hidden="true" />
+              <AlertCircle className="h-4 w-4 shrink-0 text-baznas-error-700 mt-0.5" aria-hidden="true" />
               <span className="font-medium">{errorMsg}</span>
             </div>
           )}

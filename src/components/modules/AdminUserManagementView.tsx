@@ -320,7 +320,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
       {/* Header Admin */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-baznas-ink-8 pb-4">
         <div className="flex items-center gap-3">
-          <div className="rounded-2xl border border-baznas-ink-8 bg-baznas-paper/30 p-3 text-white shadow-md">
+          <div className="rounded-md border border-baznas-ink-8 bg-baznas-paper/30 p-3 text-white shadow-rest">
             <ShieldCheck className="h-7 w-7 text-baznas-gold-400" />
           </div>
           <div>
@@ -538,7 +538,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                               <button
                                 type="button"
                                 onClick={() => setUserPendingDelete(u)}
-                                className="inline-flex items-center gap-1 border border-baznas-ink-20 hover:border-rose-700 hover:bg-rose-50 hover:text-rose-700 px-2.5 py-1.5 text-[11px] font-semibold text-baznas-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-700"
+                                className="inline-flex items-center gap-1 border border-baznas-ink-20 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 px-2.5 py-1.5 text-[11px] font-semibold text-baznas-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-error-700"
                                 title="Hapus akun"
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -569,7 +569,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
       {canAccessTab(currentUser, "admin", "editor_beranda") &&
         activeTab === "editor_beranda" && (
           <form onSubmit={handleSaveBeranda} className="space-y-6">
-            <div className="rounded-2xl border border-baznas-gold-display bg-baznas-paper p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="rounded-md border border-baznas-gold-display bg-baznas-paper p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-base font-bold text-baznas-green-900 font-poppins">
@@ -892,8 +892,8 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
 
             <form onSubmit={handleSubmitForm} className="p-6 space-y-5 overflow-y-auto flex-1 text-xs">
               {formError && (
-                <div className="flex items-start gap-2 border-l-4 border-rose-700 bg-rose-50 p-3 text-xs text-rose-900">
-                  <AlertCircle className="h-4 w-4 shrink-0 text-rose-700 mt-0.5" />
+                <div className="flex items-start gap-2 border-l-4 border-baznas-error-700 bg-baznas-error-50 p-3 text-xs text-baznas-error-900">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-baznas-error-700 mt-0.5" />
                   <span>{formError}</span>
                 </div>
               )}
@@ -937,7 +937,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                       <button
                         type="button"
                         onClick={() => setForm((p) => ({ ...p, fotoProfil: undefined }))}
-                        className="flex items-center gap-1.5 border border-baznas-ink-20 hover:border-rose-700 hover:bg-rose-50 hover:text-rose-700 px-3 py-2 text-[11px] font-semibold text-baznas-ink/70 transition-colors min-h-t-target"
+                        className="flex items-center gap-1.5 border border-baznas-ink-20 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 px-3 py-2 text-[11px] font-semibold text-baznas-ink/70 transition-colors min-h-t-target"
                       >
                         <X className="h-3 w-3" />
                         <span>Hapus</span>

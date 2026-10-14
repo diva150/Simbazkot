@@ -184,7 +184,7 @@ export const RkatTab: React.FC<RkatTabProps> = ({ rkatList, onAdd, onUpdate, onD
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(item)}
-                          className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
+                          className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
                           aria-label={`Edit ${item.namaProgram}`}
                         >
                           <Edit className="h-3.5 w-3.5" />
@@ -192,7 +192,7 @@ export const RkatTab: React.FC<RkatTabProps> = ({ rkatList, onAdd, onUpdate, onD
                         <button
                           type="button"
                           onClick={() => setPendingDelete(item)}
-                          className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                          className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-error-700 hover:bg-baznas-error-50 transition-colors"
                           aria-label={`Hapus ${item.namaProgram}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

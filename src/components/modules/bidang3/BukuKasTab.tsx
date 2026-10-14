@@ -133,7 +133,7 @@ export const BukuKasTab: React.FC<BukuKasTabProps> = ({
               <th className="p-3">Tanggal</th>
               <th className="p-3">Uraian Transaksi</th>
               <th className="p-3 text-right text-baznas-green-900">Penerimaan (Debet)</th>
-              <th className="p-3 text-right text-rose-700">Penyaluran (Kredit)</th>
+              <th className="p-3 text-right text-baznas-error-700">Penyaluran (Kredit)</th>
               <th className="p-3 text-right">Saldo Kas</th>
               <th className="p-3">Bank</th>
               <th className="p-3">Amil</th>
@@ -158,7 +158,7 @@ export const BukuKasTab: React.FC<BukuKasTabProps> = ({
                   <td className="p-3 text-right font-bold text-baznas-green-900">
                     {e.jenis === "penerimaan" ? `+ ${formatRupiah(e.nominal)}` : <span className="text-baznas-ink/35">-</span>}
                   </td>
-                  <td className="p-3 text-right font-bold text-rose-700">
+                  <td className="p-3 text-right font-bold text-baznas-error-700">
                     {e.jenis === "penyaluran" ? `- ${formatRupiah(e.nominal)}` : <span className="text-baznas-ink/35">-</span>}
                   </td>
                   <td className="p-3 text-right font-bold text-baznas-ink editorial-num">{formatRupiah(e.saldo)}</td>
@@ -169,7 +169,7 @@ export const BukuKasTab: React.FC<BukuKasTabProps> = ({
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(e)}
-                        className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
+                        className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-green-900 hover:bg-baznas-green-100/40 transition-colors"
                         aria-label={`Edit entri ${e.uraian}`}
                       >
                         <Edit className="h-3.5 w-3.5" />
@@ -177,7 +177,7 @@ export const BukuKasTab: React.FC<BukuKasTabProps> = ({
                       <button
                         type="button"
                         onClick={() => setPendingDelete(e)}
-                        className="inline-flex items-center justify-center h-8 w-8 text-baznas-ink/55 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                        className="inline-flex items-center justify-center h-t-target w-t-target text-baznas-ink/55 hover:text-baznas-error-700 hover:bg-baznas-error-50 transition-colors"
                         aria-label={`Hapus entri ${e.uraian}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

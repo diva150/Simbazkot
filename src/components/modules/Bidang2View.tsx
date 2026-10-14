@@ -630,7 +630,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                         </button>
                         <button
                           onClick={() => handleDeleteMustahikItem(m.id, m.namaLengkap)}
-                          className="h-10 w-10 inline-flex items-center justify-center rounded-lg border border-baznas-ink-8 bg-white hover:bg-baznas-paper hover:text-rose-700 text-baznas-ink/65 transition-colors"
+                          className="h-10 w-10 inline-flex items-center justify-center rounded-lg border border-baznas-ink-8 bg-white hover:bg-baznas-paper hover:text-baznas-error-700 text-baznas-ink/65 transition-colors"
                           title="Hapus Mustahik"
                           aria-label={`Hapus mustahik ${m.namaLengkap}`}
                         >
@@ -666,7 +666,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
         <div className="space-y-6">
           <div className="border border-baznas-ink-8 bg-white p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-blue-900 font-poppins">
+              <h2 className="text-base font-bold text-baznas-ink font-poppins">
                 Program Pendistribusian BAZNAS
               </h2>
               <p className="text-xs text-baznas-ink mt-0.5">
@@ -683,10 +683,10 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
             {/* 1. Pendidikan */}
             <div
               onClick={() => setActivePendistribusianSub(activePendistribusianSub === "Pendidikan" ? "all" : "Pendidikan")}
-              className={`cursor-pointer rounded-2xl border p-8 transition-all ${
+              className={`cursor-pointer rounded-md border p-8 transition-all ${
                 activePendistribusianSub === "Pendidikan"
                   ? "border-baznas-gold-display bg-baznas-paper"
-                  : "border-blue-200 bg-white hover:border-blue-400"
+                  : "border-baznas-ink-12 bg-white hover:border-baznas-green-800"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -704,7 +704,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
               </p>
               <div className="mt-4 pt-3 border-t border-baznas-ink-8 flex items-center justify-between text-xs">
                 <span className="text-baznas-ink/55">Penerima Aktif:</span>
-                <span className="font-bold text-blue-900">
+                <span className="font-bold text-baznas-ink">
                   {mustahikList.filter((m) => m.kategoriBesar === "pendistribusian" && m.namaSubProgram === "Pendidikan").length} Mustahik
                 </span>
               </div>
@@ -713,28 +713,28 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
             {/* 2. Kesehatan */}
             <div
               onClick={() => setActivePendistribusianSub(activePendistribusianSub === "Kesehatan" ? "all" : "Kesehatan")}
-              className={`cursor-pointer rounded-2xl border p-8 transition-all ${
+              className={`cursor-pointer rounded-md border p-8 transition-all ${
                 activePendistribusianSub === "Kesehatan"
-                  ? "border-rose-600 bg-baznas-paper/80 shadow-md"
-                  : "border-rose-200 bg-white hover:border-rose-400"
+                  ? "border-baznas-error-600 bg-baznas-paper/80 shadow-rest"
+                  : "border-baznas-error-200 bg-white hover:border-baznas-error-800"
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="p-2.5 border border-baznas-gold-display bg-baznas-paper text-baznas-green-900">
                   <HeartPulse className="h-6 w-6" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-baznas-ink bg-baznas-paper border border-rose-200 px-2 py-0.5 inline-block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-baznas-ink bg-baznas-paper border border-baznas-error-200 px-2 py-0.5 inline-block">
                   Klik Buka Tabel
                 </span>
               </div>
               <h3 className="text-base font-bold text-baznas-ink font-poppins mt-4">2. Kesehatan</h3>
-              <p className="text-xs text-rose-700 font-semibold">Bantuan Medis Darurat</p>
+              <p className="text-xs text-baznas-error-700 font-semibold">Bantuan Medis Darurat</p>
               <p className="text-xs text-baznas-ink/65 leading-relaxed mt-1">
                 Bantuan pembiayaan obat dhuafa non-BPJS, tebus resep, kursi roda difabel, santunan pasien sakit kritis, &amp; ambulans gratis.
               </p>
               <div className="mt-4 pt-3 border-t border-baznas-ink-8 flex items-center justify-between text-xs">
                 <span className="text-baznas-ink/55">Penerima Aktif:</span>
-                <span className="font-bold text-rose-900">
+                <span className="font-bold text-baznas-error-900">
                   {mustahikList.filter((m) => m.kategoriBesar === "pendistribusian" && m.namaSubProgram === "Kesehatan").length} Mustahik
                 </span>
               </div>
@@ -743,10 +743,10 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
             {/* 3. Dakwah dan Advokasi */}
             <div
               onClick={() => setActivePendistribusianSub(activePendistribusianSub === "Dakwah dan Advokasi" ? "all" : "Dakwah dan Advokasi")}
-              className={`cursor-pointer rounded-2xl border p-8 transition-all ${
+              className={`cursor-pointer rounded-md border p-8 transition-all ${
                 activePendistribusianSub === "Dakwah dan Advokasi"
                   ? "border-baznas-gold-display bg-baznas-paper"
-                  : "border-emerald-200 bg-white hover:border-emerald-400"
+                  : "border-baznas-green-200 bg-white border-baznas-green-800"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -764,7 +764,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
               </p>
               <div className="mt-4 pt-3 border-t border-baznas-ink-8 flex items-center justify-between text-xs">
                 <span className="text-baznas-ink/55">Penerima Aktif:</span>
-                <span className="font-bold text-emerald-900">
+                <span className="font-bold text-baznas-green-900">
                   {mustahikList.filter((m) => m.kategoriBesar === "pendistribusian" && m.namaSubProgram === "Dakwah dan Advokasi").length} Mustahik
                 </span>
               </div>
@@ -796,7 +796,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                       activePendistribusianSub === "all" ? "Pendidikan" : activePendistribusianSub
                     )
                   }
-                  className="flex items-center gap-1.5 rounded-xl bg-blue-700 hover:bg-blue-600 px-3.5 py-2.5 text-xs font-semibold text-white"
+                  className="flex items-center gap-1.5 rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-3.5 py-2.5 text-xs font-semibold text-white"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Tambah Penerima {activePendistribusianSub !== "all" ? activePendistribusianSub : ""}
@@ -834,7 +834,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                   value={searchSubProg}
                   onChange={(e) => setSearchSubProg(e.target.value)}
                   placeholder="Cari NIK / Nama Penerima..."
-                  className="w-full rounded-xl border border-baznas-ink-8 bg-baznas-paper/40 pl-9 pr-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-blue-600"
+                  className="w-full rounded-xl border border-baznas-ink-8 bg-baznas-paper/40 pl-9 pr-3 py-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                 />
               </div>
 
@@ -918,7 +918,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                           </button>
                           <button
                             onClick={() => handleDeleteMustahikItem(m.id, m.namaLengkap)}
-                            className="p-1.5 rounded-lg border border-baznas-ink-8 bg-white hover:bg-baznas-paper hover:text-rose-700 text-baznas-ink/65 transition-colors"
+                            className="p-1.5 rounded-lg border border-baznas-ink-8 bg-white hover:bg-baznas-paper hover:text-baznas-error-700 text-baznas-ink/65 transition-colors"
                             title="Hapus Mustahik"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -956,7 +956,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
               <h2 className="text-base font-bold text-baznas-green-900 font-poppins">
                 Program Pendayagunaan BAZNAS
               </h2>
-              <p className="text-xs text-emerald-800 mt-0.5">
+              <p className="text-xs text-baznas-green-800 mt-0.5">
                 Klik kartu program di bawah untuk membuka data pembinaan ekonomi produktif, menambah penerima, serta import/export Excel.
               </p>
             </div>
@@ -970,28 +970,28 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
             {/* 1. Ekonomi */}
             <div
               onClick={() => setActivePendayagunaanSub(activePendayagunaanSub === "Ekonomi" ? "all" : "Ekonomi")}
-              className={`cursor-pointer rounded-2xl border p-8 transition-all ${
+              className={`cursor-pointer rounded-md border p-8 transition-all ${
                 activePendayagunaanSub === "Ekonomi"
                   ? "border-baznas-gold-display bg-baznas-paper"
-                  : "border-amber-200 bg-white hover:border-amber-400"
+                  : "border-baznas-warning-200 bg-white hover:border-baznas-warning-700"
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="p-2.5 border border-baznas-gold-display bg-baznas-paper text-baznas-green-900">
                   <Briefcase className="h-6 w-6" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-baznas-paper border border-baznas-ink-12 px-2 py-0.5 inline-block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-baznas-warning-700 bg-baznas-paper border border-baznas-ink-12 px-2 py-0.5 inline-block">
                   Klik Buka Tabel
                 </span>
               </div>
               <h3 className="text-base font-bold text-baznas-ink font-poppins mt-4">1. Ekonomi</h3>
-              <p className="text-xs text-amber-700 font-semibold">Z-Mart &amp; Modal Usaha Mandiri</p>
+              <p className="text-xs text-baznas-warning-700 font-semibold">Z-Mart &amp; Modal Usaha Mandiri</p>
               <p className="text-xs text-baznas-ink/65 leading-relaxed mt-1">
                 Pemberian modal usaha bergulir tanpa bunga, pengadaan warung ritel Z-Mart, bantuan peralatan bengkel Z-Auto, dan pendampingan bisnis mikro.
               </p>
               <div className="mt-4 pt-3 border-t border-baznas-ink-8 flex items-center justify-between text-xs">
                 <span className="text-baznas-ink/55">Penerima Aktif:</span>
-                <span className="font-bold text-amber-900">
+                <span className="font-bold text-baznas-warning-900">
                   {mustahikList.filter((m) => m.kategoriBesar === "pendayagunaan" && m.namaSubProgram === "Ekonomi").length} Mustahik
                 </span>
               </div>
@@ -1000,10 +1000,10 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
             {/* 2. Pendidikan Sebagian (Vokasi) */}
             <div
               onClick={() => setActivePendayagunaanSub(activePendayagunaanSub === "Pendidikan Sebagian" ? "all" : "Pendidikan Sebagian")}
-              className={`cursor-pointer rounded-2xl border p-8 transition-all ${
+              className={`cursor-pointer rounded-md border p-8 transition-all ${
                 activePendayagunaanSub === "Pendidikan Sebagian"
                   ? "border-baznas-gold-display bg-baznas-paper"
-                  : "border-blue-200 bg-white hover:border-blue-400"
+                  : "border-baznas-ink-12 bg-white hover:border-baznas-green-800"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -1021,7 +1021,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
               </p>
               <div className="mt-4 pt-3 border-t border-baznas-ink-8 flex items-center justify-between text-xs">
                 <span className="text-baznas-ink/55">Penerima Aktif:</span>
-                <span className="font-bold text-blue-900">
+                <span className="font-bold text-baznas-ink">
                   {mustahikList.filter((m) => m.kategoriBesar === "pendayagunaan" && m.namaSubProgram === "Pendidikan Sebagian").length} Mustahik
                 </span>
               </div>
@@ -1030,28 +1030,28 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
             {/* 3. Kesehatan (Sanitasi) */}
             <div
               onClick={() => setActivePendayagunaanSub(activePendayagunaanSub === "Kesehatan" ? "all" : "Kesehatan")}
-              className={`cursor-pointer rounded-2xl border p-8 transition-all ${
+              className={`cursor-pointer rounded-md border p-8 transition-all ${
                 activePendayagunaanSub === "Kesehatan"
-                  ? "border-teal-600 bg-teal-50/80 ring-2 ring-teal-500/20 shadow-md"
-                  : "border-teal-200 bg-white hover:border-teal-400"
+                  ? "border-baznas-green-800 bg-baznas-green-50 ring-2 ring-baznas-green-700/20 shadow-rest"
+                  : "border-baznas-green-200 bg-white hover:border-baznas-green-800"
               }`}
             >
               <div className="flex items-center justify-between">
-                <div className="p-2.5 rounded-xl bg-teal-100 text-teal-700">
+                <div className="p-2.5 rounded-xl bg-baznas-green-100 text-baznas-green-800">
                   <Droplet className="h-6 w-6" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 bg-teal-50 border border-teal-200 px-2 py-0.5 inline-block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-baznas-green-800 bg-baznas-green-50 border border-baznas-green-200 px-2 py-0.5 inline-block">
                   Klik Buka Tabel
                 </span>
               </div>
               <h3 className="text-base font-bold text-baznas-ink font-poppins mt-4">3. Kesehatan</h3>
-              <p className="text-xs text-teal-700 font-semibold">Sanitasi &amp; Klinik Sehat</p>
+              <p className="text-xs text-baznas-green-800 font-semibold">Sanitasi &amp; Klinik Sehat</p>
               <p className="text-xs text-baznas-ink/65 leading-relaxed mt-1">
                 Pembangunan fasilitas sanitasi jamban sehat keluarga miskin, penyediaan instalasi sumur bor air bersih komunitas, dan edukasi hidup sehat.
               </p>
               <div className="mt-4 pt-3 border-t border-baznas-ink-8 flex items-center justify-between text-xs">
                 <span className="text-baznas-ink/55">Penerima Aktif:</span>
-                <span className="font-bold text-teal-900">
+                <span className="font-bold text-baznas-green-900">
                   {mustahikList.filter((m) => m.kategoriBesar === "pendayagunaan" && m.namaSubProgram === "Kesehatan").length} Mustahik
                 </span>
               </div>
@@ -1168,7 +1168,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                         <span className="font-bold text-baznas-ink block">{m.namaLengkap}</span>
                         <span className="text-[11px] font-mono text-baznas-ink/45">NIK: {m.nik}</span>
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-emerald-800">
+                      <td className="py-3.5 px-4 font-semibold text-baznas-green-800">
                         {m.namaSubProgram}
                       </td>
                       <td className="py-3.5 px-4">
@@ -1205,7 +1205,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                           </button>
                           <button
                             onClick={() => handleDeleteMustahikItem(m.id, m.namaLengkap)}
-                            className="p-1.5 rounded-lg border border-baznas-ink-8 bg-white hover:bg-baznas-paper hover:text-rose-700 text-baznas-ink/65 transition-colors"
+                            className="p-1.5 rounded-lg border border-baznas-ink-8 bg-white hover:bg-baznas-paper hover:text-baznas-error-700 text-baznas-ink/65 transition-colors"
                             title="Hapus Mustahik"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -1249,7 +1249,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
             </div>
             <button
               onClick={() => setShowModalNew(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-rose-600/20 hover:bg-rose-700 transition-colors"
+              className="flex items-center gap-1.5 rounded-xl bg-baznas-error-700 px-4 py-2.5 text-xs font-semibold text-white shadow-rest hover:bg-baznas-error-800 transition-colors"
             >
               <Plus className="h-4 w-4" />
               Buat Pengajuan Baru (SPK)
@@ -1263,15 +1263,15 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-center text-xs">
               <div className="bg-white p-2.5 rounded-lg border border-baznas-ink-8">
-                <span className="font-bold text-amber-700 block">1. Diajukan</span>
+                <span className="font-bold text-baznas-warning-700 block">1. Diajukan</span>
                 <span className="text-[10px] text-baznas-ink/55">Oleh Amil Bidang II</span>
               </div>
-              <div className="bg-white p-2.5 rounded-lg border border-blue-200">
+              <div className="bg-white p-2.5 rounded-lg border border-baznas-ink-12">
                 <span className="font-bold text-baznas-ink block">2. Disetujui Ketua</span>
                 <span className="text-[10px] text-baznas-ink/55">Ketua Mohamad Husain Rauf</span>
               </div>
-              <div className="bg-white p-2.5 rounded-lg border border-emerald-200">
-                <span className="font-bold text-emerald-800 block">3. Dikonfirmasi Bidang II</span>
+              <div className="bg-white p-2.5 rounded-lg border border-baznas-green-200">
+                <span className="font-bold text-baznas-green-800 block">3. Dikonfirmasi Bidang II</span>
                 <span className="text-[10px] text-baznas-ink/55">Verifikasi Berkas Akhir</span>
               </div>
               <div className="bg-white p-2.5 rounded-lg border border-baznas-ink-8">
@@ -1291,14 +1291,14 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
               return (
                 <div
                   key={p.id}
-                  className={`rounded-2xl border p-8 transition-all ${
+                  className={`rounded-md border p-8 transition-all ${
                     isPendingKetua
                       ? "border border-baznas-ink-20 bg-baznas-paper/30"
                       : isApprovedKetua
                       ? "border border-baznas-ink-20 bg-baznas-paper/30"
                       : isConfirmedBidang2
                       ? "border border-baznas-ink-20 bg-baznas-paper/30"
-                      : "border-rose-200 bg-baznas-paper/30"
+                      : "border-baznas-error-200 bg-baznas-paper/30"
                   }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1309,28 +1309,28 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                         </span>
 
                         {isPendingKetua && (
-                          <span className="inline-block bg-baznas-paper border border-baznas-ink-20 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-amber-300 flex items-center gap-1">
+                          <span className="inline-block bg-baznas-paper border border-baznas-ink-20 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-warning-300 flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             Menunggu Persetujuan Ketua BAZNAS
                           </span>
                         )}
 
                         {isApprovedKetua && (
-                          <span className="inline-block bg-baznas-paper border border-baznas-ink-20 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-blue-300 flex items-center gap-1">
+                          <span className="inline-block bg-baznas-paper border border-baznas-ink-20 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-ink-20 flex items-center gap-1">
                             <CheckCircle2 className="h-3 w-3" />
                             Disetujui Ketua — Siap Dikonfirmasi Bidang II
                           </span>
                         )}
 
                         {isConfirmedBidang2 && (
-                          <span className="inline-block bg-baznas-paper border border-baznas-ink-12 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-emerald-300 flex items-center gap-1">
+                          <span className="inline-block bg-baznas-paper border border-baznas-ink-12 text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-green-300 flex items-center gap-1">
                             <Check className="h-3 w-3" />
                             Dikonfirmasi Bidang II (Siap Diberikan)
                           </span>
                         )}
 
                         {isRejected && (
-                          <span className="inline-block bg-baznas-paper border border-baznas-gold-display text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-rose-300 flex items-center gap-1">
+                          <span className="inline-block bg-baznas-paper border border-baznas-gold-display text-baznas-ink px-2.5 py-0.5 text-[10px] font-bold border border-baznas-error-300 flex items-center gap-1">
                             <XCircle className="h-3 w-3" />
                             Ditolak
                           </span>
@@ -1381,7 +1381,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                                 setActiveTab("pencairan");
                               }
                             }}
-                            className="flex items-center gap-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 px-3.5 py-2.5 text-xs font-bold text-white transition-colors"
+                            className="flex items-center gap-1.5 rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-3.5 py-2.5 text-xs font-bold text-white transition-colors"
                           >
                             <CheckCircle2 className="h-4 w-4" />
                             Konfirmasi Pencairan Dana (Bidang II)
@@ -1534,7 +1534,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                 <h3 className="text-base font-bold font-poppins text-white">
                   Formulir Pengajuan SPK Pencairan Baru
                 </h3>
-                <p className="text-xs text-rose-100">
+                <p className="text-xs text-baznas-paper/90">
                   Surat Perintah Kerja (SPK) Penyaluran Dana ZIS BAZNAS
                 </p>
               </div>
@@ -1556,7 +1556,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                   value={namaProgram}
                   onChange={(e) => setNamaProgram(e.target.value)}
                   placeholder="Contoh: Bantuan Beasiswa Santri Berprestasi Periode 2"
-                  className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs text-baznas-ink focus:outline-none focus:border-rose-600"
+                  className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-error-600"
                 />
               </div>
 
@@ -1643,7 +1643,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-rose-600 hover:bg-rose-700 px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all"
+                  className="rounded-xl bg-baznas-error-700 hover:bg-baznas-error-800 px-5 py-2.5 text-xs font-bold text-white shadow-rest transition-all"
                 >
                   Kirim Pengajuan ke Ketua
                 </button>
@@ -1671,7 +1671,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                   <h3 className="text-base font-bold font-poppins text-white">
                     Tambah Penerima Manfaat ({targetSubProgram})
                   </h3>
-                  <p className="text-xs text-emerald-100/80">
+                  <p className="text-xs text-baznas-paper/80">
                     Input mustahik ke program {targetProgramKategori.toUpperCase()}
                   </p>
                 </div>
@@ -1694,7 +1694,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                   value={mustahikNama}
                   onChange={(e) => setMustahikNama(e.target.value)}
                   placeholder="Contoh: Sitti Aminah / Keluarga Hasan"
-                  className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs text-baznas-ink focus:outline-none focus:border-emerald-700"
+                  className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                 />
               </div>
 
@@ -1797,7 +1797,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all"
+                  className="rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 text-xs font-bold text-white shadow-rest transition-all"
                 >
                   Simpan Penerima Program
                 </button>
@@ -1838,13 +1838,13 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
             <div className="border border-baznas-ink-8 bg-baznas-paper">
               <div className="flex items-center gap-2.5">
                 <div className="rounded-xl bg-white/10 p-2 text-white">
-                  <Edit className="h-5 w-5 text-blue-200" />
+                  <Edit className="h-5 w-5 text-baznas-ink/40" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold font-poppins text-white">
                     Edit Data Penerima Manfaat / Mustahik
                   </h3>
-                  <p className="text-xs text-blue-100/80">
+                  <p className="text-xs text-baznas-paper/80">
                     Perbarui informasi kelayakan, asnaf, dan bantuan mustahik
                   </p>
                 </div>
@@ -1866,7 +1866,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                   required
                   value={editingMustahik.namaLengkap}
                   onChange={(e) => setEditingMustahik({ ...editingMustahik, namaLengkap: e.target.value })}
-                  className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs text-baznas-ink focus:outline-none focus:border-blue-600 font-semibold"
+                  className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs text-baznas-ink focus:outline-none focus:border-baznas-green-800 font-semibold"
                 />
               </div>
 
@@ -1877,7 +1877,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                     type="text"
                     value={editingMustahik.nik}
                     onChange={(e) => setEditingMustahik({ ...editingMustahik, nik: e.target.value })}
-                    className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-blue-600"
+                    className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                   />
                 </div>
                 <div>
@@ -1886,7 +1886,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                     type="text"
                     value={editingMustahik.kk || ""}
                     onChange={(e) => setEditingMustahik({ ...editingMustahik, kk: e.target.value })}
-                    className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-blue-600"
+                    className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs font-mono text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                   />
                 </div>
               </div>
@@ -1987,7 +1987,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                   type="number"
                   value={editingMustahik.totalBantuanDiterima}
                   onChange={(e) => setEditingMustahik({ ...editingMustahik, totalBantuanDiterima: Number(e.target.value) })}
-                  className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs font-mono font-bold text-baznas-ink focus:outline-none focus:border-blue-600"
+                  className="w-full rounded-xl border border-baznas-ink-8 bg-white p-2.5 text-xs font-mono font-bold text-baznas-ink focus:outline-none focus:border-baznas-green-800"
                 />
               </div>
 
@@ -2021,7 +2021,7 @@ export const Bidang2View: React.FC<Bidang2ViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-blue-700 hover:bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all"
+                  className="rounded-xl bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 text-xs font-bold text-white shadow-rest transition-all"
                 >
                   Simpan Perubahan
                 </button>

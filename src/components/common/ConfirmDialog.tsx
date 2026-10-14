@@ -41,12 +41,12 @@ interface ConfirmDialogProps {
 const severityConfig: Record<ConfirmSeverity, { icon: React.ReactNode; boxColor: string; titleColor: string }> = {
   danger: {
     icon: <AlertTriangle className="h-5 w-5" />,
-    boxColor: "bg-rose-700 text-white",
+    boxColor: "bg-baznas-error-700 text-white",
     titleColor: "text-baznas-ink",
   },
   warning: {
     icon: <AlertCircle className="h-5 w-5" />,
-    boxColor: "bg-amber-600 text-white",
+    boxColor: "bg-baznas-warning-700 text-white",
     titleColor: "text-baznas-ink",
   },
   info: {
@@ -157,7 +157,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 htmlFor="confirm-dialog-reason"
                 className="block text-[11px] font-bold text-baznas-ink uppercase tracking-wider mb-1.5"
               >
-                {reasonLabel} <span className="text-rose-700">*</span>
+                {reasonLabel} <span className="text-baznas-error-700">*</span>
               </label>
               <textarea
                 id="confirm-dialog-reason"

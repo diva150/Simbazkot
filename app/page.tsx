@@ -762,9 +762,9 @@ export default function Home() {
                 (activeRoleView === "ketua" && canAccessView(currentUser, "ketua")) ||
                 (activeRoleView === "admin" && canAccessView(currentUser, "admin"))
               ) && !showProfile && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center max-w-md mx-auto mt-12">
-                  <h2 className="text-lg font-bold text-rose-900 font-poppins">Akses Ditolak</h2>
-                  <p className="text-sm text-rose-800 mt-2">
+                <div className="rounded-md border border-baznas-error-200 bg-baznas-error-50 p-8 text-center max-w-md mx-auto mt-12">
+                  <h2 className="text-lg font-bold text-baznas-error-900 font-poppins">Akses Ditolak</h2>
+                  <p className="text-sm text-baznas-error-800 mt-2">
                     Anda login sebagai <strong>{currentUser.nama}</strong> dan tidak
                     memiliki akses ke modul ini. Silakan kembali ke Beranda atau hubungi
                     administrator.
