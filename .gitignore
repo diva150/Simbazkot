@@ -4,6 +4,8 @@ out/
 .env
 .env.*
 !.env.example
+# TypeScript incremental build cache — generated artifact, not source
+tsconfig.tsbuildinfo
 BACKEND-PLAN.md
 DESIGN-IMPLEMENTATION-PLAN.md
 .claude

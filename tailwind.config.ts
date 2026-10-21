@@ -62,6 +62,27 @@ const config: Config = {
           // Hampir-hitam dengan sedikit tint hijau — untuk teks body
           // Ganti slate-900 (biru-keabuan) dengan ini agar cohesive
           ink: "#0E1A14",
+          // === BAZNAS Modern — Tier 2 (Zaiflu-inspired) === (added Overhaul phase)
+          // Petrol — deep cool-green surface (mirrors BAZNAS green-950 but cooler)
+          petrol: {
+            800: "#0F2520",
+            900: "#0C1F1A",
+            950: "#082018",
+          },
+          // Lime — chart/progress ONLY (per project rules; never for body text/CTA)
+          lime: {
+            300: "#E4FF8A",
+            400: "#D4FF66",
+            500: "#CCFF66", // Zaiflu signature
+            600: "#A8DB33",
+          },
+          // Azure — link / data accent
+          azure: {
+            400: "#5BB0F5",
+            500: "#3898EC", // Zaiflu
+            600: "#2479C4",
+            700: "#1B6099",
+          },
           // === Error & Warning palette (Phase 1) ===
           // Mirror rose-* (for destructive: error/clear/quit/delete) and
           // amber-* (for caution: warning/stale/pending) so we can keep the
@@ -92,6 +113,15 @@ const config: Config = {
           },
         },
       },
+      borderRadius: {
+        // Zaiflu-style large radius scale (additive — does not override defaults)
+        card: "20px",   // card radius (Zaiflu primary-button .radius-20)
+        panel: "28px",  // panel radius (Zaiflu feature cards)
+        hero: "36px",   // hero card / frame
+        frame: "40px",  // screenshot frame (Zaiflu preview-benner-img-wrap)
+        blob: "215px",  // decorative blob (Zaiflu)
+        chip: "54px",   // pill / chip (Zaiflu preview-small-title)
+      },
       boxShadow: {
         "2xs": "0 1px 2px 0 rgba(0, 0, 0, 0.03)",
         xs: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
@@ -99,9 +129,33 @@ const config: Config = {
         rest: "0 1px 0 0 rgba(14, 26, 20, 0.04), 0 4px 12px -2px rgba(14, 26, 20, 0.04)",
         // Lifted variant untuk hover
         lift: "0 1px 0 0 rgba(14, 26, 20, 0.06), 0 10px 24px -8px rgba(14, 26, 20, 0.08)",
+        // === Zaiflu-inspired shadow vocabulary (additive) ===
+        // Crisp short — Zaiflu: 4.92px 14.76px 14.76px rgba(19,19,19,0.04)
+        crisp: "4.92px 14.76px 14.76px 0 rgba(19, 19, 19, 0.04)",
+        // Float — Zaiflu: -20px -20px 56px 4px rgba(0,50,62,0.04) (directional softness)
+        float: "-20px -20px 56px 4px rgba(0, 50, 62, 0.04)",
+        // Deep — Zaiflu: 0 5px 25px rgba(0,0,0,0.25) (modals)
+        deep: "0 5px 25px 0 rgba(0, 0, 0, 0.25)",
+        // Glow — soft green-tinted highlight for hover lift
+        glow: "0 0 0 1px rgba(37, 145, 72, 0.10), 0 8px 32px -8px rgba(37, 145, 72, 0.18)",
       },
       backdropBlur: {
         xs: "2px",
+        // Zaiflu-style glassmorphism (additive)
+        sm: "8px",
+        md: "12px",
+        lg: "24px",  // Zaiflu default backdrop-filter
+        xl: "32px",
+        "2xl": "40px",
+      },
+      transitionDuration: {
+        "350": "350ms",  // Zaiflu signature
+        "500": "500ms",
+        "700": "700ms",
+      },
+      transitionTimingFunction: {
+        "zaiflu": "cubic-bezier(0.4, 0, 0.2, 1)",  // Zaiflu default feel
+        "soft-spring": "cubic-bezier(0.34, 1.56, 0.64, 1)",  // spring-y but not bouncy
       },
       spacing: {
         "18": "4.5rem",

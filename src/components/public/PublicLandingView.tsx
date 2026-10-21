@@ -32,6 +32,13 @@ import { formatRupiah } from "@/lib/utils";
 import { BerandaContent } from "@/lib/types";
 import { initialBerandaContent, strukturOrganisasiResmiData } from "@/lib/mock-data";
 import { BAZNASMark } from "@/components/brand/BAZNASMark";
+import {
+  Stagger,
+  StaggerItem,
+  Lift,
+  GhostNumber,
+} from "@/components/motion";
+import { motion } from "motion/react";
 // (KhatRule removed — tidak lagi pakai Star SVG)
 
 interface PublicLandingViewProps {
@@ -248,7 +255,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             {/* Kiri: copy */}
             <div className="lg:col-span-7 order-2 lg:order-1 animate-fade-in-up">
               <div className="flex items-center gap-3 mb-6">
-                <span className="text-xs font-bold uppercase tracking-[0.22em] text-baznas-ink/90">
+                <span className="chip-paper">
                   Lembaga Zakat Nasional · Provinsi Gorontalo
                 </span>
               </div>
@@ -348,12 +355,14 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
 
             {/* Kanan: Logo BAZNAS resmi — benar-benar tanpa frame */}
             <div className="lg:col-span-5 order-1 lg:order-2 flex items-center justify-center">
-              <img
-                src="/baznas-logo.png"
-                alt="Logo Resmi BAZNAS Kota Gorontalo — Badan Amil Zakat Nasional"
-                className="w-full max-w-2xl h-auto"
-                loading="eager"
-              />
+              <Lift className="w-full flex items-center justify-center">
+                <img
+                  src="/baznas-logo.png"
+                  alt="Logo Resmi BAZNAS Kota Gorontalo — Badan Amil Zakat Nasional"
+                  className="w-full max-w-2xl h-auto"
+                  loading="eager"
+                />
+              </Lift>
             </div>
           </div>
         </div>
@@ -364,7 +373,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       {/* ─────────────────────────────────────────────── */}
       <section
         aria-labelledby="stats-heading"
-        className="bg-baznas-ink text-white relative overflow-hidden"
+        className="bg-mesh-dark bg-noise text-white relative overflow-hidden"
       >
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
           <div className="mb-12 flex items-center gap-3">
@@ -443,7 +452,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: "Zakat", pct: 62, color: "bg-baznas-gold-display" },
-                { label: "Infak", pct: 23, color: "bg-baznas-green-800" },
+                { label: "Infak", pct: 23, color: "bg-baznas-lime-500" },
                 { label: "Sedekah", pct: 11, color: "bg-baznas-green-700" },
                 { label: "DSKL", pct: 4, color: "bg-baznas-gold-700" },
               ].map((item) => (
@@ -762,32 +771,31 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               {PILAR_PROGRAM.map((pilar) => {
                 const Icon = pilar.icon;
                 return (
-                  <div
-                    key={pilar.key}
-                    className="group bg-baznas-paper/40 p-5 border border-baznas-ink-8 hover:border-baznas-gold-display transition-colors"
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[10px] font-extrabold text-baznas-gold-display uppercase tracking-[0.2em]">
-                        Pilar
-                      </span>
-                      <span className="text-[10px] font-bold text-baznas-ink/90 uppercase tracking-wider">
-                        {pilar.label}
-                      </span>
+                  <Lift key={pilar.key} className="h-full">
+                    <div className="group h-full bg-baznas-paper/40 p-5 border border-baznas-ink-8 hover:border-baznas-gold-display transition-colors">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-[10px] font-extrabold text-baznas-gold-display uppercase tracking-[0.2em]">
+                          Pilar
+                        </span>
+                        <span className="text-[10px] font-bold text-baznas-ink/90 uppercase tracking-wider">
+                          {pilar.label}
+                        </span>
+                      </div>
+                      <div className="inline-flex h-12 w-12 items-center justify-center bg-baznas-ink text-baznas-gold-display mb-4">
+                        <Icon className="h-5 w-5" aria-hidden="true" />
+                      </div>
+                      <h4 className="text-base font-poppins font-bold text-baznas-ink">
+                        {pilar.key === "cerdas" || pilar.key === "makmur"
+                          ? pilar.title
+                          : pilar.key === "peduli"
+                          ? "BAZNAS Peduli"
+                          : "BAZNAS Sehat"}
+                      </h4>
+                      <p className="mt-2 text-xs text-baznas-ink/90 leading-snug">
+                        {pilar.desc}
+                      </p>
                     </div>
-                    <div className="inline-flex h-12 w-12 items-center justify-center bg-baznas-ink text-baznas-gold-display mb-4">
-                      <Icon className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <h4 className="text-base font-poppins font-bold text-baznas-ink">
-                      {pilar.key === "cerdas" || pilar.key === "makmur"
-                        ? pilar.title
-                        : pilar.key === "peduli"
-                        ? "BAZNAS Peduli"
-                        : "BAZNAS Sehat"}
-                    </h4>
-                    <p className="mt-2 text-xs text-baznas-ink/90 leading-snug">
-                      {pilar.desc}
-                    </p>
-                  </div>
+                  </Lift>
                 );
               })}
             </div>
@@ -819,59 +827,65 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <Stagger
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+            stagger={0.08}
+          >
             {PROGRAM_UNGGULAN.map((program, idx) => (
-              <article
-                key={program.key}
-                style={{ animationDelay: `${idx * 80}ms` }}
-                className="group bg-white border border-baznas-ink-8 overflow-hidden hover:border-baznas-green-800 transition-all duration-300 hover:shadow-rest hover:-translate-y-1 animate-fade-in-up"
-              >
-                <div className="relative aspect-[4/3] bg-baznas-ink overflow-hidden">
-                  <img
-                    src={program.photo}
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"
-                    loading="lazy"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                  {/* Overlay gradient on hover */}
-                  <div className="absolute inset-0 bg-baznas-ink/0 group-hover:bg-baznas-ink/20 transition-colors duration-500" aria-hidden="true" />
-                  <div className="absolute top-3 left-3 bg-baznas-ink/90 backdrop-blur-xs px-2 py-1 text-[10px] font-bold text-baznas-gold-display uppercase tracking-wider group-hover:bg-baznas-gold-display group-hover:text-baznas-ink transition-colors duration-300">
-                    Pilar {idx + 1}
-                  </div>
-                </div>
-                <div className="p-5">
-                  <h3 className="text-base font-poppins font-bold text-baznas-ink group-hover:text-baznas-green-900 transition-colors duration-200">
-                    {program.title}
-                  </h3>
-                  <p className="mt-2 text-xs text-baznas-ink/90 leading-snug min-h-[3em]">
-                    {program.desc}
-                  </p>
-                  <div className="mt-4 pt-3 border-t border-baznas-ink-8 grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-baznas-ink/90 font-bold">
-                        Target
-                      </p>
-                      <p className="text-xs font-bold text-baznas-ink mt-0.5">
-                        {program.target}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-baznas-ink/90 font-bold">
-                        Pagu 2026
-                      </p>
-                      <p className="text-xs font-extrabold text-baznas-green-900 editorial-num mt-0.5">
-                        {program.pagu}
-                      </p>
+              <StaggerItem key={program.key}>
+                <article
+                  className="group relative bg-white border border-baznas-ink-8 overflow-hidden hover:border-baznas-green-800 transition-all duration-300 hover:shadow-rest hover:-translate-y-1 h-full"
+                >
+                  <GhostNumber className="text-baznas-ink/[0.05] text-7xl sm:text-8xl -top-2 -right-2">
+                    {String(idx + 1).padStart(2, "0")}
+                  </GhostNumber>
+                  <div className="relative aspect-[4/3] bg-baznas-ink overflow-hidden">
+                    <img
+                      src={program.photo}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                    {/* Overlay gradient on hover */}
+                    <div className="absolute inset-0 bg-baznas-ink/0 group-hover:bg-baznas-ink/20 transition-colors duration-500" aria-hidden="true" />
+                    <div className="absolute top-3 left-3 bg-baznas-ink/90 backdrop-blur-xs px-2 py-1 text-[10px] font-bold text-baznas-gold-display uppercase tracking-wider group-hover:bg-baznas-gold-display group-hover:text-baznas-ink transition-colors duration-300">
+                      Pilar {idx + 1}
                     </div>
                   </div>
-                </div>
-              </article>
+                  <div className="relative p-5">
+                    <h3 className="text-base font-poppins font-bold text-baznas-ink group-hover:text-baznas-green-900 transition-colors duration-200">
+                      {program.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-baznas-ink/90 leading-snug min-h-[3em]">
+                      {program.desc}
+                    </p>
+                    <div className="mt-4 pt-3 border-t border-baznas-ink-8 grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-baznas-ink/90 font-bold">
+                          Target
+                        </p>
+                        <p className="text-xs font-bold text-baznas-ink mt-0.5">
+                          {program.target}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-baznas-ink/90 font-bold">
+                          Pagu 2026
+                        </p>
+                        <p className="text-xs font-extrabold text-baznas-green-900 editorial-num mt-0.5">
+                          {program.pagu}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       </section>
 
@@ -1003,34 +1017,35 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto">
+          <Stagger
+            className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto"
+            stagger={0.12}
+          >
             {TESTIMONI_LIST.map((t, idx) => (
-              <figure
-                key={idx}
-                style={{ animationDelay: `${idx * 120}ms` }}
-                className="group bg-white p-6 sm:p-7 border-l-4 border-baznas-gold-display transition-all duration-300 hover:border-l-baznas-green-800 hover:shadow-rest hover:-translate-y-0.5 animate-fade-in-up"
-              >
-                <Quote
-                  className="h-7 w-7 text-baznas-gold-display mb-3 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-                  aria-hidden="true"
-                />
-                <blockquote className="text-sm sm:text-base text-baznas-ink/90 italic leading-relaxed">
-                  &ldquo;{t.quote}&rdquo;
-                </blockquote>
-                <figcaption className="mt-5 flex items-center gap-3 pt-4 border-t border-baznas-ink-8">
-                  <div className="shrink-0 h-11 w-11 flex items-center justify-center bg-baznas-ink text-white transition-transform duration-300 group-hover:bg-baznas-green-800 group-hover:scale-110">
-                    <span className="text-xs font-bold tracking-tight">
-                      {t.initials}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-baznas-ink">{t.nama}</p>
-                    <p className="text-[11px] text-baznas-ink/90">{t.role}</p>
-                  </div>
-                </figcaption>
-              </figure>
+              <StaggerItem key={idx}>
+                <figure className="group bg-white p-6 sm:p-7 border-l-4 border-baznas-gold-display transition-all duration-300 hover:border-l-baznas-green-800 hover:shadow-rest hover:-translate-y-0.5 h-full">
+                  <Quote
+                    className="h-7 w-7 text-baznas-gold-display mb-3 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                    aria-hidden="true"
+                  />
+                  <blockquote className="text-sm sm:text-base text-baznas-ink/90 italic leading-relaxed">
+                    &ldquo;{t.quote}&rdquo;
+                  </blockquote>
+                  <figcaption className="mt-5 flex items-center gap-3 pt-4 border-t border-baznas-ink-8">
+                    <div className="shrink-0 h-11 w-11 flex items-center justify-center bg-baznas-ink text-white transition-transform duration-300 group-hover:bg-baznas-green-800 group-hover:scale-110">
+                      <span className="text-xs font-bold tracking-tight">
+                        {t.initials}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-baznas-ink">{t.nama}</p>
+                      <p className="text-[11px] text-baznas-ink/90">{t.role}</p>
+                    </div>
+                  </figcaption>
+                </figure>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       </section>
 
@@ -1077,7 +1092,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                     aria-controls={`faq-answer-${idx}`}
                     className="w-full flex items-center justify-between gap-4 p-5 text-left min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 transition-colors duration-200 hover:bg-baznas-paper/30"
                   >
-                    <span className="text-sm sm:text-base font-bold text-baznas-ink flex items-center gap-3">
+                    <span
+                      id={`faq-question-${idx}`}
+                      className="text-sm sm:text-base font-bold text-baznas-ink flex items-center gap-3"
+                    >
                       <span
                         className={`shrink-0 inline-flex items-center justify-center w-7 h-7 text-[11px] font-mono font-bold transition-colors duration-300 ${
                           isOpen
@@ -1100,19 +1118,38 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                       {isOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                     </span>
                   </button>
-                  <div
+                  {/* Panel TETAP di-mount saat tertutup agar `aria-controls` di
+                      button selalu menunjuk elemen yang benar-benar ada (a11y).
+                      `visibility`ius dipakai (bukan unmount) supaya konten
+                      tertutup hilang dari accessibility tree & tak bisa di-focus,
+                      sementara height tetap bisa dianimasikan. */}
+                  <motion.div
                     id={`faq-answer-${idx}`}
-                    className={`grid transition-all duration-300 ease-in-out ${
-                      isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                    }`}
-                    aria-hidden={!isOpen}
+                    role="region"
+                    aria-labelledby={`faq-question-${idx}`}
+                    initial={false}
+                    animate={{
+                      height: isOpen ? "auto" : 0,
+                      opacity: isOpen ? 1 : 0,
+                      visibility: isOpen ? "visible" : "hidden",
+                    }}
+                    transition={{
+                      height: { duration: 0.35, ease: [0.4, 0, 0.2, 1] },
+                      opacity: {
+                        duration: 0.25,
+                        ease: [0.4, 0, 0.2, 1],
+                        //visibility ikut setelah height menutup,agar konten
+                        // tidak sempat ter-focus saat sedang tertutup
+                        delay: isOpen ? 0 : 0.25,
+                      },
+                      visibility: { duration: 0 },
+                    }}
+                    className="overflow-hidden"
                   >
-                    <div className="overflow-hidden">
-                      <div className="px-5 pb-5 pt-0 text-sm text-baznas-ink/90 leading-relaxed border-t border-baznas-ink-8">
-                        <div className="pt-4">{faq.a}</div>
-                      </div>
+                    <div className="px-5 pb-5 pt-0 text-sm text-baznas-ink/90 leading-relaxed border-t border-baznas-ink-8">
+                      <div className="pt-4">{faq.a}</div>
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
               );
             })}
@@ -1125,7 +1162,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       {/* ─────────────────────────────────────────────── */}
       <section
         aria-labelledby="cta-heading"
-        className="bg-baznas-ink text-white relative overflow-hidden"
+        className="bg-mesh-dark bg-noise text-white relative overflow-hidden"
       >
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 text-center">
           <Sparkles className="h-6 w-6 text-baznas-gold-display mx-auto mb-4" aria-hidden="true" />

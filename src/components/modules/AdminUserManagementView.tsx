@@ -13,13 +13,15 @@ import {
   USER_GENDER_LABELS,
 } from "@/lib/types";
 import { canAccessTab } from "@/lib/access";
-import {
-  useToast,
-  ConfirmDialog,
-  Dialog,
-} from "@/components/common";
+import { useToast, ConfirmDialog, Dialog } from "@/components/common";
 import { initialBerandaContent } from "@/lib/mock-data";
 import { MAX_PHOTO_BYTES, MAX_PHOTO_BYTES_HUMAN } from "@/lib/constants";
+import {
+  ModuleDashboardShell,
+  HeroPanel,
+  StatTile,
+} from "@/components/modules/ModuleDashboard";
+import { AnimatedNumber } from "@/components/motion";
 import {
   ShieldAlert,
   UserCheck,
@@ -157,6 +159,20 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
       );
     });
   }, [userAccounts, searchQuery, filterBidang, filterRole]);
+
+  // ── Dashboard summary metrics ───────────────────────────────────
+  const adminCount = useMemo(
+    () => userAccounts.filter((u) => u.role === "admin").length,
+    [userAccounts]
+  );
+  const stafCount = useMemo(
+    () => userAccounts.filter((u) => u.role === "user").length,
+    [userAccounts]
+  );
+  const bidangCount = useMemo(
+    () => new Set(userAccounts.map((u) => u.bidang)).size,
+    [userAccounts]
+  );
 
   // ── Form handlers ───────────────────────────────────────────────
   const openCreateModal = () => {
@@ -327,28 +343,90 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
   // ── Render ──────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {/* Header Admin */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-baznas-ink-8 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="rounded-md border border-baznas-ink-8 bg-baznas-paper/30 p-3 text-white shadow-rest">
+      {/* DASHBOARD SUPERADMIN — Pengaturan Sistem */}
+      <ModuleDashboardShell
+        eyebrow="Superadmin"
+        title="Pengaturan Sistem"
+        description="Manajemen akun bidang, akses lintas bidang, dan editor beranda publik."
+        ghost="08"
+      >
+        {/* Identity strip — preserves header chrome (pangkat + ringkasan) */}
+        <div className="flex flex-wrap items-center gap-4 border border-baznas-ink-8 bg-white p-4 rounded-card">
+          <div
+            className="rounded-md border border-baznas-gold-display bg-baznas-ink p-3 text-white"
+            aria-hidden="true"
+          >
             <ShieldCheck className="h-7 w-7 text-baznas-gold-400" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-baznas-ink font-poppins">
-                Pengelolaan Akun &amp; Pengaturan Beranda Publik
-              </h1>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="inline-block bg-baznas-paper/60 px-3 py-0.5 text-xs font-bold text-baznas-ink border border-baznas-ink-20">
                 Superadministrator
               </span>
+              <span className="text-sm font-semibold text-baznas-ink/85">
+                {currentUser.nama}
+              </span>
             </div>
-            <p className="text-xs text-baznas-ink/65 mt-0.5">
-              Kelola akun pengguna BAZNAS lintas 6 bidang, hak akses, serta kustomisasi beranda publik
+            <p className="text-xs text-baznas-ink/65 mt-1">
+              Kelola akun pengguna BAZNAS lintas 6 bidang, hak akses, serta
+              kustomisasi beranda publik
             </p>
           </div>
         </div>
 
-        {/* Tab Navigator */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+          {/* HERO — Total Akun Pengguna BAZNAS */}
+          <HeroPanel
+            eyebrow="Total Akun Pengguna"
+            ghost="01"
+            caption={`${adminCount} akun dengan hak Super Admin dapat mengelola semua 6 bidang. Total ${bidangCount} bidang/unit telah terdata.`}
+            icon={<ShieldCheck className="h-56 w-56" strokeWidth={0.8} />}
+            value={
+              <p className="display-1 editorial-num text-white leading-[0.95] tracking-tight">
+                <AnimatedNumber value={userAccounts.length} />
+                <span className="text-base font-normal text-white/65 ml-2">
+                  Akun
+                </span>
+              </p>
+            }
+          />
+
+          {/* 3 MEDIUM stat tiles */}
+          <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+            <StatTile
+              label="Pengguna Staf (Bidang)"
+              value={<AnimatedNumber value={stafCount} />}
+              unit="Akun"
+              hint="Akses terbatas sesuai bidang penugasan."
+              ghost="02"
+              tone="accent"
+            />
+            <StatTile
+              label="Akses Super Admin"
+              value={<AnimatedNumber value={adminCount} />}
+              unit="Akun"
+              hint="Bisa masuk ke seluruh modul tanpa batasan bidang."
+              ghost="03"
+              tone="negative"
+            />
+            <StatTile
+              label="Bidang / Unit Terdata"
+              value={
+                <>
+                  <AnimatedNumber value={bidangCount} />
+                  <span className="text-base font-normal text-baznas-ink/55 ml-1">
+                    / 6
+                  </span>
+                </>
+              }
+              hint="Cakupan unit organisasi yang sudah memiliki akun."
+              ghost="04"
+              tone="positive"
+            />
+          </div>
+        </div>
+
+        {/* Tab Navigator — preserved verbatim (handlers + a11y intact) */}
         <div className="flex flex-wrap items-center rounded-xl bg-baznas-paper/60 p-1 border border-baznas-ink-8 text-xs font-semibold gap-1">
           <button
             onClick={() => setActiveTab("manajemen_akun")}
@@ -386,7 +464,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
             <span>Akses Penuh Lintas Bidang</span>
           </button>
         </div>
-      </div>
+      </ModuleDashboardShell>
 
       {/* ═══ TAB 1: MANAJEMEN AKUN ═══ */}
       {canAccessTab(currentUser, "admin", "manajemen_akun") &&

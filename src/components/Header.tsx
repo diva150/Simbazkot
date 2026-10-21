@@ -13,6 +13,14 @@ import {
   Inbox,
   Wallet,
 } from "lucide-react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+} from "motion/react";
+import { EASE_SOFT, Pressable } from "@/components/motion";
 import { UserSession, RoleBidang, bidangLabel, permissionLabel } from "@/lib/types";
 import { formatIndonesianLongDate, formatHijriahDate } from "@/lib/utils";
 import { BAZNASMark } from "@/components/brand/BAZNASMark";
@@ -29,7 +37,7 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
-// Helper: inisial monogram dari nama
+/** Helper: inisial monogram dari nama */
 function monogram(nama: string): string {
   return nama
     .split(/\s+/)
@@ -56,6 +64,23 @@ export const Header: React.FC<HeaderProps> = ({
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
+
+  // ── Motion ────────────────────────────────────────────────────────────
+  // Semua animasi di header ini mengikuti satu bahasa gerak Zaiflu:
+  // naik 8px, timing 350ms cubic-bezier(0.4,0,0.2,1). Setiap motion
+  // kustom di-gate `useReducedMotion()` supaya pengguna dengan
+  // preferensi "reduce motion" tetap dapat memakai header sepenuhnya.
+  const reduceMotion = useReducedMotion() ?? false;
+
+  // Header jadi lebih pekat + berborder hairline begitu halaman di-scroll
+  // melewati 8px. Nilai ambang kecil supaya tidak "berkedip" saat scroll
+  // tipis di halaman pendek.
+  const { scrollY } = useScroll();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setIsScrolled(latest > 8);
+  });
 
   // Refresh date at the start of each day so it stays accurate across sessions
   useEffect(() => {
@@ -94,30 +119,44 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Header full-width: background, border-b, dan sticky menutupi
           seluruh lebar halaman. Konten di dalamnya dibatasi max-w-7xl
           dan di-center agar sejajar dengan area konten (sidebar + main)
-          di bawahnya — sehingga header & konten punya "frame" yang sama. */}
-      <header className="no-print sticky top-0 z-30 w-full border-b border-baznas-ink-8 bg-white/95 backdrop-blur-md">
+          di bawahnya — sehingga header & konten punya "frame" yang sama.
+
+          Permukaan header mengeras saat scroll: `border-b` selalu ada (agar
+          tinggi 72px tidak bergeser), hanya warnanya yang berpindah dari
+          transparan ke hairline ink-8, sementara surface-nya makin pekat. */}
+      <motion.header
+        className={`no-print sticky top-0 z-30 w-full border-b backdrop-blur-md transition-all duration-350 ease-zaiflu ${
+          isScrolled
+            ? "border-baznas-ink-8 bg-white/95"
+            : "border-transparent bg-white/80"
+        }`}
+      >
         <div className="h-[72px] max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6">
           {/* Kiri: Mobile Toggle & Brand */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={onToggleSidebar}
-              className="inline-flex items-center justify-center rounded-md text-baznas-ink/60 hover:bg-baznas-paper lg:hidden h-t-target w-t-target"
-              aria-label="Buka Navigasi"
-              title="Buka Navigasi"
-            >
-              <svg
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
+            <Pressable className="inline-flex">
+              <button
+                onClick={onToggleSidebar}
+                className="inline-flex items-center justify-center rounded-card text-baznas-ink/60 hover:bg-baznas-paper transition-all duration-350 ease-zaiflu lg:hidden h-t-target w-t-target"
+                aria-label="Buka Navigasi"
+                title="Buka Navigasi"
               >
-                <path strokeLinecap="round" d="M3 6h18M3 12h18M3 18h18" />
-              </svg>
-            </button>
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" d="M3 6h18M3 12h18M3 18h18" />
+                </svg>
+              </button>
+            </Pressable>
 
-            <BAZNASMark variant="mark" size="sm" className="text-baznas-green-900" />
+            <Pressable className="inline-flex">
+              <BAZNASMark variant="mark" size="sm" className="text-baznas-green-900" />
+            </Pressable>
           </div>
 
           {/* Tengah: Quick Search Omnibox */}
@@ -125,11 +164,11 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenSearch}
               type="button"
-              className="group flex w-full items-center justify-between border border-baznas-ink-12 bg-baznas-paper/40 hover:border-baznas-green-800 hover:bg-white px-3.5 py-2.5 text-sm text-baznas-ink/45 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+              className="group flex w-full items-center justify-between rounded-card border border-baznas-ink/12 bg-baznas-paper/40 px-3.5 py-2.5 text-sm text-baznas-ink/45 transition-all duration-350 ease-zaiflu hover:-translate-y-0.5 hover:border-baznas-green-800 hover:bg-white hover:shadow-crisp min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
               aria-label="Buka pencarian cepat"
             >
               <span className="flex items-center gap-2.5 min-w-0">
-                <Search className="h-4 w-4 text-baznas-ink/45 group-hover:text-baznas-green-800 shrink-0" />
+                <Search className="h-4 w-4 text-baznas-ink/45 group-hover:text-baznas-green-800 shrink-0 transition-colors duration-350 ease-zaiflu" />
                 <span className="truncate text-sm">Cari NIK, NPWZ, muzakki, mustahik, surat&hellip;</span>
               </span>
               <kbd className="hidden sm:inline-flex h-6 items-center gap-0.5 border border-baznas-ink-12 bg-white px-2 font-mono text-[11px] font-semibold text-baznas-ink/55">
@@ -147,7 +186,15 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="font-semibold text-baznas-ink block text-sm">
                   {formatIndonesianLongDate(currentDate)}
                 </span>
-                <span className="text-[11px] text-baznas-ink/55 font-medium">
+                <span className="flex items-center gap-1.5 text-[11px] text-baznas-ink/55 font-medium">
+                  {/* Indikator “data hari ini aktif” — denyut halus, non-interaktif.
+                      rounded-chip (bukan rounded-full) agar tetap di kosakata radius Zaiflu. */}
+                  <span
+                    aria-hidden="true"
+                    className={`inline-block h-1.5 w-1.5 shrink-0 rounded-chip bg-baznas-green-600 ${
+                      reduceMotion ? "" : "animate-pulse-glow"
+                    }`}
+                  />
                   {formatHijriahDate(currentDate)}
                 </span>
               </div>
@@ -160,121 +207,141 @@ export const Header: React.FC<HeaderProps> = ({
                 aria-label="Buka Pengingat Tugas"
                 aria-haspopup="menu"
                 aria-expanded={isNotifOpen}
-                className="relative inline-flex items-center justify-center rounded-md text-baznas-ink/65 hover:bg-baznas-paper transition-colors h-t-target w-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+                className="relative inline-flex items-center justify-center rounded-card text-baznas-ink/65 hover:bg-baznas-paper transition-colors duration-350 ease-zaiflu h-t-target w-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
                 title="Pengingat Tugas"
               >
                 <Bell className="h-5 w-5" />
-                {totalPending > 0 && (
-                  <span
-                    className="absolute top-0.5 right-0.5 flex h-5 min-w-[20px] items-center justify-center bg-baznas-error-700 px-1.5 text-[10px] font-bold text-white ring-2 ring-white"
-                    aria-label={`${totalPending} tugas tertunda`}
-                  >
-                    {totalPending}
-                  </span>
-                )}
+                {/* Badge — pop-in scale 0 → 1 dengan spring (Zaiflu badge pop) */}
+                <AnimatePresence>
+                  {totalPending > 0 && (
+                    <motion.span
+                      key="notif-badge"
+                      initial={reduceMotion ? false : { scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={reduceMotion ? { opacity: 0 } : { scale: 0, opacity: 0 }}
+                      transition={
+                        reduceMotion
+                          ? { duration: 0 }
+                          : { type: "spring" as const, stiffness: 520, damping: 26 }
+                      }
+                      className="absolute top-0.5 right-0.5 flex h-5 min-w-[20px] items-center justify-center bg-baznas-error-700 px-1.5 text-[10px] font-bold text-white ring-2 ring-white"
+                      aria-label={`${totalPending} tugas tertunda`}
+                    >
+                      {totalPending}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </button>
 
-              {/* Panel Dropdown Notifikasi */}
-              {isNotifOpen && (
-                <div
-                  role="menu"
-                  aria-label="Pengingat Tugas"
-                  className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white border border-baznas-ink-8 shadow-lift z-40 overflow-hidden"
-                >
-                  {/* Header Panel — tanpa gradient */}
-                  <div className="flex items-center justify-between bg-baznas-paper px-4 py-3 border-b border-baznas-ink-8">
-                    <div className="flex items-center gap-2">
-                      <Bell className="h-4 w-4 text-baznas-green-800" />
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-baznas-ink font-poppins">
-                        Pengingat Tugas
-                      </h3>
+              {/* Panel Dropdown Notifikasi — masuk dari atas (Zaiflu popover) */}
+              <AnimatePresence>
+                {isNotifOpen && (
+                  <motion.div
+                    key="notif-panel"
+                    role="menu"
+                    aria-label="Pengingat Tugas"
+                    initial={reduceMotion ? false : { opacity: 0, y: -8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.96 }}
+                    transition={reduceMotion ? { duration: 0 } : { duration: 0.2, ease: EASE_SOFT }}
+                    style={{ transformOrigin: "top right" }}
+                    className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white border border-baznas-ink-8 rounded-card shadow-deep z-40 overflow-hidden"
+                  >
+                    {/* Header Panel — tanpa gradient */}
+                    <div className="flex items-center justify-between bg-baznas-paper px-4 py-3 border-b border-baznas-ink-8">
+                      <div className="flex items-center gap-2">
+                        <Bell className="h-4 w-4 text-baznas-green-800" />
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-baznas-ink font-poppins">
+                          Pengingat Tugas
+                        </h3>
+                      </div>
+                      {totalPending > 0 && (
+                        <span className="inline-flex items-center justify-center bg-baznas-error-700 px-2 py-0.5 text-[10px] font-bold text-white">
+                          {totalPending}
+                        </span>
+                      )}
                     </div>
-                    {totalPending > 0 && (
-                      <span className="inline-flex items-center justify-center bg-baznas-error-700 px-2 py-0.5 text-[10px] font-bold text-white">
-                        {totalPending}
-                      </span>
-                    )}
-                  </div>
 
-                  {/* Daftar Item Notifikasi */}
-                  <div className="py-1.5">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setIsNotifOpen(false);
-                        onOpenPencairanReminder();
-                      }}
-                      disabled={pendingPencairan === 0}
-                      aria-label={`Permohonan Pencairan Dana, ${pendingPencairan} item tertunda`}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-baznas-ink transition-colors hover:bg-baznas-paper/60 focus:bg-baznas-paper/60 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent min-h-t-target border-b border-baznas-ink-8"
-                    >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-baznas-gold-display text-baznas-green-900">
-                        <Wallet className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-baznas-ink leading-tight text-sm">
-                          Permohonan Pencairan Dana
-                        </p>
-                        <p className="text-[11px] text-baznas-ink/55 mt-0.5">
-                          Menunggu persetujuan Anda
-                        </p>
-                      </div>
-                      <span
-                        className={`shrink-0 inline-flex items-center justify-center px-2 py-0.5 text-[11px] font-bold text-white min-w-[24px] ${
-                          pendingPencairan > 0 ? "bg-baznas-error-700" : "bg-baznas-ink-20"
-                        }`}
-                        aria-hidden="true"
+                    {/* Daftar Item Notifikasi */}
+                    <div className="py-1.5">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setIsNotifOpen(false);
+                          onOpenPencairanReminder();
+                        }}
+                        disabled={pendingPencairan === 0}
+                        aria-label={`Permohonan Pencairan Dana, ${pendingPencairan} item tertunda`}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-baznas-ink transition-colors duration-350 ease-zaiflu hover:bg-baznas-paper/60 focus:bg-baznas-paper/60 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent min-h-t-target border-b border-baznas-ink-8"
                       >
-                        {pendingPencairan}
-                      </span>
-                    </button>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-baznas-gold-display text-baznas-green-900">
+                          <Wallet className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-baznas-ink leading-tight text-sm">
+                            Permohonan Pencairan Dana
+                          </p>
+                          <p className="text-[11px] text-baznas-ink/55 mt-0.5">
+                            Menunggu persetujuan Anda
+                          </p>
+                        </div>
+                        <span
+                          className={`shrink-0 inline-flex items-center justify-center px-2 py-0.5 text-[11px] font-bold text-white min-w-[24px] ${
+                            pendingPencairan > 0 ? "bg-baznas-error-700" : "bg-baznas-ink-20"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          {pendingPencairan}
+                        </span>
+                      </button>
 
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setIsNotifOpen(false);
-                        onOpenSuratReminder();
-                      }}
-                      disabled={pendingSurat === 0}
-                      aria-label={`Surat Masuk Belum Disposisi, ${pendingSurat} item tertunda`}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-baznas-ink transition-colors hover:bg-baznas-paper/60 focus:bg-baznas-paper/60 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent min-h-t-target"
-                    >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-baznas-gold-display text-baznas-green-900">
-                        <Inbox className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-baznas-ink leading-tight text-sm">
-                          Surat Masuk Belum Disposisi
-                        </p>
-                        <p className="text-[11px] text-baznas-ink/55 mt-0.5">
-                          Perlu ditindaklanjuti segera
-                        </p>
-                      </div>
-                      <span
-                        className={`shrink-0 inline-flex items-center justify-center px-2 py-0.5 text-[11px] font-bold text-white min-w-[22px] ${
-                          pendingSurat > 0 ? "bg-baznas-error-700" : "bg-baznas-ink-20"
-                        }`}
-                        aria-hidden="true"
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setIsNotifOpen(false);
+                          onOpenSuratReminder();
+                        }}
+                        disabled={pendingSurat === 0}
+                        aria-label={`Surat Masuk Belum Disposisi, ${pendingSurat} item tertunda`}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-baznas-ink transition-colors duration-350 ease-zaiflu hover:bg-baznas-paper/60 focus:bg-baznas-paper/60 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent min-h-t-target"
                       >
-                        {pendingSurat}
-                      </span>
-                    </button>
-                  </div>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-baznas-gold-display text-baznas-green-900">
+                          <Inbox className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-baznas-ink leading-tight text-sm">
+                            Surat Masuk Belum Disposisi
+                          </p>
+                          <p className="text-[11px] text-baznas-ink/55 mt-0.5">
+                            Perlu ditindaklanjuti segera
+                          </p>
+                        </div>
+                        <span
+                          className={`shrink-0 inline-flex items-center justify-center px-2 py-0.5 text-[11px] font-bold text-white min-w-[22px] ${
+                            pendingSurat > 0 ? "bg-baznas-error-700" : "bg-baznas-ink-20"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          {pendingSurat}
+                        </span>
+                      </button>
+                    </div>
 
-                  {/* Footer Tutup */}
-                  <div className="border-t border-baznas-ink-8 bg-baznas-paper/40 px-4 py-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsNotifOpen(false)}
-                      className="w-full py-1.5 text-[11px] font-semibold text-baznas-ink/60 hover:text-baznas-green-900 transition-colors"
-                    >
-                      Tutup
-                    </button>
-                  </div>
-                </div>
-              )}
+                    {/* Footer Tutup */}
+                    <div className="border-t border-baznas-ink-8 bg-baznas-paper/40 px-4 py-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsNotifOpen(false)}
+                        className="w-full py-1.5 text-[11px] font-semibold text-baznas-ink/60 hover:text-baznas-green-900 transition-colors duration-350 ease-zaiflu"
+                      >
+                        Tutup
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* User Info & Tombol Buka Profil Saya */}
@@ -284,21 +351,23 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={onOpenProfile}
                 title={user ? `Profil: ${user.nama} — ${user.jabatan} (${permissionLabel(user.role)})` : "Buka Profil Saya"}
                 aria-label="Buka Profil Saya"
-                className="group flex items-center gap-2 p-1.5 hover:bg-baznas-paper transition-colors text-left min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+                className="group flex items-center gap-2 rounded-card p-1.5 hover:bg-baznas-paper transition-colors duration-350 ease-zaiflu text-left min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
               >
-                {user?.fotoProfil ? (
-                  <img
-                    src={user.fotoProfil}
-                    alt={user.nama}
-                    className="h-9 w-9 object-cover border border-baznas-ink-8"
-                  />
-                ) : (
-                  <div className="flex h-9 w-9 items-center justify-center bg-baznas-green-900 text-white group-hover:bg-baznas-green-800 transition-colors">
-                    <span className="text-[11px] font-bold tracking-tight">
-                      {user ? monogram(user.nama) : "—"}
-                    </span>
-                  </div>
-                )}
+                <Pressable className="inline-flex shrink-0">
+                  {user?.fotoProfil ? (
+                    <img
+                      src={user.fotoProfil}
+                      alt={user.nama}
+                      className="h-9 w-9 object-cover border border-baznas-ink/12 transition-colors duration-350 ease-zaiflu group-hover:border-baznas-green-800"
+                    />
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center border border-baznas-green-900 bg-baznas-green-900 text-white transition-colors duration-350 ease-zaiflu group-hover:border-baznas-green-800 group-hover:bg-baznas-green-800">
+                      <span className="text-[11px] font-bold tracking-tight">
+                        {user ? monogram(user.nama) : "—"}
+                      </span>
+                    </div>
+                  )}
+                </Pressable>
                 <div className="hidden md:block max-w-[200px]">
                   <p className="text-sm font-bold text-baznas-ink leading-tight truncate group-hover:text-baznas-green-900">
                     {user?.nama ?? "Pengguna"}
@@ -328,7 +397,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onLogout}
               title="Keluar ke Beranda Umum"
               aria-label="Keluar dari sistem"
-              className="inline-flex items-center gap-1.5 border border-baznas-ink-20 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 text-baznas-ink/70 px-3 sm:px-4 py-2 text-sm font-semibold transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+              className="inline-flex items-center gap-1.5 rounded-card border border-baznas-ink-20 px-3 sm:px-4 py-2 text-sm font-semibold text-baznas-ink/70 transition-all duration-350 ease-zaiflu hover:-translate-y-0.5 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 hover:shadow-crisp min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
             >
               <span className="hidden sm:inline">Keluar</span>
               <svg
@@ -344,7 +413,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
         </div>
-      </header>
+      </motion.header>
     </>
   );
 };

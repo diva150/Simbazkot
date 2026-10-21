@@ -19,6 +19,13 @@ import { formatRupiah } from "@/lib/utils";
 import { ConfirmDialog, useToast, Dialog } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
+  ModuleDashboardShell,
+  HeroPanel,
+  StatTile,
+  ProgressMeter,
+} from "@/components/modules/ModuleDashboard";
+import { AnimatedNumber } from "@/components/motion";
+import {
   FileText,
   Printer,
   CheckCircle2,
@@ -224,27 +231,109 @@ export const KetuaView: React.FC<KetuaViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header Ketua */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-baznas-ink-8 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="rounded-md border border-baznas-gold-display bg-baznas-green-800 p-3 text-white">
+      {/* DASHBOARD PIMPINAN (Ketua BAZNAS) — Ringkasan Eksekutif */}
+      <ModuleDashboardShell
+        eyebrow="Pimpinan — Ketua BAZNAS"
+        title="Ringkasan Eksekutif"
+        description="Statistik disposisi surat masuk, persetujuan SPK, dan akses laporan lintas bidang."
+        ghost="06"
+      >
+        {/* Identity strip — preserves header chrome (pangkat + pejabat) */}
+        <div className="flex flex-wrap items-center gap-4 border border-baznas-ink-8 bg-white p-4 rounded-card">
+          <div
+            className="rounded-md border border-baznas-gold-display bg-baznas-green-800 p-3 text-white"
+            aria-hidden="true"
+          >
             <ShieldCheck className="h-7 w-7 text-baznas-gold-400" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-baznas-ink font-poppins">
-                Dashboard Pimpinan — Ketua BAZNAS
-              </h1>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="inline-block bg-baznas-paper/60 px-3 py-0.5 text-xs font-bold text-baznas-green-900 border border-baznas-green-200">
                 Pimpinan Tertinggi
               </span>
+              <span className="text-sm font-semibold text-baznas-ink/85">
+                Mohamad Husain Rauf
+              </span>
+              <span className="text-xs text-baznas-ink/55">
+                (Ketua BAZNAS)
+              </span>
             </div>
-            <p className="text-xs text-baznas-ink/55 mt-0.5">
-              Pejabat: <span className="font-semibold text-baznas-ink/80">Mohamad Husain Rauf</span> (Ketua BAZNAS) — Otoritas Disposisi Surat Masuk, Persetujuan SPK Bantuan, &amp; Pengawasan Laporan
+            <p className="text-xs text-baznas-ink/55 mt-1">
+              Otoritas Disposisi Surat Masuk, Persetujuan SPK Bantuan, &amp;
+              Pengawasan Laporan
             </p>
           </div>
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+          {/* HERO — Surat Menunggu Disposisi (aksi prioritas ketua) */}
+          <HeroPanel
+            eyebrow="Surat Menunggu Disposisi"
+            ghost="01"
+            caption={`${suratMasukList.length} surat masuk tercatat · ${suratSudahDisposisi} sudah selesai. Tindaklanjuti disposisi yang masih terbuka ke Wakil Ketua.`}
+            icon={
+              <FileText className="h-56 w-56" strokeWidth={0.8} />
+            }
+            value={
+              <p className="display-1 editorial-num text-white leading-[0.95] tracking-tight">
+                <AnimatedNumber value={suratBelumDisposisi} />
+                <span className="text-base font-normal text-white/65 ml-2">
+                  Surat
+                </span>
+              </p>
+            }
+          >
+            <ProgressMeter
+              label="Penyelesaian Disposisi Surat"
+              value={
+                suratMasukList.length > 0
+                  ? (suratSudahDisposisi / suratMasukList.length) * 100
+                  : 0
+              }
+              valueLabel={
+                suratMasukList.length > 0
+                  ? `${Math.round(
+                      (suratSudahDisposisi / suratMasukList.length) * 100
+                    )}%`
+                  : "0%"
+              }
+              ariaLabel="Persentase surat masuk yang sudah didisposisi ketua"
+            />
+          </HeroPanel>
+
+          {/* 3 MEDIUM stat tiles — disposisi surat, persetujuan SPK, seluruh laporan */}
+          <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+            <StatTile
+              label="Total Surat Masuk"
+              value={<AnimatedNumber value={suratMasukList.length} />}
+              unit="Berkas"
+              hint={`Sudah didisposisi: ${suratSudahDisposisi}.`}
+              ghost="02"
+              tone="accent"
+            />
+            <StatTile
+              label="SPK Menunggu Persetujuan"
+              value={<AnimatedNumber value={pendingSpkCount} />}
+              unit="SPK"
+              hint="Pengajuan pencairan dari Bidang II yang belum diotorisasi."
+              ghost="03"
+              tone="negative"
+            />
+            <StatTile
+              label="Dana Penyaluran Disetujui"
+              value={
+                <AnimatedNumber
+                  value={totalPenyaluranDisetujui}
+                  format={(n: number) => formatRupiah(n)}
+                />
+              }
+              hint="Rekap penyaluran konsumtif lintas 4 pilar program."
+              ghost="04"
+              tone="positive"
+            />
+          </div>
+        </div>
+      </ModuleDashboardShell>
 
       {/* ============================================================ */}
       {/* 1. TAB DISPOSISI SURAT MASUK (BIDANG IV) */}

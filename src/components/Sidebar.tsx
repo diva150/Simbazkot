@@ -44,6 +44,8 @@ import {
   Layers,
   UserCircle,
 } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { EASE_SOFT, Pressable } from "@/components/motion";
 
 interface SidebarProps {
   user: UserSession;
@@ -110,6 +112,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const isDesktopCollapsed = !isHovered;
   const isAdmin = user.role === "admin";
+
+  // Semua motion lokal (dropdown, overlay, pergantian view) menghormati
+  // prefers-reduced-motion —Zaiflu feel tidak boleh memaksa animasi.
+  const reduceMotion = useReducedMotion();
 
   // Admin switcher — custom dropdown (lebih reliable dari native <select>)
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
@@ -190,7 +196,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   //            (w-16 collapsed / w-64 expanded). Tidak ada click toggle.
   const asideClass = [
     "no-print flex flex-col bg-white border-baznas-ink-8",
-    "transition-[width,transform,visibility] duration-200 ease-in-out",
+    "transition-[width,transform,visibility] duration-350 ease-zaiflu",
     // Mobile positioning & state
     isOpenMobile
       ? "fixed top-[72px] left-0 right-0 z-50 max-h-[calc(100vh-72px)] border-b shadow-lg translate-y-0 visible"
@@ -202,10 +208,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     "w-full",
   ].join(" ");
 
-  // Nav item: padding horizontal & justify menyesuaikan state collapse
-  // (transition-all untuk animasi padding & justify yang halus saat hover)
+  // Nav item: padding horizontal & justify menyesuaikan state collapse.
+  // Zaiflu: hover = -2px lift + 350ms universal timing; active state tetap
+  // memakai border-l-4 gold (a11y & collapsed icon-only state utuh).
   const navItemClass = (isActive: boolean) =>
-    `group w-full flex items-center gap-3 transition-all duration-200 ${
+    `group w-full flex items-center gap-3 rounded-r-lg transition-all duration-350 ease-zaiflu hover:-translate-y-0.5 ${
       isDesktopCollapsed ? "justify-center px-2" : "pl-4 pr-3"
     } py-3 border-l-4 text-sm min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-1 ${
       isActive
@@ -248,14 +255,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Overlay Mobile — hanya menutup area di bawah header (top-[72px])
-          agar hamburger di header tetap bisa diklik untuk menutup sidebar. */}
-      {isOpenMobile && (
-        <div
-          onClick={onCloseMobile}
-          className="fixed top-[72px] right-0 bottom-0 left-0 z-40 bg-baznas-ink/50 backdrop-blur-xs lg:hidden"
-          aria-hidden="true"
-        />
-      )}
+          agar hamburger di header tetap bisa diklik untuk menutup sidebar.
+          Fade via AnimatePresence; window click untuk close tetap dipertahankan. */}
+      <AnimatePresence>
+        {isOpenMobile && (
+          <motion.div
+            key="sidebar-mobile-overlay"
+            onClick={onCloseMobile}
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0 }}
+            transition={{ duration: 0.25, ease: EASE_SOFT }}
+            className="fixed top-[72px] right-0 bottom-0 left-0 z-40 bg-baznas-ink/50 backdrop-blur-xs lg:hidden"
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar Container — desktop auto-collapse via hover, mobile via hamburger */}
       <aside
@@ -275,42 +290,46 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             onClick={onCloseMobile}
-            className="inline-flex items-center justify-center rounded-md text-baznas-ink/60 hover:bg-baznas-paper h-t-target w-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+            className="inline-flex items-center justify-center rounded-md text-baznas-ink/60 transition-colors duration-350 ease-zaiflu hover:bg-baznas-paper hover:text-baznas-ink h-t-target w-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
             aria-label="Tutup Menu"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Identity Badge — hidden saat collapsed di desktop */}
+        {/* Identity Badge — hidden saat collapsed di desktop.
+            Pressable memberi feedback depress-on-tap; avatar punya scale-105 +
+            ring hijau saat hover (Zaiflu micro-interaction). */}
         <div className={`p-4 ${isDesktopCollapsed ? "lg:hidden" : ""} shrink-0`}>
-          <div className="flex items-center gap-3 p-4 bg-baznas-paper border-l-4 border-baznas-gold-display">
-            {user.fotoProfil ? (
-              <img
-                src={user.fotoProfil}
-                alt={user.nama}
-                className="shrink-0 h-10 w-10 object-cover border border-baznas-ink-8"
-              />
-            ) : (
-              <div className="shrink-0 h-10 w-10 bg-baznas-green-900 text-white flex items-center justify-center">
-                <span className="text-xs font-bold tracking-tight">
-                  {monogram(user.nama)}
-                </span>
+          <Pressable className="w-full">
+            <div className="group flex w-full items-center gap-3 rounded-card border border-baznas-ink-8 bg-baznas-paper p-4 shadow-rest transition-shadow duration-350 ease-zaiflu hover:shadow-lift">
+              {user.fotoProfil ? (
+                <img
+                  src={user.fotoProfil}
+                  alt={user.nama}
+                  className="h-10 w-10 shrink-0 rounded-full border border-baznas-ink-8 object-cover ring-1 ring-transparent transition-[transform,box-shadow] duration-350 ease-zaiflu group-hover:scale-105 group-hover:ring-baznas-green-800"
+                />
+              ) : (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-baznas-green-900 text-white ring-1 ring-transparent transition-[transform,box-shadow] duration-350 ease-zaiflu group-hover:scale-105 group-hover:ring-baznas-green-800">
+                  <span className="text-xs font-bold tracking-tight">
+                    {monogram(user.nama)}
+                  </span>
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className="h-3 w-3 text-baznas-green-800 shrink-0" aria-hidden="true" />
+                  <span className="text-[10px] font-bold text-baznas-green-900 uppercase tracking-wider truncate">
+                    {user.role === "admin" ? "Superadmin" : "Pengguna"}
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-baznas-ink leading-tight truncate mt-0.5">
+                  {user.nama}
+                </p>
+                <p className="text-[10px] text-baznas-ink/60 truncate mt-0.5">{user.jabatan}</p>
               </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <ShieldCheck className="h-3 w-3 text-baznas-green-800 shrink-0" aria-hidden="true" />
-                <span className="text-[10px] font-bold text-baznas-green-900 uppercase tracking-wider truncate">
-                  {user.role === "admin" ? "Superadmin" : "Pengguna"}
-                </span>
-              </div>
-              <p className="text-xs font-semibold text-baznas-ink leading-tight truncate mt-0.5">
-                {user.nama}
-              </p>
-              <p className="text-[10px] text-baznas-ink/50 truncate mt-0.5">{user.jabatan}</p>
             </div>
-          </div>
+          </Pressable>
         </div>
 
         {/* Switcher Bidang (Khusus Akun Admin) — custom dropdown */}
@@ -330,53 +349,80 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 aria-haspopup="listbox"
                 aria-expanded={isSwitcherOpen}
                 aria-label="Ganti modul tampilan untuk Superadmin"
-                className="w-full flex items-center justify-between gap-2 border border-baznas-ink-20 bg-baznas-paper/60 hover:bg-baznas-paper hover:border-baznas-green-800 px-3 py-2.5 text-xs font-semibold text-baznas-ink transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+                className="w-full flex items-center justify-between gap-2 rounded-card border border-baznas-ink-20 bg-baznas-paper/60 px-3 py-2.5 text-xs font-semibold text-baznas-ink transition-[background-color,border-color,transform] duration-350 ease-zaiflu hover:-translate-y-0.5 hover:border-baznas-green-800 hover:bg-baznas-paper min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
               >
                 <span className="truncate flex-1 text-left">{currentViewLabel}</span>
                 <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-baznas-ink/50 transition-transform duration-200 ${
+                  className={`h-4 w-4 shrink-0 text-baznas-ink/60 transition-transform duration-350 ease-zaiflu ${
                     isSwitcherOpen ? "rotate-180" : ""
                   }`}
                   aria-hidden="true"
                 />
               </button>
-              {isSwitcherOpen && (
-                <ul
-                  role="listbox"
-                  aria-label="Daftar modul Superadmin"
-                  className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-baznas-ink-8 shadow-lift max-h-80 overflow-y-auto"
-                >
-                  {VIEW_OPTIONS.map((opt) => {
-                    const isActive = activeRoleView === opt.value;
-                    return (
-                      <li key={opt.value}>
-                        <button
-                          type="button"
-                          role="option"
-                          aria-selected={isActive}
-                          onClick={() => {
-                            onChangeRoleView(opt.value);
-                            setIsSwitcherOpen(false);
+              <AnimatePresence>
+                {isSwitcherOpen && (
+                  <motion.ul
+                    key="superadmin-switcher-listbox"
+                    role="listbox"
+                    aria-label="Daftar modul Superadmin"
+                    initial={
+                      reduceMotion ? false : { opacity: 0, y: -8, scale: 0.98 }
+                    }
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={
+                      reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.99 }
+                    }
+                    transition={{ duration: 0.22, ease: EASE_SOFT }}
+                    style={{ transformOrigin: "top center" }}
+                    className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-card border border-baznas-ink-8 bg-white/85 backdrop-blur-lg shadow-deep max-h-80 overflow-y-auto"
+                  >
+                    {VIEW_OPTIONS.map((opt, i) => {
+                      const isActive = activeRoleView === opt.value;
+                      return (
+                        <motion.li
+                          key={opt.value}
+                          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            duration: 0.24,
+                            ease: EASE_SOFT,
+                            delay: reduceMotion ? 0 : 0.04 + i * 0.035,
                           }}
-                          className={`w-full text-left px-3 py-2.5 text-xs font-semibold transition-colors min-h-t-target border-l-4 ${
-                            isActive
-                              ? "bg-baznas-paper text-baznas-green-900 border-baznas-gold-display"
-                              : "text-baznas-ink/80 hover:bg-baznas-paper/40 border-transparent"
-                          }`}
                         >
-                          {opt.label}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={isActive}
+                            onClick={() => {
+                              onChangeRoleView(opt.value);
+                              setIsSwitcherOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2.5 text-xs font-semibold transition-[background-color,color] duration-350 ease-zaiflu min-h-t-target border-l-4 ${
+                              isActive
+                                ? "bg-baznas-paper text-baznas-green-900 border-baznas-gold-display"
+                                : "text-baznas-ink/85 hover:bg-baznas-paper/40 border-transparent"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        </motion.li>
+                      );
+                    })}
+                  </motion.ul>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         )}
 
-        {/* Dynamic Navigation Sesuai Bidang */}
-        <nav
+        {/* Dynamic Navigation Sesuai Bidang.
+            Key pada activeRoleView → perpindahan modul (khusus Superadmin)
+            memberi crossfade-up 350ms, satu arah masuk saja. */}
+        <motion.nav
+          key={activeRoleView}
+          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: EASE_SOFT }}
           className="flex-1 overflow-y-auto py-2.5"
           aria-label="Navigasi modul"
         >
@@ -927,7 +973,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
           )}
-        </nav>
+        </motion.nav>
 
         {/* Footer Sidebar: Tombol Logout saja.
             (Tombol "Ciutkan" dihapus — desktop sudah auto-collapse via hover,
@@ -938,7 +984,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onLogout}
             aria-label="Keluar dari sistem"
             title={isDesktopCollapsed ? "Kembali ke Beranda Umum" : undefined}
-            className="flex w-full items-center gap-2 border border-baznas-ink-12 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 py-2.5 text-xs font-bold text-baznas-ink/70 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-error-700"
+            className="flex w-full items-center gap-2 rounded-card border border-baznas-ink-12 py-2.5 text-xs font-bold text-baznas-ink/80 transition-[transform,box-shadow,background-color,border-color,color] duration-350 ease-zaiflu hover:-translate-y-0.5 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-error-700"
           >
             {isDesktopCollapsed ? (
               <LogOut className="h-4 w-4 mx-auto" aria-hidden="true" />

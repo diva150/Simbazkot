@@ -11,6 +11,12 @@ import { initialTemplatesSurat } from "@/lib/mock-data";
 import { useToast, Dialog } from "@/components/common";
 import { canAccessTab } from "@/lib/access";
 import {
+  ModuleDashboardShell,
+  HeroPanel,
+  StatTile,
+} from "@/components/modules/ModuleDashboard";
+import { AnimatedNumber } from "@/components/motion";
+import {
   FolderArchive,
   Printer,
   Download,
@@ -543,51 +549,54 @@ export const Bidang4View: React.FC<Bidang4ViewProps> = ({
 
       {/* 1. DASHBOARD RINGKASAN BIDANG 4 */}
       {canAccessTab(currentUser, "bidang4", "dashboard") && activeTab === "dashboard" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-xs font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Surat Masuk
-              </span>
-              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
-                {suratMasukList.length} <span className="text-sm font-normal text-baznas-ink/55">Berkas</span>
-              </p>
-              <p className="text-[11px] text-baznas-green-900 mt-1">
-                {suratMasukList.filter((s) => s.statusDisposisi === "sudah_disposisi").length} Telah didisposisi Ketua
-              </p>
-            </div>
+        <ModuleDashboardShell
+          eyebrow="Bidang IV — Administrasi & Aset"
+          title="Ringkasan Kearsipan & SDM"
+          description="Statistik surat masuk/keluar, direktori pegawai amil, dan inventaris aset kantor."
+          ghost="04"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+            {/* HERO — Total Surat Masuk & Disposisi */}
+            <HeroPanel
+              eyebrow="Total Surat Masuk & Disposisi"
+              ghost="01"
+              caption={`${suratMasukList.length} berkas tercatat, ${suratMasukList.filter((s) => s.statusDisposisi === "sudah_disposisi").length} telah didisposisi Ketua untuk tindak lanjut bidang.`}
+              icon={<FolderArchive className="h-56 w-56" strokeWidth={0.8} />}
+              value={
+                <p className="display-1 editorial-num text-white leading-[0.95] tracking-tight">
+                  <AnimatedNumber value={suratMasukList.length} />
+                  <span className="text-base font-normal text-white/65 ml-2">Berkas</span>
+                </p>
+              }
+            />
 
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-xs font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Surat Keluar
-              </span>
-              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
-                {suratKeluarList.length} <span className="text-sm font-normal text-baznas-ink/55">Berkas</span>
-              </p>
-              <p className="text-[11px] text-baznas-ink/45 mt-1">Tercatat pada agenda dinas</p>
-            </div>
-
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-xs font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Template Surat Aktif
-              </span>
-              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
-                {templates.length} <span className="text-sm font-normal text-baznas-ink/55">Format Word</span>
-              </p>
-              <p className="text-[11px] text-baznas-ink mt-1">Siap Ekspor Langsung ke Word</p>
-            </div>
-
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-xs font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Personel Amil &amp; Staf
-              </span>
-              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
-                {pegawaiList.length} <span className="text-sm font-normal text-baznas-ink/55">Amil</span>
-              </p>
-              <p className="text-[11px] text-baznas-ink/45 mt-1">Pimpinan &amp; Staf Pelaksana</p>
+            {/* 3 MEDIUM stats */}
+            <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+              <StatTile
+                label="Surat Keluar"
+                value={<AnimatedNumber value={suratKeluarList.length} />}
+                unit="Berkas"
+                hint="Tercatat pada agenda dinas."
+                ghost="02"
+              />
+              <StatTile
+                label="Template Surat Aktif"
+                value={<AnimatedNumber value={templates.length} />}
+                unit="Format Word"
+                hint="Siap ekspor langsung ke Microsoft Word."
+                ghost="03"
+              />
+              <StatTile
+                label="Personel Amil & Staf"
+                value={<AnimatedNumber value={pegawaiList.length} />}
+                unit="Amil"
+                hint="Pimpinan & staf pelaksana administrasi."
+                ghost="04"
+                tone="positive"
+              />
             </div>
           </div>
-        </div>
+        </ModuleDashboardShell>
       )}
 
       {/* 2. TAB FORMAT & TEMPLATE SURAT (EKSPOR LANGSUNG KE MICROSOFT WORD .DOC) */}

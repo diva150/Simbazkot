@@ -31,6 +31,13 @@ import {
   RotateCcw,
   X,
 } from "lucide-react";
+import {
+  ModuleDashboardShell,
+  HeroPanel,
+  StatTile,
+  ProgressMeter,
+} from "@/components/modules/ModuleDashboard";
+import { AnimatedNumber } from "@/components/motion";
 
 interface Bidang1ViewProps {
   muzakkiList: Muzakki[];
@@ -80,6 +87,11 @@ const tipeMuzakkiBadgeClass = (tipe: string | undefined): string => {
 
 // Class untuk status badge (NO emerald-100)
 const statusBadgeClass = "bg-baznas-paper border border-baznas-ink-12 text-baznas-ink";
+
+// Annual ZIS collection target (RKAT 2026 figure) — drives the
+// "Capaian Tahunan" ProgressMeter on the dashboard tab. Replace once
+// RKAT is loaded from the API; the ProgressMeter clamps at 100%.
+const TARGET_ZIS_TAHUNAN = 1_500_000_000;
 
 // ════════════════════════════════════════════════════════════════════
 
@@ -457,6 +469,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
   };
 
   const totalZIS = setoranList.reduce((acc, curr) => acc + curr.nominal, 0);
+  const capaianTahunan = (totalZIS / TARGET_ZIS_TAHUNAN) * 100;
 
   // Current active tab key untuk JENIS_BY_TAB lookup
   const currentTabKey: "zakat" | "infak" | "dskl" | null =
@@ -490,48 +503,54 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
       {/* 1. DASHBOARD RINGKASAN */}
       {canAccessTab(currentUser, "bidang1", "dashboard") && activeTab === "dashboard" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-[11px] font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Total ZIS Terhimpun
-              </span>
-              <p className="text-2xl font-bold text-baznas-green-900 font-poppins mt-2">
-                {formatRupiah(totalZIS)}
-              </p>
-              <p className="text-[11px] text-baznas-ink/45 mt-1">{setoranList.length} transaksi setoran kas</p>
-            </div>
+        <ModuleDashboardShell
+          eyebrow="Bidang I — Pengumpulan ZIS"
+          title="Ringkasan Setoran & Muzakki"
+          description="Statistik agregat setoran ZIS, daftar muzakki terhubung, dan indikator nisab terbaru."
+          ghost="01"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+            {/* HERO — total ZIS with annual-target progress (lime = progress only) */}
+            <HeroPanel
+              className="lg:col-span-7"
+              eyebrow="Total ZIS Terhimpun"
+              ghost="01"
+              icon={<HandCoins className="h-56 w-56" strokeWidth={0.8} />}
+              value={<AnimatedNumber value={totalZIS} format={formatRupiah} />}
+              caption={setoranList.length + " transaksi setoran kas tahun ini"}
+            >
+              <ProgressMeter
+                label="Capaian Tahunan"
+                value={capaianTahunan}
+                valueLabel={capaianTahunan.toFixed(1) + "%"}
+                ariaLabel="Capaian setoran ZIS tahunan terhadap target RKAT"
+              />
+            </HeroPanel>
 
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-[11px] font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Muzakki Terdaftar
-              </span>
-              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
-                {muzakkiList.length}
-                <span className="text-sm font-normal text-baznas-ink/55 ml-1">Muzakki</span>
-              </p>
-              <p className="text-[11px] text-baznas-ink/45 mt-1">Lengkap NIK, NPWZ &amp; Desil</p>
-            </div>
-
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-[11px] font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Instansi / OPD Aktif
-              </span>
-              <p className="text-2xl font-bold text-baznas-ink font-poppins mt-2">
-                {instansiList.length}
-                <span className="text-sm font-normal text-baznas-ink/55 ml-1">Unit UPZ</span>
-              </p>
-              <p className="text-[11px] text-baznas-ink/45 mt-1">Payroll Zakat ASN Terhubung</p>
-            </div>
-
-            <div className="border border-baznas-ink-8 bg-white p-5">
-              <span className="text-[11px] font-semibold text-baznas-ink/45 uppercase tracking-wider">
-                Nisab Emas 2026
-              </span>
-              <p className="text-2xl font-bold text-baznas-gold-display font-poppins mt-2">
-                Rp 82.500.000
-              </p>
-              <p className="text-[11px] text-baznas-ink/45 mt-1">Setara 85 gr Emas / Tahun</p>
+            {/* 3 MEDIUM stats */}
+            <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+              <StatTile
+                label="Muzakki Terdaftar"
+                value={<AnimatedNumber value={muzakkiList.length} />}
+                unit="Muzakki"
+                hint="Lengkap NIK, NPWZ &amp; Desil"
+                ghost="02"
+                tone="positive"
+              />
+              <StatTile
+                label="Instansi / OPD Aktif"
+                value={<AnimatedNumber value={instansiList.length} />}
+                unit="Unit UPZ"
+                hint="Payroll Zakat ASN Terhubung"
+                ghost="03"
+              />
+              <StatTile
+                label="Nisab Emas 2026"
+                value={<span className="text-baznas-gold-display">Rp 82.500.000</span>}
+                hint="Setara 85 gr Emas / Tahun"
+                ghost="04"
+                tone="accent"
+              />
             </div>
           </div>
 
@@ -573,7 +592,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
               );
             })}
           </div>
-        </div>
+        </ModuleDashboardShell>
       )}
 
       {/* 2. DATA MUZAKKI */}
