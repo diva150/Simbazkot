@@ -42,6 +42,14 @@ interface BAZNASMarkProps {
   className?: string;
   monochrome?: boolean;
   invertOnDark?: boolean;
+  /**
+   * Override the source file. The dark-background artwork
+   * (`/baznas-logo-negative.png`) is the same mark with only its lettering
+   * knocked to the brand's paper cream, and it is what belongs on the
+   * petrol/green-950 surfaces — the default file's dark-green wordmark and
+   * near-black subtitle drop to ~2:1 there.
+   */
+  src?: string;
 }
 
 // Size map untuk "mark" dan "full" variants (height dalam pixels)
@@ -66,6 +74,7 @@ export const BAZNASMark: React.FC<BAZNASMarkProps> = ({
   className = "",
   monochrome = false,
   invertOnDark = false,
+  src = "/baznas-logo.png",
 }) => {
   // Icon variant — circular badge dengan monogram "B" (hemat ruang,
   // cocok untuk favicon, app icon, dan small chip)
@@ -77,7 +86,7 @@ export const BAZNASMark: React.FC<BAZNASMarkProps> = ({
   const h = sizeMap[size];
   return (
     <img
-      src="/baznas-logo.png"
+      src={src}
       alt="BAZNAS — Badan Amil Zakat Nasional"
       className={`block ${invertOnDark ? "brightness-0 invert" : ""} ${
         variant === "full" ? "" : "h-auto"

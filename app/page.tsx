@@ -125,7 +125,7 @@ function HomeContent() {
   const [userAccounts, setUserAccounts] = useState<UserSession[]>(initialPredefinedUsers);
   const [berandaContent, setBerandaContent] = useState<BerandaContent>(initialBerandaContent);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("beranda");
+  const [activeSection, setActiveSection] = useState("hero");
 
   // Active Role View (bidang1, bidang2, bidang3, bidang4, ketua, admin)
   // Restricted by the logged-in user's role — see `canAccessView` in lib/access.ts.
@@ -210,7 +210,12 @@ function HomeContent() {
 
   const handleNavigateSection = (secId: string) => {
     setActiveSection(secId);
-    if (secId === "beranda") {
+    // Both "beranda" (the legacy name the navbar used to pass) and "hero" (the
+    // anchor the landing registry actually ships) mean the top of the page.
+    // Without "hero" here the header would call getElementById("hero"), which
+    // happens to work only because the hero is the first element — spelling it
+    // out keeps the special case honest if the page ever grows a banner above.
+    if (secId === "beranda" || secId === "hero") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       const el = document.getElementById(secId);

@@ -318,10 +318,16 @@ export function GlassCard({
 }: GlassCardProps) {
   const reduceMotion = useReducedMotion();
 
+  // `ink` and `petrol` are nested under the `baznas` key in tailwind.config.ts,
+  // so there is no top-level `ink`/`petrol` color and Tailwind never emits
+  // `border-ink/15` or `bg-petrol-900/25`. The old spelling silently rendered the
+  // dark variant with NO tint and the light variant with the 8%-black
+  // `borderColor.DEFAULT` fallback — i.e. an invisible hairline. Fully-qualified
+  // names are what actually compile.
   const skin =
     variant === "light"
-      ? "bg-white/25 backdrop-blur-lg border-ink/15"
-      : "bg-petrol-900/25 backdrop-blur-lg border-white/15";
+      ? "bg-white/25 backdrop-blur-lg border-baznas-ink/15"
+      : "bg-baznas-petrol-900/25 backdrop-blur-lg border-white/15";
 
   const interactiveClass = interactive
     ? "shadow-crisp transition-shadow duration-350 ease-zaiflu hover:shadow-deep"
@@ -362,10 +368,15 @@ export function GhostNumber({
   children: React.ReactNode;
   className?: string;
 }) {
+  // Default is the on-paper ghost. This used to be spelled `text-ink/[0.07]`,
+  // but `ink` lives under the `baznas` key in tailwind.config.ts, so Tailwind
+  // emitted nothing for it and the numeral inherited full-strength ink — a solid
+  // dark block rather than a ghost. Consumers sitting on a dark surface must
+  // pass `text-white/[0.07]` explicitly, which is what the landing sections do.
   return (
     <span
       aria-hidden="true"
-      className={`pointer-events-none absolute select-none font-display font-extrabold leading-none tracking-tighter text-ink/[0.07] ${className}`}
+      className={`pointer-events-none absolute select-none font-display font-extrabold leading-none tracking-tighter text-baznas-ink/[0.07] ${className}`}
     >
       {children}
     </span>
