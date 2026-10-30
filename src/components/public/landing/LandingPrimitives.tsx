@@ -87,7 +87,7 @@ export function Section({
 }: SectionProps) {
   const surface = clsx(
     "relative overflow-hidden",
-    tone === "paper" && "bg-baznas-paper text-baznas-ink",
+    tone === "paper" && "bg-baznas-paper bg-editorial-grid text-baznas-ink",
     tone === "white" && "bg-white text-baznas-ink",
     tone === "mesh-dark" && "bg-mesh-dark bg-noise text-white",
   );

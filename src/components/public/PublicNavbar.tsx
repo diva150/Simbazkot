@@ -114,14 +114,14 @@ interface PublicNavbarProps {
 }
 
 /**
- * Height of the nav row (see `h-[72px]` below).
+ * Height of the nav row (see `h-[76px]` below).
  *
  * The scroll-spy's reading band has to start exactly where the header stops
  * covering the content, otherwise the section you are looking at is not the
  * one that lights up. Keeping it as a named constant next to the observer
  * means a future `h-16` change is a one-line edit, not a silent a11y bug.
  */
-const NAV_ROW_HEIGHT_PX = 72;
+const NAV_ROW_HEIGHT_PX = 76;
 
 /**
  * Where the reading band ends, as a fraction of the viewport.
@@ -322,7 +322,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({
 
   return (
     <header
-      className={`sticky top-0 z-40 w-full border-b border-transparent bg-white/90 backdrop-blur-md transition-shadow duration-350 ease-zaiflu ${
+      className={`sticky top-0 z-40 w-full border-b border-baznas-ink-8 bg-baznas-paper/95 backdrop-blur-md transition-shadow duration-350 ease-zaiflu ${
         scrolled ? "shadow-rest" : ""
       }`}
     >
@@ -358,7 +358,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({
         )}
       </AnimatePresence>
 
-      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand & Logo — Pressable memberi feedback tap; hover scale. */}
         <Pressable>
           <button
@@ -366,12 +366,18 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({
             className="flex items-center rounded-md transition-transform duration-350 ease-zaiflu hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
             aria-label="BAZNAS — Beranda"
           >
-            <BAZNASMark variant="mark" size="md" className="text-baznas-green-800" />
+            <span className="flex items-center gap-3">
+              <BAZNASMark variant="mark" size="md" className="text-baznas-green-800" />
+              <span className="hidden border-l border-baznas-ink-20 pl-3 text-left sm:block">
+                <span className="block text-[10px] font-extrabold uppercase tracking-[0.2em] text-baznas-ink">BAZNAS</span>
+                <span className="block text-[9px] font-medium uppercase tracking-[0.14em] text-baznas-ink/65">Kota Gorontalo</span>
+              </span>
+            </span>
           </button>
         </Pressable>
 
         {/* Desktop Navigation Links — underline morph pakai motion layoutId. */}
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Navigasi utama">
+        <nav className="hidden items-center gap-2 md:flex" aria-label="Navigasi utama">
           {NAV_LINKS.map((item) => {
             const isActive = activeId === item.id;
             return (
@@ -381,7 +387,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({
                 // `true`, not `"page"` — these are anchors into the page the
                 // reader is already on, not links to another document.
                 aria-current={isActive ? true : undefined}
-                className={`relative rounded-md px-4 py-2 text-sm font-semibold transition-colors duration-350 ease-zaiflu focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 ${
+                className={`relative rounded-md px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors duration-350 ease-zaiflu focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 ${
                   isActive
                     ? "text-baznas-green-900"
                     : "text-baznas-ink/85 hover:text-baznas-ink"
@@ -414,7 +420,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({
           <Pressable>
             <button
               onClick={onOpenLogin}
-              className="inline-flex items-center gap-2 rounded-card bg-baznas-ink px-4 py-2.5 text-sm font-semibold text-white transition-[background-color,box-shadow,transform] duration-350 ease-zaiflu hover:-translate-y-0.5 hover:bg-baznas-ink/85 hover:shadow-glow min-h-t-target focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 rounded-md border border-baznas-green-800 bg-baznas-green-800 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition-[background-color,box-shadow,transform] duration-350 ease-zaiflu hover:-translate-y-0.5 hover:bg-baznas-green-900 hover:shadow-glow min-h-t-target focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
               aria-label="Login Petugas Bidang"
             >
               <Lock className="h-3.5 w-3.5 text-baznas-gold-display" aria-hidden="true" />

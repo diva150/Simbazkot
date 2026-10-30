@@ -314,6 +314,15 @@ button.bg-baznas-green-900:focus-visible {
     radial-gradient(at 60% 96%, rgba(204, 255, 102, 0.06) 0px, transparent 52%);
 }
 
+/* Editorial grid: gives long light sections a quiet civic-document texture. */
+.bg-editorial-grid {
+  background-image:
+    linear-gradient(rgba(14, 26, 20, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 26, 20, 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  background-position: center top;
+}
+
 /* Inline noise overlay — adds grain. Opacity is intentionally low so it
    reads as texture, not as visual noise. */
 .bg-noise {

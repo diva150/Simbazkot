@@ -233,12 +233,11 @@ export function HeroSection({
         </div>
 
         {/* ──────────────────────────── Logo column ──────────────────────────── */}
-        <div className="flex flex-col items-center lg:col-span-5">
+        <div className="relative flex flex-col items-center lg:col-span-5">
           {/* WHY THE NEGATIVE ASSET, AND WHY NOTHING AROUND IT.
-              The mark sits bare on the mesh — no frame, no plate, no
-              shadow, no border. That is a brand rule and it is also what
-              the page wants: the emblem should read as the institutional
-              signature, not as a card competing with the headline.
+              The mark sits in a restrained editorial frame on the mesh. The
+              frame is structural rather than a floating card: it anchors the
+              institutional signature without competing with the headline.
 
               `/baznas-logo-negative.png` is the official artwork with only
               its LETTERING knocked to the brand's paper cream. The Garuda
@@ -254,14 +253,22 @@ export function HeroSection({
               The file is also cropped to its alpha bounding box, so unlike
               `/baznas-logo.png` it carries no dead transparent margin and
               can be sized directly. */}
-          <img
-            src="/baznas-logo-negative.png"
-            alt="Logo Resmi BAZNAS Kota Gorontalo — Badan Amil Zakat Nasional"
-            className="h-auto w-full max-w-[22rem] object-contain"
-            loading="eager"
-            decoding="async"
-            draggable={false}
-          />
+          <div className="relative w-full max-w-[25rem] border-y border-white/20 px-7 py-10 sm:px-10 sm:py-14">
+            <span aria-hidden="true" className="absolute left-0 top-0 h-12 w-px bg-baznas-gold-display" />
+            <span aria-hidden="true" className="absolute bottom-0 right-0 h-12 w-px bg-baznas-gold-display" />
+            <img
+              src="/baznas-logo-negative.png"
+              alt="Logo Resmi BAZNAS Kota Gorontalo — Badan Amil Zakat Nasional"
+              className="h-auto w-full object-contain"
+              loading="eager"
+              decoding="async"
+              draggable={false}
+            />
+            <div className="mt-8 flex items-center justify-between border-t border-white/15 pt-4 text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+              <span>Sejak 2001</span>
+              <span className="text-baznas-gold-display">Amanah · Terukur</span>
+            </div>
+          </div>
 
           {/* `heroTagline` is a CMS-editable record that the previous landing
               never rendered anywhere. It reads naturally as the office's

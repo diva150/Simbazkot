@@ -105,7 +105,7 @@ export function ProgramSection({ className }: ProgramSectionProps) {
       <Stagger
         immediate={false}
         stagger={0.08}
-        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-1 gap-6 sm:grid-cols-2"
       >
         {PROGRAM_UNGGULAN.map((program) => {
           const pilarIndex = PILAR_INDEX[program.key];
@@ -133,7 +133,7 @@ export function ProgramSection({ className }: ProgramSectionProps) {
                 </GhostNumber>
 
                 {/* ── Photo well ── */}
-                <div className="relative aspect-[4/3] overflow-hidden rounded-t-panel bg-baznas-ink">
+                <div className="relative aspect-[16/8] overflow-hidden rounded-t-panel bg-baznas-ink">
                   <img
                     src={program.photo}
                     alt=""
