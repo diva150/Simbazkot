@@ -604,17 +604,41 @@ function HomeContent() {
             setShowBeranda(true);
           }}
           bidang1Tab={bidang1Tab}
-          onChangeBidang1Tab={setBidang1Tab}
+          onChangeBidang1Tab={(tab) => {
+            setShowProfile(false);
+            setShowBeranda(false);
+            setBidang1Tab(tab);
+          }}
           bidang2Tab={bidang2Tab}
-          onChangeBidang2Tab={setBidang2Tab}
+          onChangeBidang2Tab={(tab) => {
+            setShowProfile(false);
+            setShowBeranda(false);
+            setBidang2Tab(tab);
+          }}
           bidang3Tab={bidang3Tab}
-          onChangeBidang3Tab={setBidang3Tab}
+          onChangeBidang3Tab={(tab) => {
+            setShowProfile(false);
+            setShowBeranda(false);
+            setBidang3Tab(tab);
+          }}
           bidang4Tab={bidang4Tab}
-          onChangeBidang4Tab={setBidang4Tab}
+          onChangeBidang4Tab={(tab) => {
+            setShowProfile(false);
+            setShowBeranda(false);
+            setBidang4Tab(tab);
+          }}
           ketuaTab={ketuaTab}
-          onChangeKetuaTab={setKetuaTab}
+          onChangeKetuaTab={(tab) => {
+            setShowProfile(false);
+            setShowBeranda(false);
+            setKetuaTab(tab);
+          }}
           adminTab={adminTab}
-          onChangeAdminTab={setAdminTab}
+          onChangeAdminTab={(tab) => {
+            setShowProfile(false);
+            setShowBeranda(false);
+            setAdminTab(tab);
+          }}
         />
 
         {/* Area Kerja Sesuai Role & View yang Dipilih */}

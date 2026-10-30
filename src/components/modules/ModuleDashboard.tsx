@@ -210,9 +210,9 @@ export function HeroPanel({
           </span>
         </div>
 
-        <p className="display-1 editorial-num text-white leading-[0.95] tracking-tight">
+        <div className="display-1 editorial-num text-white leading-[0.95] tracking-tight">
           {value}
-        </p>
+        </div>
 
         {caption && (
           <p className="mt-4 text-sm text-white/85 max-w-md leading-relaxed">
