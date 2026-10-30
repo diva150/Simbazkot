@@ -162,40 +162,45 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-baznas-ink-8 pb-4">
+    <div className="space-y-8">
+      {/* Personal security header */}
+      <section className="relative overflow-hidden rounded-panel bg-mesh-dark p-6 text-white shadow-float sm:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full border border-white/10" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/3 h-44 w-44 rounded-full border border-baznas-gold-display/20" />
+        <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <BAZNASMark variant="icon" size="md" className="text-baznas-green-900" />
+          <BAZNASMark variant="icon" size="md" className="text-baznas-gold-display" />
           <div>
-            <h1 className="text-xl font-bold text-baznas-ink font-poppins">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-baznas-gold-display">Ruang Personal</p>
+            <h1 className="mt-1 text-xl font-bold text-white font-poppins">
               Profil Saya
             </h1>
-            <p className="text-xs text-baznas-ink/65 mt-0.5">
+            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/70">
               Perbarui email, kata sandi, dan foto profil Anda. Data identitas lainnya hanya dapat diubah oleh Super Admin.
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {isAdmin ? (
-            <span className="inline-flex items-center gap-1.5 bg-baznas-ink text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 rounded-chip border border-white/20 bg-white/[0.08] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white">
               <ShieldCheck className="h-3 w-3" />
               Super Admin
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 bg-baznas-paper border border-baznas-ink-20 text-baznas-ink px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 rounded-chip border border-white/20 bg-white/[0.08] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white">
               <UserIcon className="h-3 w-3" />
               Pengguna
             </span>
           )}
         </div>
       </div>
+      </section>
 
       <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ── KOLOM KIRI: IDENTITAS (read-only) + FOTO ─────────────── */}
         <div className="lg:col-span-1 space-y-6">
           {/* Foto Profil */}
-          <div className="border border-baznas-ink-8 bg-white p-6">
+          <div className="rounded-panel border border-baznas-ink-8 bg-white p-5 shadow-rest sm:p-6">
             <h3 className="text-sm font-bold text-baznas-ink font-poppins mb-4 flex items-center gap-2">
               <Camera className="h-4 w-4 text-baznas-green-900" />
               <span>Foto Profil</span>
@@ -203,7 +208,7 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
 
             <div className="flex flex-col items-center gap-4">
               {/* Photo preview */}
-              <div className="relative h-32 w-32 border-2 border-baznas-ink-12 overflow-hidden bg-baznas-paper/40">
+              <div className="relative h-32 w-32 overflow-hidden rounded-card border-2 border-baznas-gold-display/70 bg-baznas-paper/40 shadow-rest">
                 {formFoto ? (
                   <img
                     src={formFoto}
@@ -237,7 +242,7 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center justify-center gap-2 border border-baznas-ink-20 hover:border-baznas-green-800 hover:bg-baznas-paper px-3 py-2 text-xs font-semibold text-baznas-ink transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+                  className="flex min-h-t-target items-center justify-center gap-2 rounded-card border border-baznas-ink-20 px-3 py-2 text-xs font-semibold text-baznas-ink transition-all hover:-translate-y-0.5 hover:border-baznas-green-800 hover:bg-baznas-paper hover:shadow-rest focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
                 >
                   <Upload className="h-3.5 w-3.5" />
                   <span>{formFoto ? "Ganti Foto" : "Unggah Foto"}</span>
@@ -246,7 +251,7 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
                   <button
                     type="button"
                     onClick={handleRemovePhoto}
-                    className="flex items-center justify-center gap-2 border border-baznas-ink-20 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 px-3 py-2 text-xs font-semibold text-baznas-ink/70 transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-error-700"
+                    className="flex min-h-t-target items-center justify-center gap-2 rounded-card border border-baznas-ink-20 px-3 py-2 text-xs font-semibold text-baznas-ink/70 transition-all hover:-translate-y-0.5 hover:border-baznas-error-700 hover:bg-baznas-error-50 hover:text-baznas-error-700 hover:shadow-rest focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-error-700"
                   >
                     <X className="h-3.5 w-3.5" />
                     <span>Hapus Foto</span>
@@ -260,7 +265,7 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
           </div>
 
           {/* Data Identitas (read-only) */}
-          <div className="border border-baznas-ink-8 bg-white p-6">
+          <div className="rounded-panel border border-baznas-ink-8 bg-white p-5 shadow-rest sm:p-6">
             <h3 className="text-sm font-bold text-baznas-ink font-poppins mb-4 flex items-center gap-2">
               <IdCard className="h-4 w-4 text-baznas-green-900" />
               <span>Data Identitas</span>
@@ -333,7 +338,7 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
           )}
 
           {/* Email */}
-          <div className="border border-baznas-ink-8 bg-white p-6">
+          <div className="rounded-panel border border-baznas-ink-8 bg-white p-5 shadow-rest sm:p-6">
             <h3 className="text-sm font-bold text-baznas-ink font-poppins mb-1 flex items-center gap-2">
               <Mail className="h-4 w-4 text-baznas-green-900" />
               <span>Email Login</span>
@@ -355,7 +360,7 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
           </div>
 
           {/* Password */}
-          <div className="border border-baznas-ink-8 bg-white p-6">
+          <div className="rounded-panel border border-baznas-ink-8 bg-white p-5 shadow-rest sm:p-6">
             <h3 className="text-sm font-bold text-baznas-ink font-poppins mb-1 flex items-center gap-2">
               <Lock className="h-4 w-4 text-baznas-green-900" />
               <span>Ubah Kata Sandi</span>
@@ -443,13 +448,13 @@ export const ProfilSayaView: React.FC<ProfilSayaViewProps> = ({
           </div>
 
           {/* Save bar */}
-          <div className="flex items-center justify-end gap-3 border border-baznas-ink-8 bg-baznas-paper/40 p-4">
+          <div className="flex items-center justify-end gap-3 rounded-card border border-baznas-ink-8 bg-baznas-paper/40 p-4 shadow-rest">
             <p className="text-[11px] text-baznas-ink/65 mr-auto">
               Perubahan akan langsung berlaku pada sesi Anda saat ini.
             </p>
             <button
               type="submit"
-              className="flex items-center gap-2 bg-baznas-ink hover:bg-baznas-ink/90 px-5 py-2.5 text-sm font-bold text-white transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
+              className="flex min-h-t-target items-center gap-2 rounded-card bg-baznas-green-900 px-5 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-baznas-green-800 hover:shadow-lift focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
             >
               <Save className="h-4 w-4" aria-hidden="true" />
               <span>Simpan Perubahan</span>

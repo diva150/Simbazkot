@@ -21,7 +21,6 @@ import {
   motion,
   useReducedMotion,
 } from "motion/react";
-import { BAZNASMark } from "@/components/brand/BAZNASMark";
 import { Pressable } from "@/components/motion";
 import { initialPredefinedUsers } from "@/lib/mock-data";
 import { UserSession } from "@/lib/types";
@@ -232,14 +231,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 damping: 28,
                 mass: 0.9,
               }}
-              className="relative w-full max-w-md bg-white shadow-lift border border-baznas-ink-8 overflow-hidden my-auto max-h-[94vh] flex flex-col pointer-events-auto"
+              className="relative w-full max-w-lg overflow-hidden rounded-panel border border-white/20 bg-white shadow-deep my-auto max-h-[94vh] flex flex-col pointer-events-auto"
             >
-              {/* Modal Header — paper, dengan subtle background pattern */}
-              <div className="relative bg-baznas-paper px-7 pt-8 pb-6 text-center border-b border-baznas-ink-8 shrink-0">
+              {/* Dark institutional header keeps the portal distinct from the public form surfaces. */}
+              <div className="relative overflow-hidden bg-mesh-dark px-7 pb-7 pt-8 text-center text-white shrink-0">
+                <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full border border-white/10" />
+                <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 -left-20 h-56 w-56 rounded-full border border-baznas-gold-display/20" />
                 <button
                   type="button"
                   onClick={onClose}
-                  className="absolute top-3 right-3 inline-flex items-center justify-center text-baznas-ink/70 hover:text-baznas-ink hover:bg-baznas-ink-8 h-t-target w-t-target transition-all duration-200 hover:rotate-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800"
+                  className="absolute right-3 top-3 inline-flex h-t-target w-t-target items-center justify-center rounded-full text-white/70 transition-all duration-200 hover:rotate-90 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   aria-label="Tutup"
                 >
                   <X className="h-4 w-4" />
@@ -256,45 +257,41 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     damping: 16,
                     delay: 0.15,
                   }}
-                  className="flex justify-center text-baznas-gold-display mb-3 inline-block"
+                  className="relative z-10 mb-3 inline-flex justify-center text-baznas-gold-display"
                   aria-hidden="true"
                 >
                   <Lock className="h-7 w-7" />
                 </motion.div>
 
-                <div className="transition-transform duration-300 hover:scale-[1.02] inline-block">
-                  <BAZNASMark
-                    variant="mark"
-                    size="md"
-                    className="text-baznas-green-900 justify-center"
-                  />
+                <div className="relative z-10 inline-block transition-transform duration-300 hover:scale-[1.02]">
+                  <img src="/baznas-logo-negative.png" alt="BAZNAS Kota Gorontalo" className="mx-auto h-auto w-52" />
                 </div>
 
-                <div className="mt-5 flex items-center gap-2 justify-center text-baznas-ink/75">
+                <div className="relative z-10 mt-5 flex items-center justify-center gap-2 text-white/70">
                   <span
-                    className="h-px w-8 bg-baznas-gold-display"
+                    className="h-px w-8 bg-baznas-gold-display/70"
                     aria-hidden="true"
                   />
                   <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                   <span
-                    className="h-px w-8 bg-baznas-gold-display"
+                    className="h-px w-8 bg-baznas-gold-display/70"
                     aria-hidden="true"
                   />
                 </div>
 
                 <h3
                   id="login-title"
-                  className="mt-4 text-base font-poppins font-bold text-baznas-ink"
+                  className="relative z-10 mt-4 text-lg font-poppins font-bold text-white"
                 >
                   Portal Petugas Bidang
                 </h3>
-                <p className="mt-1 text-xs text-baznas-ink/70 leading-relaxed">
+                <p className="relative z-10 mt-1 text-sm leading-relaxed text-white/75">
                   Akses internal khusus amil, ketua, dan administrator BAZNAS.
                 </p>
               </div>
 
               {/* Modal Content */}
-              <div className="p-7 space-y-4 overflow-y-auto flex-1">
+              <div className="flex-1 space-y-4 overflow-y-auto bg-baznas-paper/60 p-7">
                 {/* Error message — fades in via AnimatePresence */}
                 <AnimatePresence>
                   {errorMsg && (
@@ -354,7 +351,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                         onBlur={() => setEmailFocused(false)}
                         placeholder="admin@baznas.go.id"
                         autoComplete="email"
-                        className="relative w-full border border-baznas-ink-20 bg-white pl-10 pr-3 py-2.5 text-sm text-baznas-ink placeholder:text-baznas-ink/75 focus:outline-none focus:border-baznas-green-800 focus:bg-white min-h-t-target transition-all duration-200 hover:border-baznas-ink-40 focus-visible:ring-2 focus-visible:ring-baznas-green-800/30 disabled:opacity-50"
+                        className="relative w-full rounded-md border border-baznas-ink-20 bg-white pl-10 pr-3 py-2.5 text-sm text-baznas-ink placeholder:text-baznas-ink/75 focus:outline-none focus:border-baznas-green-800 focus:bg-white min-h-t-target transition-all duration-200 hover:border-baznas-ink-40 focus-visible:ring-2 focus-visible:ring-baznas-green-800/30 disabled:opacity-50"
                       />
                       {emailFocused && !reduceMotion && (
                         <motion.span
@@ -401,7 +398,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                         onBlur={() => setPasswordFocused(false)}
                         placeholder="••••••••"
                         autoComplete="current-password"
-                        className="relative w-full border border-baznas-ink-20 bg-white pl-10 pr-10 py-2.5 text-sm text-baznas-ink placeholder:text-baznas-ink/75 focus:outline-none focus:border-baznas-green-800 focus:bg-white min-h-t-target transition-all duration-200 hover:border-baznas-ink-40 focus-visible:ring-2 focus-visible:ring-baznas-green-800/30 disabled:opacity-50"
+                        className="relative w-full rounded-md border border-baznas-ink-20 bg-white pl-10 pr-10 py-2.5 text-sm text-baznas-ink placeholder:text-baznas-ink/75 focus:outline-none focus:border-baznas-green-800 focus:bg-white min-h-t-target transition-all duration-200 hover:border-baznas-ink-40 focus-visible:ring-2 focus-visible:ring-baznas-green-800/30 disabled:opacity-50"
                       />
                       <button
                         type="button"
@@ -462,7 +459,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="group w-full inline-flex items-center justify-center gap-2 bg-baznas-ink hover:bg-baznas-ink/90 text-white py-3 text-sm font-bold transition-all duration-200 min-h-t-target-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2 disabled:opacity-80 disabled:cursor-wait active:scale-[0.99] relative overflow-hidden"
+                      className="group relative w-full inline-flex min-h-t-target-lg items-center justify-center gap-2 rounded-card bg-baznas-green-800 py-3 text-sm font-bold text-white transition-all duration-200 hover:bg-baznas-green-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2 disabled:opacity-80 disabled:cursor-wait active:scale-[0.99] overflow-hidden"
                     >
                       {isSubmitting ? (
                         <>

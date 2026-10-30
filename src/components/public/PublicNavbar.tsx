@@ -322,7 +322,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({
 
   return (
     <header
-      className={`sticky top-0 z-40 w-full border-b border-baznas-ink-8 bg-baznas-paper/95 backdrop-blur-md transition-shadow duration-350 ease-zaiflu ${
+      className={`sticky top-0 z-40 w-full border-b border-baznas-ink-8 bg-baznas-paper/90 backdrop-blur-xl transition-shadow duration-350 ease-zaiflu ${
         scrolled ? "shadow-rest" : ""
       }`}
     >
@@ -420,7 +420,7 @@ export const PublicNavbar: React.FC<PublicNavbarProps> = ({
           <Pressable>
             <button
               onClick={onOpenLogin}
-              className="inline-flex items-center gap-2 rounded-md border border-baznas-green-800 bg-baznas-green-800 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition-[background-color,box-shadow,transform] duration-350 ease-zaiflu hover:-translate-y-0.5 hover:bg-baznas-green-900 hover:shadow-glow min-h-t-target focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
+              className="inline-flex min-h-t-target items-center gap-2 rounded-card border border-baznas-green-800 bg-baznas-green-800 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition-[background-color,box-shadow,transform] duration-350 ease-zaiflu hover:-translate-y-0.5 hover:bg-baznas-green-900 hover:shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
               aria-label="Login Petugas Bidang"
             >
               <Lock className="h-3.5 w-3.5 text-baznas-gold-display" aria-hidden="true" />

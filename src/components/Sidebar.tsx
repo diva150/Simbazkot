@@ -195,8 +195,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // - Desktop: static di dalam flex flow, lebar responsif terhadap hover
   //            (w-16 collapsed / w-64 expanded). Tidak ada click toggle.
   const asideClass = [
-    "no-print flex flex-col bg-white border-baznas-ink-8",
-    "transition-[width,transform,visibility] duration-350 ease-zaiflu",
+    "no-print flex flex-col border-baznas-ink-8 bg-baznas-paper/90 backdrop-blur-md",
+    "transition-[width,transform,visibility] duration-200 ease-out",
     // Mobile positioning & state
     isOpenMobile
       ? "fixed top-[72px] left-0 right-0 z-50 max-h-[calc(100vh-72px)] border-b shadow-lg translate-y-0 visible"
@@ -212,12 +212,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Zaiflu: hover = -2px lift + 350ms universal timing; active state tetap
   // memakai border-l-4 gold (a11y & collapsed icon-only state utuh).
   const navItemClass = (isActive: boolean) =>
-    `group w-full flex items-center gap-3 rounded-r-lg transition-all duration-350 ease-zaiflu hover:-translate-y-0.5 ${
+    `group w-full flex items-center gap-3 rounded-card transition-[background-color,border-color,color] duration-150 ease-out ${
       isDesktopCollapsed ? "justify-center px-2" : "pl-4 pr-3"
     } py-3 border-l-4 text-sm min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-1 ${
       isActive
-        ? "border-baznas-gold-display bg-baznas-paper font-bold text-baznas-ink"
-        : "border-transparent text-baznas-ink/70 hover:bg-baznas-paper/50 hover:text-baznas-ink hover:border-baznas-ink-12"
+        ? "border-baznas-gold-display bg-white font-bold text-baznas-ink shadow-rest"
+        : "border-transparent text-baznas-ink/70 hover:bg-white/80 hover:text-baznas-ink hover:border-baznas-ink-12"
     }`;
 
   const navItemIconClass = (isActive: boolean) =>
@@ -226,10 +226,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Group label: hidden saat collapsed (tetap di DOM sebagai sr-only untuk screen reader)
   const groupLabel = (text: string) => (
     <p
-      className={`text-[10px] font-bold tracking-[0.18em] text-baznas-ink/40 uppercase mb-2 ${
+      className={`mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-baznas-ink/40 ${
         isDesktopCollapsed ? "lg:sr-only" : "px-4"
       }`}
     >
+      <span aria-hidden="true" className="h-px w-5 bg-baznas-gold-display/70" />
       {text}
     </p>
   );
@@ -420,9 +421,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             memberi crossfade-up 350ms, satu arah masuk saja. */}
         <motion.nav
           key={activeRoleView}
-          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: EASE_SOFT }}
+          transition={{ duration: 0 }}
           className="flex-1 overflow-y-auto py-2.5"
           aria-label="Navigasi modul"
         >

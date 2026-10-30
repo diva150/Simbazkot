@@ -342,7 +342,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
 
   // ── Render ──────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* DASHBOARD SUPERADMIN — Pengaturan Sistem */}
       <ModuleDashboardShell
         eyebrow="Superadmin"
@@ -351,23 +351,24 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
         ghost="08"
       >
         {/* Identity strip — preserves header chrome (pangkat + ringkasan) */}
-        <div className="flex flex-wrap items-center gap-4 border border-baznas-ink-8 bg-white p-4 rounded-card">
+        <div className="relative flex flex-wrap items-center gap-4 overflow-hidden rounded-panel border border-baznas-petrol-900 bg-mesh-dark p-5 text-white shadow-float sm:p-6">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-14 -top-20 h-44 w-44 rounded-full border border-white/10" />
           <div
-            className="rounded-md border border-baznas-gold-display bg-baznas-ink p-3 text-white"
+            className="relative z-10 rounded-card border border-baznas-gold-display/70 bg-white/[0.06] p-3 text-baznas-gold-display"
             aria-hidden="true"
           >
             <ShieldCheck className="h-7 w-7 text-baznas-gold-400" />
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="relative z-10 min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-block bg-baznas-paper/60 px-3 py-0.5 text-xs font-bold text-baznas-ink border border-baznas-ink-20">
+                <span className="inline-block rounded-chip border border-white/20 bg-white/[0.08] px-3 py-1 text-xs font-bold text-white">
                 Superadministrator
               </span>
-              <span className="text-sm font-semibold text-baznas-ink/85">
+                <span className="text-sm font-semibold text-white/90">
                 {currentUser.nama}
               </span>
             </div>
-            <p className="text-xs text-baznas-ink/65 mt-1">
+            <p className="mt-1 text-xs text-white/70">
               Kelola akun pengguna BAZNAS lintas 6 bidang, hak akses, serta
               kustomisasi beranda publik
             </p>
@@ -427,12 +428,12 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
         </div>
 
         {/* Tab Navigator — preserved verbatim (handlers + a11y intact) */}
-        <div className="flex flex-wrap items-center rounded-xl bg-baznas-paper/60 p-1 border border-baznas-ink-8 text-xs font-semibold gap-1">
+        <div className="flex flex-wrap items-center gap-1 rounded-card border border-baznas-ink-8 bg-baznas-paper/60 p-1 text-xs font-semibold shadow-rest">
           <button
             onClick={() => setActiveTab("manajemen_akun")}
             className={`rounded-lg px-3.5 py-2.5 transition-all flex items-center gap-2 ${
               activeTab === "manajemen_akun"
-                ? "bg-white text-baznas-ink font-bold"
+                ? "bg-white text-baznas-ink font-bold shadow-rest"
                 : "text-baznas-ink/65 hover:text-baznas-ink"
             }`}
           >
@@ -444,7 +445,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
             onClick={() => setActiveTab("editor_beranda")}
             className={`rounded-lg px-3.5 py-2.5 transition-all flex items-center gap-2 ${
               activeTab === "editor_beranda"
-                ? "bg-white text-baznas-ink font-bold"
+                ? "bg-white text-baznas-ink font-bold shadow-rest"
                 : "text-baznas-ink/65 hover:text-baznas-ink"
             }`}
           >
@@ -456,7 +457,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
             onClick={() => setActiveTab("bidang_access")}
             className={`rounded-lg px-3.5 py-2.5 transition-all flex items-center gap-2 ${
               activeTab === "bidang_access"
-                ? "bg-white text-baznas-ink font-bold"
+                ? "bg-white text-baznas-ink font-bold shadow-rest"
                 : "text-baznas-ink/65 hover:text-baznas-ink"
             }`}
           >
@@ -470,7 +471,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
       {canAccessTab(currentUser, "admin", "manajemen_akun") &&
         activeTab === "manajemen_akun" && (
           <div className="space-y-6">
-            <div className="border border-baznas-ink-8 bg-baznas-paper/40 p-5 flex items-start gap-3">
+            <div className="flex items-start gap-3 rounded-card border border-baznas-gold-display/60 bg-baznas-paper/50 p-5 shadow-rest">
               <ShieldAlert className="h-5 w-5 text-baznas-ink shrink-0 mt-0.5" />
               <div className="text-xs text-baznas-ink/85 leading-relaxed">
                 <span className="font-bold block">Kebijakan Akun BAZNAS:</span>
@@ -482,7 +483,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
             </div>
 
             {/* Toolbar */}
-            <div className="border border-baznas-ink-8 bg-white p-4 flex flex-col md:flex-row md:items-center gap-3">
+            <div className="flex flex-col gap-3 rounded-card border border-baznas-ink-8 bg-white p-4 shadow-rest md:flex-row md:items-center">
               <div className="relative flex-1 min-w-0">
                 <Search
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-baznas-ink/40"
@@ -520,7 +521,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
               <button
                 type="button"
                 onClick={openCreateModal}
-                className="flex items-center gap-2 bg-baznas-ink hover:bg-baznas-ink/90 px-4 py-2 text-xs font-bold text-white transition-colors min-h-t-target focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
+                className="flex min-h-t-target items-center gap-2 rounded-card bg-baznas-green-900 px-4 py-2 text-xs font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-baznas-green-800 hover:shadow-lift focus:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2"
               >
                 <Plus className="h-4 w-4" />
                 <span>Buat Akun Baru</span>
@@ -528,7 +529,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
             </div>
 
             {/* User table */}
-            <div className="border border-baznas-ink-8 bg-white overflow-hidden">
+            <div className="overflow-hidden rounded-panel border border-baznas-ink-8 bg-white shadow-rest">
               <div className="p-4 border-b border-baznas-ink-8 bg-baznas-paper/30 flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-baznas-ink font-poppins">
@@ -681,7 +682,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="border border-baznas-ink-8 bg-white p-8 space-y-6">
+              <div className="space-y-6 rounded-panel border border-baznas-ink-8 bg-white p-6 shadow-rest sm:p-8">
                 <h4 className="text-sm font-bold text-baznas-ink font-poppins flex items-center gap-2 border-b border-baznas-ink-8 pb-2">
                   <Sparkles className="h-4 w-4 text-baznas-gold-500" />
                   <span>1. Hero Banner Utama</span>
@@ -721,7 +722,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                 </div>
               </div>
 
-              <div className="border border-baznas-ink-8 bg-white p-8 space-y-6">
+              <div className="space-y-6 rounded-panel border border-baznas-ink-8 bg-white p-6 shadow-rest sm:p-8">
                 <h4 className="text-sm font-bold text-baznas-ink font-poppins flex items-center gap-2 border-b border-baznas-ink-8 pb-2">
                   <Building className="h-4 w-4 text-baznas-green-900" />
                   <span>2. Capaian Statistik Publik</span>
@@ -774,7 +775,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                 </div>
               </div>
 
-              <div className="border border-baznas-ink-8 bg-white p-8 space-y-6">
+              <div className="space-y-6 rounded-panel border border-baznas-ink-8 bg-white p-6 shadow-rest sm:p-8">
                 <h4 className="text-sm font-bold text-baznas-ink font-poppins flex items-center gap-2 border-b border-baznas-ink-8 pb-2">
                   <Compass className="h-4 w-4 text-baznas-ink" />
                   <span>3. Visi &amp; Misi BAZNAS</span>
@@ -812,7 +813,7 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
                 </div>
               </div>
 
-              <div className="border border-baznas-ink-8 bg-white p-8 space-y-6">
+              <div className="space-y-6 rounded-panel border border-baznas-ink-8 bg-white p-6 shadow-rest sm:p-8">
                 <h4 className="text-sm font-bold text-baznas-ink font-poppins flex items-center gap-2 border-b border-baznas-ink-8 pb-2">
                   <CreditCard className="h-4 w-4 text-baznas-green-900" />
                   <span>4. Rekening Bank &amp; Kontak Kantor</span>
@@ -950,9 +951,9 @@ export const AdminUserManagementView: React.FC<AdminUserManagementViewProps> = (
           title={editingUserId ? "Ubah Akun Pengguna" : "Buat Akun Baru"}
           size="full"
           showCloseButton={false}
-          panelClassName="max-w-2xl bg-white border border-baznas-ink-8 shadow-lift overflow-hidden my-auto max-h-[94vh] flex flex-col"
+          panelClassName="max-w-2xl overflow-hidden rounded-panel border border-baznas-ink-8 bg-white shadow-deep my-auto max-h-[94vh] flex flex-col"
         >
-            <div className="border border-baznas-ink-8 bg-baznas-ink px-6 py-5 text-white flex items-center justify-between shrink-0">
+            <div className="flex shrink-0 items-center justify-between bg-mesh-dark px-6 py-5 text-white">
               <div className="flex items-center gap-3">
                 <div className="border border-baznas-gold-display p-2 text-baznas-gold-display">
                   {editingUserId ? <Edit3 className="h-4 w-4" /> : <Plus className="h-4 w-4" />}

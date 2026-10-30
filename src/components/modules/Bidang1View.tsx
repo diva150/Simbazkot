@@ -478,28 +478,30 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       : null;
 
   return (
-    <div className="space-y-6">
-      {/* Header Modul — editorial style, no gradient */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-baznas-ink-8 pb-4">
+    <div className="space-y-8">
+      {/* Unit header: one strong visual anchor for every Bidang I tab. */}
+      <section className="relative overflow-hidden rounded-panel bg-mesh-dark p-6 text-white shadow-float sm:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-14 -top-20 h-48 w-48 rounded-full border border-white/10" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/3 h-44 w-44 rounded-full border border-baznas-gold-display/20" />
         <div className="flex items-center gap-3">
-          <div className="border border-baznas-gold-display p-2.5 text-baznas-ink">
+          <div className="relative z-10 rounded-card border border-baznas-gold-display/70 bg-white/[0.06] p-3 text-baznas-gold-display">
             <HandCoins className="h-6 w-6" />
           </div>
-          <div>
+          <div className="relative z-10">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold text-baznas-ink font-poppins">
+              <h1 className="text-xl font-bold text-white font-poppins sm:text-2xl">
                 Bidang I — Pengumpulan ZIS &amp; DSKL
               </h1>
-              <span className="bg-baznas-paper border border-baznas-ink-8 px-2.5 py-0.5 text-[10px] font-bold text-baznas-ink uppercase tracking-wider">
+              <span className="rounded-chip border border-white/20 bg-white/[0.08] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white/85">
                 Unit Pengumpulan
               </span>
             </div>
-            <p className="text-xs text-baznas-ink/55 mt-1">
-              Pejabat: <span className="font-semibold text-baznas-ink/80">Husain Dima</span> (Waka 1) — Staf: Minarti Alhabsyi (Pengumpulan) &amp; Azmi K. Jassin (Pelaporan &amp; Perencanaan)
+            <p className="mt-2 max-w-3xl text-xs leading-relaxed text-white/70">
+              Pejabat: <span className="font-semibold text-white">Husain Dima</span> (Waka 1) — Staf: Minarti Alhabsyi (Pengumpulan) &amp; Azmi K. Jassin (Pelaporan &amp; Perencanaan)
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* 1. DASHBOARD RINGKASAN */}
       {canAccessTab(currentUser, "bidang1", "dashboard") && activeTab === "dashboard" && (
@@ -583,7 +585,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                     const firstJenis = JENIS_BY_TAB[qa.tab][0].id;
                     setJenisZis(firstJenis);
                   }}
-                  className="group text-left bg-white border border-baznas-ink-8 border-l-4 border-l-baznas-gold-display p-5 hover:border-l-baznas-green-800 transition-colors min-h-t-target-lg"
+                  className="group min-h-t-target-lg rounded-card border border-baznas-ink-8 border-l-4 border-l-baznas-gold-display bg-white p-5 text-left shadow-rest transition-all duration-350 ease-zaiflu hover:-translate-y-0.5 hover:border-l-baznas-green-800 hover:shadow-lift"
                 >
                   <Icon className={`h-5 w-5 ${qa.accentColor} mb-3`} aria-hidden="true" />
                   <h3 className="text-sm font-bold text-baznas-ink font-poppins">{qa.title}</h3>
@@ -597,7 +599,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
       {/* 2. DATA MUZAKKI */}
       {canAccessTab(currentUser, "bidang1", "muzakki") && activeTab === "muzakki" && (
-        <div className="border border-baznas-ink-8 bg-white p-7 space-y-6">
+        <div className="space-y-6 rounded-panel border border-baznas-ink-8 bg-white p-5 shadow-rest sm:p-7">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
               <h3 className="text-lg font-bold text-baznas-ink font-poppins">
@@ -612,7 +614,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsAddMuzakkiModalOpen(true)}
-                className="inline-flex items-center gap-1.5 border border-baznas-ink bg-baznas-green-900 hover:bg-baznas-green-800 px-4 py-2.5 text-xs font-bold text-white transition-colors min-h-t-target"
+                className="inline-flex min-h-t-target items-center gap-1.5 rounded-card border border-baznas-green-900 bg-baznas-green-900 px-4 py-2.5 text-xs font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-baznas-green-800 hover:shadow-lift"
               >
                 <Plus className="h-4 w-4" />
                 Tambah Muzakki
@@ -621,7 +623,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsImportModalOpen(true)}
-                className="inline-flex items-center gap-1.5 border border-baznas-ink-20 bg-white hover:bg-baznas-paper/40 px-4 py-2.5 text-xs font-bold text-baznas-ink/80 transition-colors min-h-t-target"
+                className="inline-flex min-h-t-target items-center gap-1.5 rounded-card border border-baznas-ink-20 bg-white px-4 py-2.5 text-xs font-bold text-baznas-ink/80 transition-all hover:-translate-y-0.5 hover:bg-baznas-paper/40 hover:shadow-rest"
               >
                 <Upload className="h-3.5 w-3.5 text-baznas-green-800" />
                 Import Excel
@@ -630,7 +632,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
               <button
                 type="button"
                 onClick={handleExportMuzakki}
-                className="inline-flex items-center gap-1.5 border border-baznas-ink-20 bg-white hover:bg-baznas-paper/40 px-4 py-2.5 text-xs font-bold text-baznas-ink/80 transition-colors min-h-t-target"
+                className="inline-flex min-h-t-target items-center gap-1.5 rounded-card border border-baznas-ink-20 bg-white px-4 py-2.5 text-xs font-bold text-baznas-ink/80 transition-all hover:-translate-y-0.5 hover:bg-baznas-paper/40 hover:shadow-rest"
               >
                 <Download className="h-3.5 w-3.5 text-baznas-green-800" />
                 Export ({filteredMuzakki.length})
@@ -722,7 +724,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
           )}
 
           {/* Tabel Data Muzakki */}
-          <div className="overflow-x-auto border border-baznas-ink-8">
+          <div className="overflow-x-auto rounded-card border border-baznas-ink-8 shadow-rest">
             <table className="w-full min-w-[600px] text-xs text-left">
               <thead className="bg-baznas-paper text-baznas-ink/70 text-[11px] font-bold uppercase tracking-wider border-b border-baznas-ink-8">
                 <tr>
@@ -796,12 +798,26 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
       {/* 3. INPUT PENERIMAAN */}
       {currentTabKey && canAccessTab(currentUser, "bidang1", currentTabKey) && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 border border-baznas-ink-8 bg-white p-6">
-            <form onSubmit={handleSimpanSetoran} className="space-y-6">
+          <div className="lg:col-span-2 rounded-panel border border-baznas-ink-8 bg-white p-5 shadow-rest sm:p-7">
+            <div className="mb-6 flex flex-col gap-3 border-b border-baznas-ink-8 pb-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-baznas-gold-display">Penerimaan ZIS &amp; DSKL</p>
+                <h2 className="mt-1 text-2xl font-bold text-baznas-ink font-poppins">
+                  Catat {activeTab === "zakat" ? "Zakat" : activeTab === "infak" ? "Infak & Sedekah" : "DSKL"}
+                </h2>
+                <p className="mt-1 max-w-xl text-xs leading-relaxed text-baznas-ink/60">
+                  Lengkapi data penyetor, pilih jenis penerimaan, lalu terbitkan kwitansi resmi dalam satu alur.
+                </p>
+              </div>
+              <span className="inline-flex w-fit items-center rounded-chip border border-baznas-ink-12 bg-baznas-paper px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-baznas-ink/60">
+                Langkah {computedStep} dari 4
+              </span>
+            </div>
+            <form onSubmit={handleSimpanSetoran} className="bidang1-form space-y-6">
               {/* Wizard stepper — using BAZNAS palette only */}
               <ol
                 aria-label="Langkah-langkah pencatatan setoran"
-                className="flex items-center justify-between gap-1 bg-baznas-paper border border-baznas-ink-8 p-3"
+                className="flex items-center justify-between gap-1 rounded-card border border-baznas-ink-8 bg-mesh-light p-3"
               >
                 {[
                   { num: 1, label: "Muzakki" },
@@ -849,7 +865,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                   </h3>
 
                   {/* Toggle Database/Manual — sharp toggle */}
-                  <div className="flex border border-baznas-ink-20 bg-baznas-paper/40 text-xs">
+                  <div className="flex overflow-hidden rounded-card border border-baznas-ink-20 bg-baznas-paper/40 text-xs">
                     {(["database", "manual"] as const).map((mode) => (
                       <button
                         key={mode}
@@ -868,7 +884,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                 </div>
 
                 {muzakkiInputMode === "database" ? (
-                  <div className="space-y-4 border border-baznas-ink-8 bg-baznas-paper/30 p-4">
+                  <div className="space-y-4 rounded-card border border-baznas-ink-8 bg-baznas-paper/30 p-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-baznas-ink/45" />
@@ -910,7 +926,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                     </div>
 
                     {currentMuzakki && (
-                      <div className="border border-baznas-gold-display bg-baznas-paper/40 p-3 text-xs grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-2 gap-3 rounded-card border border-baznas-gold-display bg-baznas-paper/40 p-3 text-xs sm:grid-cols-4">
                         <div>
                           <span className="text-baznas-ink/45 block text-[10px] uppercase tracking-wider">Instansi</span>
                           <span className="font-bold text-baznas-ink">{currentMuzakki.namaInstansi}</span>
@@ -934,7 +950,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                     )}
                   </div>
                 ) : (
-                  <div className="space-y-4 border border-baznas-gold-display bg-baznas-paper/30 p-4">
+                  <div className="space-y-4 rounded-card border border-baznas-gold-display bg-baznas-paper/30 p-4">
                     <p className="text-[11px] text-baznas-ink/70 font-medium border-l-2 border-baznas-gold-display pl-3">
                       Mode Ketik Manual — untuk muzakki insidental, walk-in loket, atau penyetor yang belum terdaftar.
                     </p>
@@ -1052,10 +1068,10 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                           key={j.id}
                           type="button"
                           onClick={() => setJenisZis(j.id)}
-                          className={`border p-3 text-center text-xs font-bold uppercase tracking-wider transition-colors min-h-t-target ${
+                          className={`min-h-t-target rounded-card border p-3 text-center text-xs font-bold uppercase tracking-wider transition-all ${
                             jenisZis === j.id
-                              ? "border-baznas-gold-display bg-baznas-paper text-baznas-green-900"
-                              : "border-baznas-ink-20 bg-white text-baznas-ink/65 hover:border-baznas-ink-40"
+                              ? "border-baznas-gold-display bg-baznas-paper text-baznas-green-900 shadow-rest"
+                              : "border-baznas-ink-20 bg-white text-baznas-ink/65 hover:-translate-y-0.5 hover:border-baznas-ink-40 hover:shadow-rest"
                           }`}
                         >
                           {j.label}
@@ -1064,7 +1080,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                     </div>
 
                     {currentTabKey === "zakat" && jenisZis === "zakat_profesi" ? (
-                      <div className="border border-baznas-gold-display bg-baznas-paper/30 p-5 space-y-4">
+                      <div className="space-y-4 rounded-panel border border-baznas-gold-display bg-mesh-light p-5">
                         <div className="flex items-center gap-2 text-xs font-bold text-baznas-ink uppercase tracking-wider">
                           <Calculator className="h-4 w-4 text-baznas-gold-display" />
                           <span>Kalkulator Zakat Profesi Otomatis (2,5%)</span>
@@ -1086,7 +1102,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                             <label className="block text-[11px] font-semibold text-baznas-ink/70 mb-1.5">
                               Zakat Wajib (2,5%)
                             </label>
-                            <div className="border border-baznas-gold-display bg-white px-3 py-2.5 text-sm font-extrabold text-baznas-green-900 editorial-num">
+                            <div className="rounded-md border border-baznas-gold-display bg-white px-3 py-2.5 text-sm font-extrabold text-baznas-green-900 editorial-num shadow-rest">
                               {formatRupiah(calculatedZakat)}
                             </div>
                           </div>
@@ -1121,10 +1137,10 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                           key={m}
                           type="button"
                           onClick={() => setMetode(m)}
-                          className={`flex-1 border p-2.5 text-xs font-bold uppercase tracking-wider transition-colors min-h-t-target ${
+                          className={`min-h-t-target flex-1 rounded-card border p-2.5 text-xs font-bold uppercase tracking-wider transition-all ${
                             metode === m
-                              ? "border-baznas-gold-display bg-baznas-paper text-baznas-green-900"
-                              : "border-baznas-ink-20 bg-white text-baznas-ink/65 hover:border-baznas-ink-40"
+                              ? "border-baznas-gold-display bg-baznas-paper text-baznas-green-900 shadow-rest"
+                              : "border-baznas-ink-20 bg-white text-baznas-ink/65 hover:-translate-y-0.5 hover:border-baznas-ink-40 hover:shadow-rest"
                           }`}
                         >
                           {m === "tunai" ? "Tunai di Loket" : "Transfer Bank"}
@@ -1170,7 +1186,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmittingSetoran}
-                  className="inline-flex items-center justify-center gap-2 min-h-t-target-lg border border-baznas-ink bg-baznas-ink hover:bg-baznas-ink/90 px-6 py-3 text-sm font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex min-h-t-target-lg items-center justify-center gap-2 rounded-card border border-baznas-green-900 bg-baznas-green-900 px-6 py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-baznas-green-800 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-baznas-green-800 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Printer className="h-4 w-4" />
                   Simpan &amp; Cetak Kwitansi
@@ -1181,7 +1197,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
           {/* Kolom Kanan: Pratinjau Kwitansi — no gradient, BAZNAS palette */}
           <div className="space-y-4">
-            <div className="border border-baznas-gold-display bg-baznas-paper/30 p-5">
+            <div className="rounded-panel border border-baznas-gold-display bg-baznas-paper/30 p-5 shadow-rest">
               <span className="text-[10px] font-bold uppercase tracking-wider text-baznas-gold-display">
                 Nilai Siap Diterbitkan
               </span>
@@ -1230,7 +1246,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
               </div>
             </div>
 
-            <div className="border border-baznas-ink-8 bg-white p-5 text-xs space-y-2">
+            <div className="space-y-2 rounded-card border border-baznas-ink-8 bg-white p-5 text-xs shadow-rest">
               <h4 className="font-bold text-baznas-ink font-poppins text-sm">Layanan Cepat Loket</h4>
               <p className="text-baznas-ink/60 leading-relaxed text-[11px]">
                 Setiap pembayaran yang tersimpan akan langsung terdata pada buku kas penerimaan harian dan bukti kwitansi resmi siap dicetak dengan kop BAZNAS.
@@ -1242,7 +1258,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
       {/* 4. LAPORAN PENERIMAAN */}
       {canAccessTab(currentUser, "bidang1", "laporan") && activeTab === "laporan" && (
-        <div className="border border-baznas-ink-8 bg-white p-7 space-y-6">
+        <div className="space-y-6 rounded-panel border border-baznas-ink-8 bg-white p-5 shadow-rest sm:p-7">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-lg font-bold text-baznas-ink font-poppins">
@@ -1256,7 +1272,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
             <button
               type="button"
               onClick={handleExportSetoran}
-              className="inline-flex items-center gap-1.5 border border-baznas-ink bg-baznas-ink hover:bg-baznas-ink/90 px-4 py-2.5 text-xs font-bold text-white transition-colors min-h-t-target"
+              className="inline-flex min-h-t-target items-center gap-1.5 rounded-card border border-baznas-ink bg-baznas-ink px-4 py-2.5 text-xs font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-baznas-ink/90 hover:shadow-lift"
             >
               <Download className="h-4 w-4" />
               Export Laporan ({filteredSetoran.length})
@@ -1314,7 +1330,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
             </select>
           </div>
 
-          <div className="overflow-x-auto border border-baznas-ink-8">
+          <div className="overflow-x-auto rounded-card border border-baznas-ink-8 shadow-rest">
             <table className="w-full min-w-[600px] text-xs text-left">
               <thead className="bg-baznas-paper text-baznas-ink/70 text-[11px] font-bold uppercase tracking-wider border-b border-baznas-ink-8">
                 <tr>
@@ -1361,7 +1377,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
                       <button
                         type="button"
                         onClick={() => onViewKwitansi(s)}
-                        className="inline-flex items-center gap-1 border border-baznas-gold-display bg-baznas-paper text-baznas-green-900 hover:bg-baznas-ink hover:text-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors min-h-t-target"
+                        className="inline-flex min-h-t-target items-center gap-1 rounded-card border border-baznas-gold-display bg-baznas-paper px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-baznas-green-900 transition-all hover:-translate-y-0.5 hover:bg-baznas-ink hover:text-white hover:shadow-rest"
                       >
                         <Printer className="h-3.5 w-3.5" />
                         Cetak
@@ -1384,36 +1400,42 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
 
       {/* 5. PENGATURAN */}
       {canAccessTab(currentUser, "bidang1", "pengaturan") && activeTab === "pengaturan" && (
-        <div className="border border-baznas-ink-8 bg-white p-7 space-y-6 max-w-2xl">
+        <div className="max-w-2xl space-y-6 rounded-panel border border-baznas-ink-8 bg-white p-5 shadow-rest sm:p-7">
           <h3 className="text-lg font-bold text-baznas-ink font-poppins">
             Pengaturan Standar Nisab &amp; Rekening Pengumpulan
           </h3>
 
           <div className="space-y-4 text-xs">
-            <div className="border border-baznas-ink-8 p-5 space-y-4">
-              <span className="font-bold text-baznas-ink block text-sm">Standar Zakat Fitrah 1448 H</span>
+            <div className="space-y-4 rounded-card border border-baznas-ink-8 bg-baznas-paper/40 p-5">
+              <div>
+                <span className="block text-sm font-bold text-baznas-ink">Standar Zakat Fitrah 1448 H</span>
+                <span className="mt-1 block text-[11px] text-baznas-ink/55">Parameter dasar yang tampil saat petugas menghitung zakat fitrah.</span>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-baznas-ink/55 mb-1.5">Beras Standar per Jiwa</label>
-                  <input type="text" defaultValue="2,5 Kg / 3,5 Liter" disabled className="w-full bg-baznas-paper/40 border border-baznas-ink-20 p-2.5 text-baznas-ink" />
+                  <input type="text" defaultValue="2,5 Kg / 3,5 Liter" disabled className="w-full rounded-md border border-baznas-ink-20 bg-white/70 p-2.5 text-baznas-ink" />
                 </div>
                 <div>
                   <label className="block text-baznas-ink/55 mb-1.5">Konversi Uang (Rp)</label>
-                  <input type="text" defaultValue="Rp 45.000 / Jiwa" className="w-full bg-white border border-baznas-ink-20 p-2.5 text-baznas-ink font-bold" />
+                  <input type="text" defaultValue="Rp 45.000 / Jiwa" className="w-full rounded-md border border-baznas-ink-20 bg-white p-2.5 font-bold text-baznas-ink" />
                 </div>
               </div>
             </div>
 
-            <div className="border border-baznas-ink-8 p-5 space-y-4">
-              <span className="font-bold text-baznas-ink block text-sm">Nisab Zakat Profesi &amp; Maal</span>
+            <div className="space-y-4 rounded-card border border-baznas-gold-display/70 bg-mesh-light p-5">
+              <div>
+                <span className="block text-sm font-bold text-baznas-ink">Nisab Zakat Profesi &amp; Maal</span>
+                <span className="mt-1 block text-[11px] text-baznas-ink/55">Ambang minimal harta atau penghasilan sebelum kewajiban zakat berlaku.</span>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-baznas-ink/55 mb-1.5">Setara Emas Murni</label>
-                  <input type="text" defaultValue="85 Gram Emas" disabled className="w-full bg-baznas-paper/40 border border-baznas-ink-20 p-2.5 text-baznas-ink" />
+                  <input type="text" defaultValue="85 Gram Emas" disabled className="w-full rounded-md border border-baznas-ink-20 bg-white/70 p-2.5 text-baznas-ink" />
                 </div>
                 <div>
                   <label className="block text-baznas-ink/55 mb-1.5">Nisab per Bulan (Rp)</label>
-                  <input type="text" defaultValue="Rp 6.875.000 / Bulan" className="w-full bg-white border border-baznas-ink-20 p-2.5 text-baznas-ink font-bold" />
+                  <input type="text" defaultValue="Rp 6.875.000 / Bulan" className="w-full rounded-md border border-baznas-ink-20 bg-white p-2.5 font-bold text-baznas-ink" />
                 </div>
               </div>
             </div>
@@ -1421,7 +1443,7 @@ export const Bidang1View: React.FC<Bidang1ViewProps> = ({
             <button
               type="button"
               onClick={() => toastSuccess("Pengaturan Nisab Tersimpan", "Parameter Nisab untuk Bidang I telah diperbarui.")}
-              className="border border-baznas-ink bg-baznas-ink hover:bg-baznas-ink/90 text-white px-5 py-2.5 font-bold transition-colors min-h-t-target"
+              className="min-h-t-target rounded-card border border-baznas-ink bg-baznas-ink px-5 py-2.5 font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-baznas-ink/90 hover:shadow-lift"
             >
               Simpan Perubahan Pengaturan
             </button>

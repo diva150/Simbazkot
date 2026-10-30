@@ -1,5 +1,4 @@
-/* Fonts are now self-hosted via next/font/google in app/layout.tsx
-   (replaces the previous @import which was render-blocking). */
+/* System font stack keeps production builds independent from external font fetches. */
 
 @tailwind base;
 @tailwind components;
@@ -476,4 +475,32 @@ button.bg-baznas-green-900:focus-visible {
 }
 .tap-press:active {
   transform: scale(0.97);
+}
+
+/* Bidang I form: quiet grouped surfaces and consistent controls. */
+.bidang1-form > div {
+  border: 1px solid rgba(14, 26, 20, 0.08);
+  border-radius: 16px;
+  background: rgba(250, 247, 241, 0.42);
+  padding: 1rem;
+}
+.bidang1-form > div:first-of-type {
+  background: rgba(250, 247, 241, 0.62);
+}
+.bidang1-form input,
+.bidang1-form select {
+  border-radius: 10px;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.bidang1-form input:focus,
+.bidang1-form select:focus {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 145, 72, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bidang1-form input,
+  .bidang1-form select {
+    transition: none;
+  }
 }

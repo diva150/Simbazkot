@@ -253,7 +253,7 @@ export function HeroSection({
               The file is also cropped to its alpha bounding box, so unlike
               `/baznas-logo.png` it carries no dead transparent margin and
               can be sized directly. */}
-          <div className="relative w-full max-w-[25rem] border-y border-white/20 px-7 py-10 sm:px-10 sm:py-14">
+          <div className="relative w-full max-w-[25rem] rounded-panel border border-white/20 bg-white/[0.04] px-7 py-10 shadow-float backdrop-blur-sm sm:px-10 sm:py-14">
             <span aria-hidden="true" className="absolute left-0 top-0 h-12 w-px bg-baznas-gold-display" />
             <span aria-hidden="true" className="absolute bottom-0 right-0 h-12 w-px bg-baznas-gold-display" />
             <img
